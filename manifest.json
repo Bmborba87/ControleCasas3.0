@@ -1,8 +1,8 @@
 {
   "name": "Controle de Casas",
   "short_name": "Casas",
-  "description": "Controle de casas e valores organizados por nome.",
-  "start_url": "./",
+  "description": "Controle de saldo, apostas em jogo e rentabilidade por nome.",
+  "start_url": "./?app=2",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",

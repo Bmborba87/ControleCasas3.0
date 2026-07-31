@@ -1,27 +1,19 @@
-APLICATIVO INSTALÁVEL — CONTROLE DE CASAS
+CONTROLE DE CASAS — VERSÃO 2
 
-ARQUIVOS NECESSÁRIOS
-- index.html
-- manifest.json
-- service-worker.js
-- icon-192.png
-- icon-512.png
+Novos recursos:
+- Duplicar casas selecionadas para outro nome.
+- Casas duplicadas começam com saldo zero.
+- Adicionar e remover valores rapidamente.
+- Colocar valores em jogo.
+- Finalizar apostas e calcular lucro/prejuízo.
+- Rentabilidade por casa, nome e geral.
+- Aplicativo instalável.
 
-ENVIE TODOS PARA A RAIZ DO REPOSITÓRIO NO GITHUB.
+Atualização:
+1. Faça backup da versão atual.
+2. Envie todos os arquivos deste ZIP para a raiz do repositório.
+3. Substitua os antigos e faça Commit changes.
+4. Abra a página com ?app=2 no final.
+5. Se o app instalado não atualizar, remova-o e instale novamente.
 
-COMO INSTALAR NO ANDROID
-1. Abra o endereço do aplicativo no Google Chrome.
-2. Toque no botão "Instalar app", caso apareça.
-3. Se não aparecer, toque nos três pontos do Chrome.
-4. Escolha "Adicionar à tela inicial" ou "Instalar aplicativo".
-5. Confirme.
-
-Depois disso:
-- O aplicativo aparecerá junto com os outros apps.
-- Abrirá em tela cheia, sem a barra do Google.
-- Poderá funcionar mesmo sem internet após a primeira abertura.
-- Os dados continuarão salvos no próprio celular.
-
-IMPORTANTE
-Não abra o arquivo index.html diretamente pelo gerenciador de arquivos.
-Ele precisa estar publicado no GitHub Pages para a instalação funcionar.
+Rentabilidade = lucro líquido acumulado / total depositado.

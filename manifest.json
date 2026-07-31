@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=34",
+  "start_url": "./?v=35",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v34",
-  "description": "Gestão de casas, apostas, saldos, freebets e resultados."
+  "id": "./betmanager-v35",
+  "description": "Gestão de apostas com persistência blindada e cópias automáticas."
 }

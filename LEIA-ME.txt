@@ -1,19 +1,16 @@
-BETMANAGER — VERSÃO 34
+BETMANAGER — VERSÃO 35
 
-ALTERAÇÕES VISUAIS
-- Nome alterado para BetManager.
-- Escudo reduzido para não sobrepor o nome.
-- Subtítulo do cabeçalho removido.
+PERSISTÊNCIA BLINDADA
+- Estado vazio não substitui dados existentes.
+- Cópia de segurança criada já no primeiro salvamento.
+- Três cópias rotativas e duas cópias de recuperação.
+- Salvamento ao atualizar, fechar ou colocar o app em segundo plano.
+- Tema e escudo usam o mesmo salvamento protegido.
+- Botão “Recuperar dados” restaura automaticamente a melhor cópia.
+- Status mostra último salvamento e total de pessoas/casas.
 
-IMPORTAÇÃO CORRIGIDA
-- O backup é convertido, normalizado e aplicado ao estado ativo imediatamente.
-- Não depende de recarregar a página.
-- A tela Pessoas abre automaticamente após a importação.
-- Dashboard e demais telas são redesenhados na mesma hora.
-- O mesmo normalizador é usado na abertura e na importação.
-- Cópia permanente e cópia de recuperação continuam sendo salvas.
-
-TESTE COM O JSON ENVIADO
-- 5 pessoas.
-- 69 casas.
-- Bruno, Douglas, Luana, Lucas e Luíza.
+TESTE REAL
+- 5 pessoas e 69 casas salvas.
+- Tentativa de salvar tudo vazio foi bloqueada.
+- Reabertura recuperou 5 pessoas e 69 casas.
+- Cópia de segurança confirmada.

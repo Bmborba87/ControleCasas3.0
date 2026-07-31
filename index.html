@@ -9,7 +9,7 @@ window.__EMPTY_APP_STATE__={
 };
 window.__APP_BOOTSTRAP__=(function(){
  var keys=[
-  "controleApostasData","controleApostasRecovery","controleApostasV34",
+  "controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3","controleApostasV35",
   "controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27",
   "controleApostasV26","controleApostasV25","controleApostasV24","controleApostasV23",
   "controleApostasV22","controleApostasV21","controleApostasV20","controleApostasV19",
@@ -305,7 +305,7 @@ body.dark .personSummaryCard{background:#18243a}
   <div class="headerBrand">
    <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
    <div>
-    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v34</small></h1>
+    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v35</small></h1>
     
    </div>
   </div>
@@ -614,8 +614,8 @@ window.goToSection=function(id){
         }
         var serialized=JSON.stringify(migrated);
         localStorage.setItem(BACKUP_KEY,serialized);
-        localStorage.setItem("controleApostasRecovery",serialized);
-        localStorage.setItem("controleApostasV34",serialized);
+        localStorage.setItem("controleApostasRecovery",serialized);localStorage.setItem("betmanagerRecovery",serialized);
+        localStorage.setItem("controleApostasV35",serialized);
         COMPATIBLE_KEYS.forEach(function(key){
           try{localStorage.setItem(key,serialized)}catch(error){console.warn("Falha na chave "+key,error)}
         });
@@ -654,9 +654,7 @@ window.goToSection=function(id){
   
   window.addEventListener("pagehide",function(){
     try{
-      if(window.S&&typeof window.storageSafeState==="function"){
-        localStorage.setItem(BACKUP_KEY,JSON.stringify(window.storageSafeState(window.S)))
-      }
+      if(typeof window.persistState==="function")window.persistState()
     }catch(error){console.warn("Falha no salvamento ao sair:",error)}
   });
 
@@ -724,7 +722,7 @@ window.goToSection=function(id){
 <select id="fOpen"><option value="all">Todas</option><option value="open">Com aposta aberta</option><option value="none">Sem aposta aberta</option></select>
 <select id="fResult"><option value="all">Qualquer resultado</option><option value="profit">Com lucro</option><option value="loss">Com prejuízo</option></select>
 </div>
-<div class="card" style="display:flex;gap:7px;flex-wrap:wrap"><strong id="dataDiagnostic" style="align-self:center"></strong><button id="showImportedBtn" type="button" class="primary" onclick="goToSection('people');render();return false">Ver dados importados</button><button id="exportBtn" type="button" class="secondary" onclick="return independentBackupExport()">Exportar backup</button><button id="importBtn" type="button" class="secondary" onclick="return independentBackupChoose()">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden onchange="return independentBackupImport(this)"></div>
+<div class="card" style="display:flex;gap:7px;flex-wrap:wrap"><strong id="dataDiagnostic" style="align-self:center"></strong><button id="recoverBtn" type="button" class="warning" onclick="recoverLatestData();return false">Recuperar dados</button><button id="showImportedBtn" type="button" class="primary" onclick="goToSection('people');render();return false">Ver dados importados</button><button id="exportBtn" type="button" class="secondary" onclick="return independentBackupExport()">Exportar backup</button><button id="importBtn" type="button" class="secondary" onclick="return independentBackupChoose()">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden onchange="return independentBackupImport(this)"></div>
 <div id="peopleList"></div>
 </section>
 
@@ -1006,11 +1004,59 @@ window.storageSafeState=function storageSafeState(source){
  }
  return copy
 }
-window.persistState=function persistState(){
- let safe=storageSafeState(S);
+
+function stateCounts(state){
+ state=state||{};
+ let people=Array.isArray(state.people)?state.people.length:0;
+ let houses=(Array.isArray(state.people)?state.people:[]).reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0);
+ let bets=Array.isArray(state.bets)?state.bets.length:0;
+ let moves=Array.isArray(state.moves)?state.moves.length:0;
+ let goals=Array.isArray(state.weeklyGoals)?state.weeklyGoals.length:0;
+ return {people,houses,bets,moves,goals,total:people+houses+bets+moves+goals}
+}
+function readStoredState(key){
  try{
-  localStorage.setItem(KEY,JSON.stringify(safe));
+  let raw=localStorage.getItem(key);
+  if(!raw)return null;
+  let parsed=JSON.parse(raw);
+  return parsed&&typeof parsed==="object"?parsed:null
+ }catch(error){
+  console.warn("Estado inválido em "+key,error);
+  return null
+ }
+}
+function rotateSafetyCopies(serialized){
+ try{
+  let current=localStorage.getItem(KEY);
+  let old1=localStorage.getItem("betmanagerSafety1");
+  let old2=localStorage.getItem("betmanagerSafety2");
+  if(old2)localStorage.setItem("betmanagerSafety3",old2);
+  if(old1)localStorage.setItem("betmanagerSafety2",old1);
+  localStorage.setItem("betmanagerSafety1",current||serialized);
+  localStorage.setItem("betmanagerRecovery",serialized)
+ }catch(error){console.warn("Falha ao criar cópias de segurança:",error)}
+}
+
+window.persistState=function persistState(options={}){
+ window.S=S;
+ let safe=storageSafeState(S);
+ let newCounts=stateCounts(safe);
+ let stored=readStoredState(KEY);
+ let storedCounts=stateCounts(stored);
+
+ if(!options.allowEmpty&&newCounts.total===0&&storedCounts.total>0){
+  console.error("Salvamento vazio bloqueado. Dados existentes preservados.");
+  S=window.S=normalizeCurrentState(stored);
+  return false
+ }
+
+ try{
+  let serialized=JSON.stringify(safe);
+  rotateSafetyCopies(serialized);
+  localStorage.setItem(KEY,serialized);
+  localStorage.setItem("controleApostasRecovery",serialized);
   localStorage.setItem("controleApostasLastSave",new Date().toISOString());
+  localStorage.setItem("betmanagerLastCounts",JSON.stringify(newCounts));
   return true
  }catch(error){
   console.error("Falha ao salvar dados:",error);
@@ -1019,12 +1065,15 @@ window.persistState=function persistState(){
    safe.trash=(safe.trash||[]).slice(0,50);
    safe.undoStack=[];
    safe.snapshots=(safe.snapshots||[]).slice(-90);
-   localStorage.setItem(KEY,JSON.stringify(safe));
+   let serialized=JSON.stringify(safe);
+   rotateSafetyCopies(serialized);
+   localStorage.setItem(KEY,serialized);
+   localStorage.setItem("controleApostasRecovery",serialized);
    localStorage.setItem("controleApostasLastSave",new Date().toISOString());
    return true
   }catch(secondError){
    console.error("Segunda tentativa de salvamento falhou:",secondError);
-   alert("Não foi possível salvar os dados no aparelho. Exporte um backup e verifique o espaço disponível do navegador.");
+   alert("Não foi possível salvar os dados. Exporte um backup e verifique o espaço disponível.");
    return false
   }
  }
@@ -1070,7 +1119,7 @@ window.applyImportedState=function applyImportedState(imported){
  S=window.S=normalizeCurrentState(imported);
  try{normalizeBets()}catch(error){console.error("Falha ao normalizar apostas:",error)}
  try{S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal)}catch(error){console.error("Falha ao normalizar metas:",error)}
- if(typeof persistState==="function"&&!persistState()){
+ if(typeof persistState==="function"&&!persistState({allowEmpty:false})){
   throw new Error("Não foi possível salvar o backup no armazenamento do aparelho.")
  }
  if(typeof render==="function")render();
@@ -1130,10 +1179,28 @@ window.openPanel=id=>{
 };
 document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
 
+
+window.recoverLatestData=function(){
+ let keys=["controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3"];
+ let candidates=[];
+ keys.forEach(key=>{
+  let state=readStoredState(key),counts=stateCounts(state);
+  if(state&&counts.total>0)candidates.push({key,state,counts})
+ });
+ candidates.sort((a,b)=>b.counts.total-a.counts.total);
+ if(!candidates.length)return alert("Nenhuma cópia com dados foi encontrada.");
+ let best=candidates[0];
+ S=window.S=normalizeCurrentState(best.state);
+ persistState({allowEmpty:false});
+ render();
+ goToSection("people");
+ alert("Dados recuperados.\n\nPessoas: "+best.counts.people+"\nCasas: "+best.counts.houses)
+};
+
 function renderSaveStatus(){
  let el=$("saveStatus");if(!el)return;
  let last=localStorage.getItem("controleApostasLastSave");
- el.textContent=last?"Último salvamento: "+new Date(last).toLocaleString("pt-BR"):"Dados salvos automaticamente neste aparelho."
+ let c=stateCounts(S);el.textContent=(last?"Último salvamento: "+new Date(last).toLocaleString("pt-BR"):"Dados salvos automaticamente")+" • "+c.people+" pessoa(s) • "+c.houses+" casa(s)"
 }
 
 function render(){
@@ -1805,7 +1872,7 @@ $("crestImageInput").onchange=function(){
 $("removeCrestImage").onclick=async()=>{
  let a=appearanceSettings();a.crestImage="";
  $("crestImageInput").value="";
- localStorage.setItem(KEY,JSON.stringify(S));
+ persistState();
  renderAppearance();
  if(TEAM_WIKI_TITLES[a.theme])await cacheOfficialCrest(a.theme,true)
 };
@@ -1982,7 +2049,7 @@ function migrateBackup(x){
 
 window.closeD=id=>$(id).close();
 function applyTheme(){document.body.classList.toggle("dark",S.settings&&S.settings.theme==="dark");$("themeBtn").textContent=document.body.classList.contains("dark")?"☀️":"🌙"}
-$("themeBtn").onclick=()=>{S.settings=S.settings||{};S.settings.theme=document.body.classList.contains("dark")?"light":"dark";localStorage.setItem(KEY,JSON.stringify(S));applyTheme()};
+$("themeBtn").onclick=()=>{S.settings=S.settings||{};S.settings.theme=document.body.classList.contains("dark")?"light":"dark";persistState();applyTheme()};
 let dp=null;
 function isInstalled(){
  return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true

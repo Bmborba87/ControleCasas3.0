@@ -149,6 +149,17 @@ details.betGroup[open]>summary{border-bottom:1px solid var(--border)}
 .returnGross{color:var(--blue)}.resultPositive{color:var(--green)}.resultNegative{color:var(--red)}
 .balanceAdjustmentNote{margin-top:8px;padding:8px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:.75rem}
 body.dark .balanceAdjustmentNote{background:#0f1d35;border-color:#294c7a}
+
+.chanceDoubleGreen{
+ background:linear-gradient(135deg,#ecfdf5,#dcfce7);
+ border:1px solid #86efac!important;
+}
+.chanceDoubleGreen span{color:#166534!important;font-weight:700}
+.chanceDoubleGreen b,.chanceDoubleGreen strong{color:#14532d!important;font-size:1.08rem}
+body.dark .chanceDoubleGreen{background:linear-gradient(135deg,#052e16,#064e3b);border-color:#15803d!important}
+body.dark .chanceDoubleGreen span{color:#bbf7d0!important}
+body.dark .chanceDoubleGreen b,body.dark .chanceDoubleGreen strong{color:#dcfce7!important}
+
 </style>
 </head>
 <body>
@@ -178,7 +189,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v41</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v42</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -622,7 +633,7 @@ function updateBetPreview(){
  rows.forEach((row,index)=>{
   let e=entries[index],gross=entryPotentialReturn(e),own=entryOwnResult(e),scenario=gross-cashCost;
   row.querySelector(".entryPreview").innerHTML=e.stake>0&&e.odd>0
-   ?`Retorno bruto: <strong>${money(gross)}</strong> • Resultado individual: <strong>${money(own)}</strong> • Resultado da operação se só esta vencer: <strong>${money(scenario)}</strong>`
+   ?`Chance de Duplo Green: <strong>${money(gross)}</strong> • Resultado individual: <strong>${money(own)}</strong> • Resultado da operação se só esta vencer: <strong>${money(scenario)}</strong>`
    :"Preencha o valor e a odd."
  });
  if(!valid){
@@ -641,7 +652,7 @@ function updateBetPreview(){
  $("betSurebetPreview").innerHTML=`
   <div>Total comprometido em saldo: <strong>${money(cashCost)}</strong></div>
   <div>Tipo: <strong>${entries.length>1?"Surebet protegida":"Superodd / sem proteção"}</strong></div>
-  ${pairs.length?`<div class="surebetScenarios">${pairs.map(p=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green com ${esc(p.selection)}<br><small>Retorno bruto para proteção ao vivo</small></span><strong>${money(p.gross)}<br><small>Resultado líquido ${money(p.net)}</small></strong></div>`).join("")}</div>`:"<div>Nenhuma proteção marcada como possível duplo green.</div>"}
+  ${pairs.length?`<div class="surebetScenarios">${pairs.map(p=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green com ${esc(p.selection)}<br><small>Valor adicional em destaque para possível duplo green e proteção ao vivo</small></span><strong>${money(p.gross)}<br><small>Resultado líquido ${money(p.net)}</small></strong></div>`).join("")}</div>`:"<div>Nenhuma proteção marcada como possível duplo green.</div>"}
  `
 }
 $("addBetEntry").onclick=()=>addBetEntryRow();
@@ -767,10 +778,10 @@ function renderBets(){
    return `<div class="betEntry"><div class="betTop"><div><span class="entryRoleBadge ${index===0?"main":"protection"}">${role}</span><strong style="display:block">${esc((p?p.name:"")+" • "+(h?h.name:""))}</strong><div class="muted">${esc(e.selection||"Resultado não informado")} • ${e.type==="freebet"?"Freebet":"Saldo"} • ${txt}${e.doubleGreenCompatible?" • Chance de duplo green":""}</div></div><span class="status ${e.status}">${txt}</span></div>
    <div class="stats" style="padding:9px 0 0">
     <div class="stat"><span>Valor usado</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd||"-"}</b></div>
-    <div class="stat"><span>Retorno bruto potencial</span><b class="returnGross">${money(entryPotentialReturn(e))}</b></div>
+    <div class="stat chanceDoubleGreen"><span>Chance de Duplo Green</span><b>${money(entryPotentialReturn(e))}</b></div>
     <div class="stat"><span>Resultado individual potencial</span><b class="${own>=0?"resultPositive":"resultNegative"}">${money(own)}</b></div>
     <div class="stat"><span>Resultado da operação se só esta vencer</span><b class="${scenario>=0?"resultPositive":"resultNegative"}">${money(scenario)}</b></div>
-    <div class="stat"><span>Retorno bruto recebido</span><b>${money(e.returned||0)}</b></div>
+    <div class="stat"><span>Retorno recebido</span><b>${money(e.returned||0)}</b></div>
    </div>
    <div class="entryActionRow">${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""}<button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button><button class="secondary" onclick="duplicateBetEntry('${b.id}','${e.id}')">Duplicar</button><button class="secondary" onclick="moveBetEntry('${b.id}','${e.id}')">Mover</button><button class="danger" onclick="deleteBetEntry('${b.id}','${e.id}')">Excluir</button></div></div>`
   }).join("");
@@ -779,11 +790,11 @@ function renderBets(){
     <div class="stat"><span>Total comprometido em saldo</span><b>${money(groupCashCost(b))}</b></div>
     <div class="stat"><span>Total usado em freebet</span><b>${money(groupFreebetCost(b))}</b></div>
     <div class="stat"><span>Resultado mínimo previsto</span><b>${entriesList.length>1?money(guaranteed):"Sem proteção"}</b></div>
-    <div class="stat"><span>Retorno bruto recebido</span><b class="returnGross">${open?"Em andamento":money(totalActualReturn)}</b></div>
+    <div class="stat"><span>Retorno recebido</span><b class="returnGross">${open?"Em andamento":money(totalActualReturn)}</b></div>
     <div class="stat"><span>Lucro/prejuízo realizado</span><b class="${actual>=0?"resultPositive":"resultNegative"}">${open?"Em andamento":money(actual)}</b></div>
     <div class="stat"><span>Greens confirmados</span><b>${groupWins(b)}</b></div>
    </div>
-   ${pairs.length?`<div class="surebetScenarios">${pairs.map(pair=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green: Principal + ${esc(pair.protection.selection||"proteção")}<br><small>Retorno bruto para cálculo de proteção ao vivo</small></span><strong>${money(pair.gross)}<br><small>Lucro/prejuízo líquido ${money(pair.net)}</small></strong></div>`).join("")}</div>`:""}
+   ${pairs.length?`<div class="surebetScenarios">${pairs.map(pair=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green: Principal + ${esc(pair.protection.selection||"proteção")}<br><small>Valor adicional em destaque para possível duplo green e proteção ao vivo</small></span><strong>${money(pair.gross)}<br><small>Lucro/prejuízo líquido ${money(pair.net)}</small></strong></div>`).join("")}</div>`:""}
    ${!open&&groupWins(b)>=2?`<div class="doubleGreen doubleGreenPossible"><span>Duplo green confirmado</span><strong>${groupWins(b)} apostas ficaram green</strong></div>`:""}
    ${(b.balanceAdjustments||[]).length?`<div class="balanceAdjustmentNote">Atualização durante o cadastro: ${(b.balanceAdjustments||[]).map(a=>`${esc(a.houseName)} +${money(a.value)}`).join(" • ")}</div>`:""}
    <div class="entryActionRow"><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogo</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir jogo</button></div>${entries}</div></details>`

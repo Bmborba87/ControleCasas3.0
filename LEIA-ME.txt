@@ -1,5 +1,9 @@
-BETMANAGER V41
-- Permite atualizar saldo/freebet durante o cadastro sem perder o formulário.
-- Jogos aparecem recolhidos e abrem ao toque.
-- Retorno bruto separado de lucro/prejuízo.
-- Chance de Duplo Green destaca o retorno bruto para proteção ao vivo.
+BETMANAGER — VERSÃO 42
+
+AJUSTE DE TERMINOLOGIA
+- “Retorno bruto potencial” foi renomeado para “Chance de Duplo Green”.
+- O valor ficou visualmente destacado.
+- Esse número representa o valor adicional relevante quando duas casas podem ficar green.
+- O lucro/prejuízo líquido continua aparecendo separadamente.
+- O retorno efetivamente recebido continua aparecendo como “Retorno recebido”.
+- Nos cenários de proteção ao vivo, a Chance de Duplo Green aparece como referência principal.

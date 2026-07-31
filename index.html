@@ -9,7 +9,7 @@ window.__EMPTY_APP_STATE__={
 };
 window.__APP_BOOTSTRAP__=(function(){
  var keys=[
-  "controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3","controleApostasV36",
+  "controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3","controleApostasV37",
   "controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27",
   "controleApostasV26","controleApostasV25","controleApostasV24","controleApostasV23",
   "controleApostasV22","controleApostasV21","controleApostasV20","controleApostasV19",
@@ -221,7 +221,7 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
  width:100%;height:100%;object-fit:contain;display:block;
  filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))
 }
-.headerBrand{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;flex:1}
+.headerBrand{display:flex;align-items:center;justify-content:center;text-align:center;flex:1}
 .headerCrest{width:54px;height:60px}
 
 .crestPreviewWrap{display:flex;align-items:center;gap:14px;margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:12px}
@@ -238,12 +238,12 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
 }
 
 
-header .head{position:relative;justify-content:center;min-height:96px}
+header .head{position:relative;justify-content:center;min-height:72px}
 .headerTools{position:absolute;right:0;top:0}
 .headerBrand h1{margin:0}
 .headerBrand p{margin-top:3px}
 @media(max-width:620px){
- header .head{min-height:88px}
+ header .head{min-height:66px}
  .headerTools{right:0;top:0}
  .headerTools button{padding:6px 7px}
 }
@@ -303,14 +303,14 @@ body.dark .personSummaryCard{background:#18243a}
 <header>
  <div class="head">
   <div class="headerBrand">
-   <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
+   
    <div>
-    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v36</small></h1>
+    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v37</small></h1>
     
    </div>
   </div>
   <div class="headerTools">
-   <button id="settingsBtn" class="secondary" type="button">⚙️</button>
+   
    <button id="themeBtn" class="secondary" type="button">🌙</button>
    <button id="installBtn" class="secondary" type="button">Instalar</button>
   </div>
@@ -615,7 +615,7 @@ window.goToSection=function(id){
         var serialized=JSON.stringify(migrated);
         localStorage.setItem(BACKUP_KEY,serialized);
         localStorage.setItem("controleApostasRecovery",serialized);localStorage.setItem("betmanagerRecovery",serialized);writeIndexedState(migrated);
-        localStorage.setItem("controleApostasV36",serialized);
+        localStorage.setItem("controleApostasV37",serialized);
         COMPATIBLE_KEYS.forEach(function(key){
           try{localStorage.setItem(key,serialized)}catch(error){console.warn("Falha na chave "+key,error)}
         });
@@ -682,7 +682,7 @@ window.goToSection=function(id){
 
 <section id="dashboard" class="panel active">
 
-<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button id="dashboardSettingsBtn" class="secondary">⚙️ Aparência</button></div>
+
 <div class="card dashboardHero">
  <div class="dashboardHeroGrid">
   <div class="heroMain"><span>Patrimônio total</span><strong id="heroCapital">R$ 0,00</strong><div class="muted">Gestão completa das suas apostas</div></div>
@@ -820,87 +820,18 @@ window.goToSection=function(id){
  </div>
 </section>
 
-<section id="appearance" class="panel">
- <div class="card">
-  <h3>Personalização por time</h3>
-  <p class="muted">Escolha um time da lista e o aplicativo aplicará automaticamente as cores correspondentes. As cores financeiras permanecem fixas para evitar confusão.</p>
-  <div class="appearanceGrid">
-   <label>Tema
-    <select id="teamTheme">
-     <option value="neutral">Sem time</option>
-     <optgroup label="Times do Brasil">
-      <option value="abc">ABC</option>
-      <option value="america_rn">América-RN</option>
-      <option value="america_mg">América-MG</option>
-      <option value="athletico_pr">Athletico-PR</option>
-      <option value="atletico_mg">Atlético-MG</option>
-      <option value="bahia">Bahia</option>
-      <option value="botafogo">Botafogo</option>
-      <option value="ceara">Ceará</option>
-      <option value="corinthians">Corinthians</option>
-      <option value="cruzeiro">Cruzeiro</option>
-      <option value="flamengo">Flamengo</option>
-      <option value="fluminense">Fluminense</option>
-      <option value="fortaleza">Fortaleza</option>
-      <option value="gremio">Grêmio</option>
-      <option value="internacional">Internacional</option>
-      <option value="palmeiras">Palmeiras</option>
-      <option value="santos">Santos</option>
-      <option value="sao_paulo">São Paulo</option>
-      <option value="sport">Sport</option>
-      <option value="vasco">Vasco</option>
-      <option value="vitoria">Vitória</option>
-     </optgroup>
-     <option value="custom">Personalizado</option>
-    </select>
-   </label>
-   <label>Estilo
-    <select id="themeStyle">
-     <option value="subtle">Discreto</option>
-     <option value="fan">Torcedor</option>
-    </select>
-   </label>
-  </div>
-  <div class="colorRow" style="margin-top:9px">
-   <label>Cor principal<input id="customPrimary" class="colorInput" type="color" value="#2563eb"></label>
-   <label>Cor secundária<input id="customSecondary" class="colorInput" type="color" value="#172033"></label>
-  </div>
-  
-  <label style="margin-top:9px">Escudo personalizado
-   <input id="crestImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
-  </label>
-  <div id="crestImageStatus" class="imageStatus">O escudo oficial será carregado automaticamente.</div>
-  <button id="removeCrestImage" class="secondary" style="margin-top:7px">Usar escudo oficial automático</button>
-  <div class="crestPreviewWrap">
-   <div id="appearanceCrestPreview" class="teamCrest"></div>
-   <div><strong>Prévia do escudo</strong><div class="muted">O nome do aplicativo permanece BetManager.</div><div class="muted" style="margin-top:3px">Fonte automática: imagem principal do artigo do clube na Wikipédia.</div></div>
-  </div>
-  <label style="margin-top:9px">Imagem opcional do cabeçalho
-   <input id="themeImageInput" type="file" accept="image/png,image/jpeg,image/webp">
-  </label>
-  <div id="themeImageStatus" class="imageStatus">Nenhuma imagem personalizada.</div>
-  <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
-   <button id="applyAppearance" class="primary">Aplicar tema</button>
-   <button id="removeThemeImage" class="secondary">Remover imagem</button>
-   <button id="resetAppearance" class="secondary">Restaurar padrão</button>
-  </div>
-  <div class="themePreview">
-   <div class="themePreviewHeader"><strong>BetManager</strong><div style="opacity:.8;font-size:.78rem">Prévia do cabeçalho</div></div>
-   <div class="themeSwatches"><div id="previewPrimary" class="swatch"></div><div id="previewSecondary" class="swatch"></div></div>
-  </div>
- </div>
-</section>
+
 
 
 <section id="more" class="panel">
  <div class="card">
-  <h3>Outras opções</h3><div class="muted" style="margin-bottom:6px">Proteção ativa: armazenamento local + banco interno do navegador.</div><div id="saveStatus" class="muted" style="margin-bottom:10px">Dados salvos automaticamente neste aparelho.</div>
+  <h3>Outras opções</h3><div class="muted" style="margin-bottom:6px">Dados salvos automaticamente neste aparelho.</div><div id="saveStatus" class="muted" style="margin-bottom:10px">Dados salvos automaticamente neste aparelho.</div>
   <div class="grid" style="grid-template-columns:repeat(2,1fr)">
    <button class="secondary" onclick="return goToSection('history')">Histórico</button>
    <button class="secondary" onclick="return goToSection('audit')">Alterações</button>
    <button class="secondary" onclick="return goToSection('trash')">Lixeira</button>
    <button class="secondary" onclick="return goToSection('snapshot')">Por data</button>
-   <button class="secondary" onclick="return goToSection('reports')">Relatórios</button><button class="secondary" onclick="return goToSection('freebets')">Freebets</button><button class="secondary" onclick="return goToSection('dailyclose')">Fechamento diário</button><button class="secondary" onclick="return goToSection('comparisons')">Comparativos</button><button class="secondary" onclick="return goToSection('calendar')">Calendário</button><button class="secondary" onclick="return goToSection('operations')">Operando agora</button><button class="secondary" onclick="return goToSection('appearance')">Configurações</button>
+   <button class="secondary" onclick="return goToSection('reports')">Relatórios</button><button class="secondary" onclick="return goToSection('freebets')">Freebets</button><button class="secondary" onclick="return goToSection('dailyclose')">Fechamento diário</button><button class="secondary" onclick="return goToSection('comparisons')">Comparativos</button><button class="secondary" onclick="return goToSection('calendar')">Calendário</button><button class="secondary" onclick="return goToSection('operations')">Operando agora</button>
   </div>
  </div>
 </section>
@@ -971,68 +902,7 @@ window.goToSection=function(id){
 const KEY="controleApostasData";var S=window.S=window.__APP_BOOTSTRAP__||JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__)),openPid=null,$=id=>document.getElementById(id);
 
 var APP_READY=false;
-var DB_NAME="BetManagerDB";
-var DB_STORE="state";
-var DB_KEY="main";
-
-function openBetManagerDB(){
- return new Promise((resolve,reject)=>{
-  if(!("indexedDB" in window))return reject(new Error("IndexedDB indisponível"));
-  let request=indexedDB.open(DB_NAME,1);
-  request.onupgradeneeded=()=>{
-   let db=request.result;
-   if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE)
-  };
-  request.onsuccess=()=>resolve(request.result);
-  request.onerror=()=>reject(request.error||new Error("Falha ao abrir IndexedDB"))
- })
-}
-async function readIndexedState(){
- try{
-  let db=await openBetManagerDB();
-  return await new Promise((resolve,reject)=>{
-   let tx=db.transaction(DB_STORE,"readonly");
-   let req=tx.objectStore(DB_STORE).get(DB_KEY);
-   req.onsuccess=()=>resolve(req.result||null);
-   req.onerror=()=>reject(req.error)
-  })
- }catch(error){
-  console.warn("IndexedDB não pôde ser lido:",error);
-  return null
- }
-}
-async function writeIndexedState(state){
- try{
-  let db=await openBetManagerDB();
-  await new Promise((resolve,reject)=>{
-   let tx=db.transaction(DB_STORE,"readwrite");
-   tx.objectStore(DB_STORE).put(state,DB_KEY);
-   tx.oncomplete=()=>resolve();
-   tx.onerror=()=>reject(tx.error)
-  });
-  return true
- }catch(error){
-  console.warn("IndexedDB não pôde ser salvo:",error);
-  return false
- }
-}
-function stateScore(state){
- let c=stateCounts(state);
- let settings=state&&state.settings&&Object.keys(state.settings).length?1:0;
- let snapshots=state&&Array.isArray(state.snapshots)?state.snapshots.length:0;
- return c.total*100000+settings*1000+snapshots
-}
-function chooseBestState(states){
- return states.filter(Boolean).sort((a,b)=>stateScore(b)-stateScore(a))[0]||null
-}
-
-const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
-const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const pct=v=>Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
-function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes(","))x=x.replace(/\./g,"").replace(",",".");let z=Number(x);return Number.isFinite(z)?z:NaN}
-function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
-window.storageSafeState=function storageSafeState(source){
+function storageSafeState(source){
  let copy=JSON.parse(JSON.stringify(source||{}));
  copy.people=Array.isArray(copy.people)?copy.people:[];
  copy.bets=Array.isArray(copy.bets)?copy.bets:[];
@@ -1095,50 +965,28 @@ function rotateSafetyCopies(serialized){
 }
 
 window.persistState=function persistState(options={}){
- if(!APP_READY&&!options.force){
-  console.warn("Salvamento ignorado durante a inicialização.");
-  return false
- }
+ if(!APP_READY&&!options.force)return false;
  window.S=S;
  let safe=storageSafeState(S);
+ let current=readStoredState(KEY);
  let newCounts=stateCounts(safe);
- let stored=readStoredState(KEY);
- let storedCounts=stateCounts(stored);
-
- if(!options.allowEmpty&&newCounts.total===0&&storedCounts.total>0){
-  console.error("Salvamento vazio bloqueado. Dados existentes preservados.");
-  S=window.S=normalizeCurrentState(stored);
+ let currentCounts=stateCounts(current);
+ if(newCounts.total===0&&currentCounts.total>0&&!options.allowEmpty){
+  console.error("Estado vazio bloqueado.");
+  S=window.S=normalizeCurrentState(current);
   return false
  }
-
  try{
   let serialized=JSON.stringify(safe);
-  rotateSafetyCopies(serialized);
+  if(currentCounts.total>0)localStorage.setItem("betmanagerRecovery",JSON.stringify(current));
   localStorage.setItem(KEY,serialized);
   localStorage.setItem("controleApostasRecovery",serialized);
   localStorage.setItem("controleApostasLastSave",new Date().toISOString());
-  localStorage.setItem("betmanagerLastCounts",JSON.stringify(newCounts));
-  writeIndexedState(safe);
   return true
  }catch(error){
-  console.error("Falha ao salvar dados:",error);
-  try{
-   safe.audit=(safe.audit||[]).slice(0,100);
-   safe.trash=(safe.trash||[]).slice(0,50);
-   safe.undoStack=[];
-   safe.snapshots=(safe.snapshots||[]).slice(-90);
-   let serialized=JSON.stringify(safe);
-   rotateSafetyCopies(serialized);
-   localStorage.setItem(KEY,serialized);
-   localStorage.setItem("controleApostasRecovery",serialized);
-   localStorage.setItem("controleApostasLastSave",new Date().toISOString());
-   writeIndexedState(safe);
-   return true
-  }catch(secondError){
-   console.error("Segunda tentativa de salvamento falhou:",secondError);
-   alert("Não foi possível salvar os dados. Exporte um backup e verifique o espaço disponível.");
-   return false
-  }
+  console.error("Falha ao salvar:",error);
+  alert("Não foi possível salvar os dados no aparelho.");
+  return false
  }
 }
 
@@ -1231,13 +1079,11 @@ function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs
 
 window.openPanel=id=>{
  window.goToSection(id);
- if(id==="appearance"&&typeof renderAppearance==="function")renderAppearance()
 };
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
 window.openPanel=id=>{
  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));
  document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===id));
- if(id==="appearance")renderAppearance();
  window.scrollTo({top:0,behavior:"smooth"})
 };
 document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
@@ -1254,7 +1100,8 @@ window.recoverLatestData=function(){
  if(!candidates.length)return alert("Nenhuma cópia com dados foi encontrada.");
  let best=candidates[0];
  S=window.S=normalizeCurrentState(best.state);
- APP_READY=true;persistState({allowEmpty:false,force:true});
+ APP_READY=true;
+ persistState({force:true});
  render();
  goToSection("people");
  alert("Dados recuperados.\n\nPessoas: "+best.counts.people+"\nCasas: "+best.counts.houses)
@@ -1269,7 +1116,7 @@ function renderSaveStatus(){
 function render(){
  const tasks=[
   ["painel",renderDash],["calendário",renderCalendar],["operando",renderOperations],["pessoas",renderPeople],["apostas",renderBets],
-  ["histórico",renderHistory],["alterações",renderAudit],["lixeira",renderTrash],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["relatórios",renderReports],["aparência",renderAppearance],["freebets",renderFreebets],["fechamento",renderDailyClose],["comparativos",renderComparisons],["transferências",fillTransfers]
+  ["histórico",renderHistory],["alterações",renderAudit],["lixeira",renderTrash],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["relatórios",renderReports],["freebets",renderFreebets],["fechamento",renderDailyClose],["comparativos",renderComparisons],["transferências",fillTransfers]
  ];
  const errors=[];
  tasks.forEach(([name,fn])=>{try{fn()}catch(e){console.error("Erro ao renderizar "+name,e);errors.push(name+": "+e.message)}});
@@ -1747,216 +1594,6 @@ function renderCalendarDay(){
  $("calendarSelectedTitle").textContent=date.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
  $("calendarDayDetails").innerHTML=games.length?games.map(b=>{let entries=b.entries||[],open=entries.filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0);return `<div class="todayGame"><div class="todayGameTop"><div><strong>${esc(b.event)}</strong><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"Sem horário"} • ${entries.length} entrada(s)</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="muted">${open.length} aberta(s)</div></div></div><div class="entryActionRow"><button class="secondary" onclick="switchToBet('${b.id}')">Abrir jogo</button></div></div>`}).join(""):'<div class="empty">Nenhum jogo nesta data.</div>'
 }
-const TEAM_THEMES={
- abc:{primary:"#111111",secondary:"#4b5563",accent:"#ffffff",name:"ABC",short:"ABC"},
- america_rn:{primary:"#dc2626",secondary:"#991b1b",accent:"#ffffff",name:"América-RN",short:"AMR"},
- neutral:{primary:"#2563eb",secondary:"#172033",accent:"#ffffff",name:"BetManager",short:"CA"},
- america_mg:{primary:"#16a34a",secondary:"#111827",accent:"#ffffff",name:"América-MG",short:"AMG"},
- athletico_pr:{primary:"#dc2626",secondary:"#111111",accent:"#ffffff",name:"Athletico-PR",short:"CAP"},
- atletico_mg:{primary:"#111111",secondary:"#4b5563",accent:"#ffffff",name:"Atlético-MG",short:"CAM"},
- bahia:{primary:"#2563eb",secondary:"#dc2626",accent:"#ffffff",name:"Bahia",short:"ECB"},
- botafogo:{primary:"#111111",secondary:"#4b5563",accent:"#ffffff",name:"Botafogo",short:"BFR"},
- ceara:{primary:"#111111",secondary:"#ffffff",accent:"#9ca3af",name:"Ceará",short:"CSC"},
- corinthians:{primary:"#111111",secondary:"#e5e7eb",accent:"#dc2626",name:"Corinthians",short:"SCCP"},
- cruzeiro:{primary:"#2563eb",secondary:"#1e3a8a",accent:"#ffffff",name:"Cruzeiro",short:"CEC"},
- flamengo:{primary:"#dc2626",secondary:"#111111",accent:"#ffffff",name:"Flamengo",short:"CRF"},
- fluminense:{primary:"#7f1d1d",secondary:"#166534",accent:"#ffffff",name:"Fluminense",short:"FFC"},
- fortaleza:{primary:"#2563eb",secondary:"#dc2626",accent:"#ffffff",name:"Fortaleza",short:"FEC"},
- gremio:{primary:"#38bdf8",secondary:"#111111",accent:"#ffffff",name:"Grêmio",short:"GFBPA"},
- internacional:{primary:"#dc2626",secondary:"#991b1b",accent:"#ffffff",name:"Internacional",short:"SCI"},
- palmeiras:{primary:"#15803d",secondary:"#064e3b",accent:"#ffffff",name:"Palmeiras",short:"SEP"},
- santos:{primary:"#111111",secondary:"#d1d5db",accent:"#ffffff",name:"Santos",short:"SFC"},
- sao_paulo:{primary:"#dc2626",secondary:"#111111",accent:"#ffffff",name:"São Paulo",short:"SPFC"},
- sport:{primary:"#dc2626",secondary:"#111111",accent:"#facc15",name:"Sport",short:"SCR"},
- vasco:{primary:"#111111",secondary:"#4b5563",accent:"#dc2626",name:"Vasco",short:"CRVG"},
- vitoria:{primary:"#dc2626",secondary:"#111111",accent:"#ffffff",name:"Vitória",short:"ECV"},
- custom:{primary:"#2563eb",secondary:"#172033",accent:"#ffffff",name:"Tema personalizado",short:"★"}
-};
-
-const TEAM_WIKI_TITLES={
- abc:"ABC Futebol Clube",
- america_rn:"América Futebol Clube (Rio Grande do Norte)",
- america_mg:"América Futebol Clube (Minas Gerais)",
- athletico_pr:"Club Athletico Paranaense",
- atletico_mg:"Clube Atlético Mineiro",
- bahia:"Esporte Clube Bahia",
- botafogo:"Botafogo de Futebol e Regatas",
- ceara:"Ceará Sporting Club",
- corinthians:"Sport Club Corinthians Paulista",
- cruzeiro:"Cruzeiro Esporte Clube",
- flamengo:"Clube de Regatas do Flamengo",
- fluminense:"Fluminense Football Club",
- fortaleza:"Fortaleza Esporte Clube",
- gremio:"Grêmio Foot-Ball Porto Alegrense",
- internacional:"Sport Club Internacional",
- palmeiras:"Sociedade Esportiva Palmeiras",
- santos:"Santos Futebol Clube",
- sao_paulo:"São Paulo Futebol Clube",
- sport:"Sport Club do Recife",
- vasco:"Club de Regatas Vasco da Gama",
- vitoria:"Esporte Clube Vitória"
-};
-
-function appearanceSettings(){
- S.settings=S.settings||{};S.settings.appearance=S.settings.appearance||{theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"BetManager",headerImage:"",crestImage:"",officialCrests:{}};
- return S.settings.appearance
-}
-
-function blobToDataUrl(blob){
- return new Promise((resolve,reject)=>{
-  let reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob)
- })
-}
-async function wikiPageImage(title){
- let params=new URLSearchParams({
-  action:"query",format:"json",origin:"*",prop:"pageimages",
-  piprop:"thumbnail|original",pithumbsize:"512",redirects:"1",titles:title
- });
- let response=await fetch("https://pt.wikipedia.org/w/api.php?"+params.toString());
- if(!response.ok)throw new Error("Falha ao consultar a Wikipédia");
- let json=await response.json(),pages=Object.values(json.query?.pages||{}),page=pages[0];
- let source=page?.thumbnail?.source||page?.original?.source;
- if(source)return source;
- let searchParams=new URLSearchParams({
-  action:"query",format:"json",origin:"*",generator:"search",gsrsearch:title,
-  gsrlimit:"1",prop:"pageimages",piprop:"thumbnail|original",pithumbsize:"512"
- });
- let searchResponse=await fetch("https://pt.wikipedia.org/w/api.php?"+searchParams.toString());
- if(!searchResponse.ok)throw new Error("Escudo não encontrado");
- let searchJson=await searchResponse.json(),searchPages=Object.values(searchJson.query?.pages||{}),searchPage=searchPages[0];
- source=searchPage?.thumbnail?.source||searchPage?.original?.source;
- if(!source)throw new Error("Escudo não encontrado");
- return source
-}
-async function cacheOfficialCrest(theme,force=false){
- if(!TEAM_WIKI_TITLES[theme])return "";
- let a=appearanceSettings();a.officialCrests=a.officialCrests||{};
- if(a.officialCrests[theme]&&!force)return a.officialCrests[theme];
- setCrestStatus("Baixando escudo oficial...");
- try{
-  let source=await wikiPageImage(TEAM_WIKI_TITLES[theme]);
-  a.officialCrests[theme]=source;
-  persistState();
-  renderAllCrests(theme);
-  setCrestStatus("Escudo oficial carregado.");
-  return source
- }catch(error){
-  console.error("Falha ao carregar escudo oficial:",error);
-  setCrestStatus("Não foi possível baixar o escudo oficial. Tente novamente com internet.");
-  renderAllCrests(theme);
-  return ""
- }
-}
-function setCrestStatus(text){
- let el=$("crestImageStatus");if(el)el.textContent=text
-}
-function currentCrestSource(theme){
- let a=appearanceSettings();
- if(a.crestImage)return a.crestImage;
- return (a.officialCrests||{})[theme]||""
-}
-function renderCrest(elId,theme){
- let el=$(elId);if(!el)return;
- let preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral,source=currentCrestSource(theme);
- el.innerHTML="";
- if(source){
-  let img=document.createElement("img");
-  img.src=source;img.alt="Escudo oficial de "+preset.name;
-  img.onerror=()=>{
-   el.innerHTML="";
-   if(TEAM_WIKI_TITLES[theme]){
-    let loading=document.createElement("div");loading.className="crestLoading";el.appendChild(loading)
-   }
-  };
-  el.appendChild(img)
- }else if(TEAM_WIKI_TITLES[theme]){
-  let loading=document.createElement("div");loading.className="crestLoading";el.appendChild(loading)
- }
-}
-function renderAllCrests(theme){
- renderCrest("headerTeamCrest",theme);
- 
- renderCrest("appearanceCrestPreview",theme)
-}
-function applyAppearanceToPage(){
- let a=appearanceSettings(),preset=TEAM_THEMES[a.theme]||TEAM_THEMES.neutral;
- let primary=a.theme==="custom"?(a.primary||preset.primary):preset.primary;
- let secondary=a.theme==="custom"?(a.secondary||preset.secondary):preset.secondary;
- document.documentElement.style.setProperty("--team-primary",primary);
- document.documentElement.style.setProperty("--team-secondary",secondary);
- document.documentElement.style.setProperty("--team-accent",preset.accent||"#ffffff");
- document.documentElement.style.setProperty("--header-image",a.headerImage?`url("${a.headerImage}")`:"none");
- document.body.classList.toggle("fan-style",a.style==="fan");
- document.body.classList.toggle("subtle-style",a.style!=="fan");
- let pp=$("previewPrimary"),ps=$("previewSecondary");
- if(pp)pp.style.background=primary;
- if(ps)ps.style.background=secondary;
- renderAllCrests(a.theme);
- if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage&&!(a.officialCrests||{})[a.theme])setTimeout(()=>cacheOfficialCrest(a.theme),100);
- let title=$("appHeaderTitle");
- if(title&&title.childNodes.length)title.childNodes[0].nodeValue="BetManager "
-}
-
-$("settingsBtn").onclick=()=>goToSection("appearance");
-$("dashboardSettingsBtn").onclick=()=>goToSection("appearance");
-function renderAppearance(){
- let a=appearanceSettings();$("teamTheme").value=a.theme||"neutral";$("themeStyle").value=a.style||"subtle";$("customPrimary").value=a.primary||"#2563eb";$("customSecondary").value=a.secondary||"#172033";
- $("themeImageStatus").textContent=a.headerImage?"Imagem personalizada adicionada.":"Nenhuma imagem personalizada.";$("crestImageStatus").textContent=a.crestImage?"Escudo personalizado adicionado.":((a.officialCrests||{})[a.theme]?"Escudo oficial salvo neste aparelho.":(TEAM_WIKI_TITLES[a.theme]?"O escudo oficial será carregado automaticamente.":"Nenhum escudo selecionado."));applyAppearanceToPage()
-}
-function previewAppearance(){
- let theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral,primary=theme==="custom"?$("customPrimary").value:preset.primary,secondary=theme==="custom"?$("customSecondary").value:preset.secondary;
- $("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;$("previewThemeName").textContent=preset.name
-}
-
-$("teamTheme").addEventListener("change",async()=>{
- let a=appearanceSettings();a.crestImage="";
- let theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral;
- if(theme!=="custom"){
-  $("customPrimary").value=preset.primary;
-  $("customSecondary").value=preset.secondary;
-  
- }
- renderAllCrests(theme);previewAppearance();
- if(TEAM_WIKI_TITLES[theme]&&!(a.officialCrests||{})[theme])await cacheOfficialCrest(theme)
-});
-["teamTheme","themeStyle","customPrimary","customSecondary"].forEach(id=>$(id).addEventListener("input",previewAppearance));
-
-$("crestImageInput").onchange=function(){
- let file=this.files[0];if(!file)return;
- if(file.size>1200000)return alert("Use uma imagem de escudo menor que 1,2 MB.");
- let reader=new FileReader();
- reader.onload=()=>{
-  appearanceSettings().crestImage=reader.result;
-  $("crestImageStatus").textContent="Escudo personalizado pronto para aplicar. Ele substituirá o escudo oficial.";
-  renderCrest("appearanceCrestPreview",$("teamTheme").value)
- };
- reader.readAsDataURL(file)
-};
-$("removeCrestImage").onclick=async()=>{
- let a=appearanceSettings();a.crestImage="";
- $("crestImageInput").value="";
- persistState();
- renderAppearance();
- if(TEAM_WIKI_TITLES[a.theme])await cacheOfficialCrest(a.theme,true)
-};
-$("themeImageInput").onchange=function(){
- let file=this.files[0];if(!file)return;if(file.size>1500000)return alert("Use uma imagem menor que 1,5 MB.");
- let reader=new FileReader();reader.onload=()=>{appearanceSettings().headerImage=reader.result;$("themeImageStatus").textContent="Imagem pronta para aplicar.";previewAppearance()};reader.readAsDataURL(file)
-};
-$("applyAppearance").onclick=()=>{
- let a=appearanceSettings(),theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral;
- a.theme=theme;a.style=$("themeStyle").value;a.primary=$("customPrimary").value;a.secondary=$("customSecondary").value;a.displayName=preset.name;
- save();applyAppearanceToPage();if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage)cacheOfficialCrest(a.theme);alert("Tema aplicado.")
-};
-$("removeThemeImage").onclick=()=>{appearanceSettings().headerImage="";$("themeImageInput").value="";save();renderAppearance()};
-$("resetAppearance").onclick=()=>{
- let cache=(appearanceSettings().officialCrests||{});
- S.settings.appearance={theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"BetManager",headerImage:"",crestImage:"",officialCrests:cache};
- save();renderAppearance()
-};
-
-
-
 $("fabBtn").onclick=()=>$("quickMenu").classList.toggle("open");
 window.closeQuickMenu=()=>$("quickMenu").classList.remove("open");
 document.addEventListener("click",e=>{
@@ -2111,8 +1748,16 @@ function migrateBackup(x){
 }
 
 window.closeD=id=>$(id).close();
-function applyTheme(){document.body.classList.toggle("dark",S.settings&&S.settings.theme==="dark");$("themeBtn").textContent=document.body.classList.contains("dark")?"☀️":"🌙"}
-$("themeBtn").onclick=()=>{S.settings=S.settings||{};S.settings.theme=document.body.classList.contains("dark")?"light":"dark";persistState();applyTheme()};
+function applyTheme(){
+ let theme=localStorage.getItem("betmanagerTheme")||"light";
+ document.body.classList.toggle("dark",theme==="dark");
+ $("themeBtn").textContent=theme==="dark"?"☀️":"🌙"
+}
+$("themeBtn").onclick=()=>{
+ let next=document.body.classList.contains("dark")?"light":"dark";
+ localStorage.setItem("betmanagerTheme",next);
+ applyTheme()
+};
 let dp=null;
 function isInstalled(){
  return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true
@@ -2135,28 +1780,17 @@ $("installBtn").onclick=async()=>{
 };
 updateInstallVisibility();
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-async function startBetManager(){
+function startBetManager(){
  try{
   APP_READY=false;
   load();
-  let indexed=await readIndexedState();
-  let local=window.S;
-  let recovery=readStoredState("controleApostasRecovery");
-  let safety=readStoredState("betmanagerRecovery");
-  let best=chooseBestState([local,indexed,recovery,safety]);
-  S=window.S=normalizeCurrentState(best||window.__EMPTY_APP_STATE__);
-
-  appearanceSettings();
-  try{applyAppearanceToPage()}catch(themeError){console.error("Erro ao aplicar aparência:",themeError)}
+  S=window.S=normalizeCurrentState(S||window.__EMPTY_APP_STATE__);
   try{cleanTrash()}catch(e){console.error(e)}
-  try{applyTheme()}catch(e){console.error(e)}
-  try{createDailySnapshot()}catch(e){console.error(e)}
   try{normalizeBets()}catch(e){console.error(e)}
   S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal);
-
-  APP_READY=true;
-  persistState({force:true});
-  render()
+  applyTheme();
+  render();
+  APP_READY=true
  }catch(initError){
   APP_READY=true;
   console.error("Erro de inicialização:",initError);

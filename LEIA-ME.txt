@@ -1,22 +1,10 @@
-BETMANAGER — VERSÃO 36
+BETMANAGER — VERSÃO 37
 
-CORREÇÃO DO RECARREGAMENTO
-- O aplicativo não pode salvar enquanto ainda está iniciando.
-- Os dados são mantidos em dois locais:
-  1. localStorage
-  2. IndexedDB
-- Ao abrir ou recarregar, o BetManager lê as cópias e escolhe a que possui mais dados.
-- Somente depois dessa recuperação o salvamento é liberado.
-- Aparência e cadastros são restaurados juntos.
-- Um estado vazio não pode substituir um estado com conteúdo.
-- Importações são gravadas simultaneamente nos dois armazenamentos.
-- O botão Recuperar dados continua disponível.
-
-CAUSA DO ERRO ANTERIOR
-Durante o recarregamento, funções de aparência e snapshot podiam executar antes da recuperação terminar. Isso permitia que o estado inicial vazio fosse salvo por cima dos dados existentes.
-
-TESTES
-- JavaScript validado.
-- Seleção da cópia mais completa testada.
-- Estado com 5 pessoas e 69 casas vence um estado vazio.
-- Salvamento bloqueado durante a inicialização.
+- Personalização por time removida.
+- Escudos, imagens, cores personalizadas e download externo removidos.
+- Permanecem apenas modo claro e modo escuro.
+- Claro/escuro é salvo separado dos cadastros.
+- Carregamento síncrono.
+- Nenhum salvamento durante a abertura.
+- Estado vazio não pode substituir dados existentes.
+- Cópia de recuperação mantida.

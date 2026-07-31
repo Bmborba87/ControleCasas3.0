@@ -271,7 +271,7 @@ body.dark .personSummaryCard{background:#18243a}
   <div class="headerBrand">
    <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
    <div>
-    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v29</small></h1>
+    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v30</small></h1>
     <p>Gestão de apostas, casas, freebets, bônus e resultados.</p>
    </div>
   </div>
@@ -310,6 +310,7 @@ window.goToSection=function(id){
   "use strict";
 
   var BACKUP_KEY="controleApostasData";
+  var COMPATIBLE_KEYS=["controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27"];
   var LEGACY_KEYS=[
     "controleApostasV28","controleApostasV27","controleApostasV26","controleApostasV25","controleApostasV24",
     "controleApostasV23","controleApostasV22","controleApostasV21","controleApostasV20",
@@ -577,16 +578,40 @@ window.goToSection=function(id){
         if(!migrated.people.length&&!migrated.bets.length&&!migrated.moves.length){
           throw new Error("Nenhum dado reconhecido foi encontrado.")
         }
-        localStorage.setItem(BACKUP_KEY,JSON.stringify(migrated));localStorage.setItem("controleApostasRecovery",JSON.stringify(migrated));
+        var serialized=JSON.stringify(migrated);
+        localStorage.setItem(BACKUP_KEY,serialized);
+        localStorage.setItem("controleApostasRecovery",serialized);
+        COMPATIBLE_KEYS.forEach(function(key){
+          try{localStorage.setItem(key,serialized)}catch(error){console.warn("Falha na chave "+key,error)}
+        });
+
+        var applied=false;
+        try{
+          if(typeof S!=="undefined"){
+            S=migrated;
+            if(typeof persistState==="function")persistState();
+            if(typeof render==="function")render();
+            if(typeof goToSection==="function")goToSection("people");
+            applied=true
+          }
+        }catch(applyError){
+          console.error("Dados salvos, mas não aplicados imediatamente:",applyError)
+        }
+
         alert(
           "Backup importado com sucesso.\n\n"+
           "Pessoas: "+migrated.people.length+"\n"+
           "Casas: "+houses+"\n"+
           "Jogos/apostas: "+migrated.bets.length+"\n"+
           "Metas semanais: "+migrated.weeklyGoals.length+
-          "\n\nO aplicativo será recarregado."
+          (applied?"\n\nOs dados já foram carregados na tela de Pessoas.":"\n\nOs dados foram salvos. Toque em Pessoas para visualizá-los.")
         );
-        location.reload()
+
+        if(!applied){
+          setTimeout(function(){
+            try{location.href=location.pathname+"?v=30#people"}catch(error){location.reload()}
+          },300)
+        }
       }catch(error){
         console.error("Erro ao importar:",error);
         alert("Não foi possível importar este backup.\n\nDetalhe: "+(error.message||error)+"\n\nO arquivo original não foi alterado.")
@@ -675,7 +700,7 @@ window.goToSection=function(id){
 <select id="fOpen"><option value="all">Todas</option><option value="open">Com aposta aberta</option><option value="none">Sem aposta aberta</option></select>
 <select id="fResult"><option value="all">Qualquer resultado</option><option value="profit">Com lucro</option><option value="loss">Com prejuízo</option></select>
 </div>
-<div class="card" style="display:flex;gap:7px;flex-wrap:wrap"><button id="exportBtn" type="button" class="secondary" onclick="return independentBackupExport()">Exportar backup</button><button id="importBtn" type="button" class="secondary" onclick="return independentBackupChoose()">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden onchange="return independentBackupImport(this)"></div>
+<div class="card" style="display:flex;gap:7px;flex-wrap:wrap"><button id="showImportedBtn" type="button" class="primary" onclick="goToSection('people');render();return false">Ver dados importados</button><button id="exportBtn" type="button" class="secondary" onclick="return independentBackupExport()">Exportar backup</button><button id="importBtn" type="button" class="secondary" onclick="return independentBackupChoose()">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden onchange="return independentBackupImport(this)"></div>
 <div id="peopleList"></div>
 </section>
 
@@ -983,7 +1008,7 @@ window.persistState=function persistState(){
 function load(){
  try{
   const keys=[
-   KEY,"controleApostasV28","controleApostasV27","controleApostasV26","controleApostasV25",
+   KEY,"controleApostasRecovery","controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27","controleApostasV26","controleApostasV25",
    "controleApostasV24","controleApostasV23","controleApostasV22","controleApostasV21",
    "controleApostasV20","controleApostasV19","controleApostasV18","controleApostasV17",
    "controleApostasV16","controleApostasV15","controleApostasV14","controleApostasV13",
@@ -993,8 +1018,18 @@ function load(){
   ];
   let raw=null,sourceKey="";
   for(const key of keys){
-   raw=localStorage.getItem(key);
-   if(raw){sourceKey=key;break}
+   let candidate=localStorage.getItem(key);
+   if(!candidate)continue;
+   try{
+    let parsedCandidate=JSON.parse(candidate);
+    let hasContent=Array.isArray(parsedCandidate.people)&&(
+      parsedCandidate.people.length>0||
+      (Array.isArray(parsedCandidate.bets)&&parsedCandidate.bets.length>0)||
+      (Array.isArray(parsedCandidate.moves)&&parsedCandidate.moves.length>0)
+    );
+    if(hasContent){raw=candidate;sourceKey=key;break}
+    if(!raw){raw=candidate;sourceKey=key}
+   }catch(error){console.warn("Chave inválida ignorada:",key)}
   }
   if(!raw)return;
   let x=JSON.parse(raw);
@@ -1958,6 +1993,11 @@ try{
  try{render()}catch(renderError){console.error("Erro de renderização:",renderError)}
 }
 })();
+setTimeout(function(){
+ try{
+  if(location.hash==="#people"&&typeof goToSection==="function")goToSection("people")
+ }catch(error){console.warn(error)}
+},50);
 </script>
 
 <button id="fabBtn" class="primary fab">+</button>

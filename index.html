@@ -225,6 +225,38 @@ header .head{position:relative;justify-content:center;min-height:135px}
 .appSplash h2{margin:0;font-size:1.45rem}
 .appSplash p{margin:6px 0 0;opacity:.78;font-size:.8rem}
 
+
+body{padding-bottom:78px}
+.bottomNav{
+ position:fixed;left:0;right:0;bottom:0;z-index:1500;display:grid;grid-template-columns:repeat(5,1fr);
+ background:var(--card);border-top:1px solid var(--border);box-shadow:0 -8px 22px rgba(0,0,0,.12)
+}
+.bottomNav button{
+ border:0;background:transparent;color:var(--muted);padding:9px 4px 7px;font-size:.68rem;
+ display:flex;flex-direction:column;align-items:center;gap:3px
+}
+.bottomNav button span{font-size:1.12rem}
+.bottomNav button.active{color:var(--team-primary);font-weight:bold}
+.tabs{display:none!important}
+.globalSearchWrap{position:relative;margin:10px 0}
+.globalSearchResults{
+ position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:1000;background:var(--card);
+ border:1px solid var(--border);border-radius:10px;max-height:360px;overflow:auto;box-shadow:0 12px 30px rgba(0,0,0,.18)
+}
+.globalResult{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
+.globalResult:last-child{border-bottom:0}.globalResult:hover{background:color-mix(in srgb,var(--team-primary) 10%,var(--card))}
+.fab{position:fixed;right:18px;bottom:88px;width:56px;height:56px;border-radius:50%;z-index:1600;font-size:1.55rem;box-shadow:0 8px 20px rgba(0,0,0,.28)}
+.quickMenu{position:fixed;right:18px;bottom:152px;z-index:1600;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px;display:none;min-width:210px;box-shadow:0 12px 30px rgba(0,0,0,.24)}
+.quickMenu.open{display:grid;gap:6px}
+.personSummaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.personSummaryCard{padding:9px;background:var(--bg);border:1px solid var(--border);border-radius:9px}
+.personSummaryCard span{font-size:.68rem;color:var(--muted);display:block}.personSummaryCard strong{font-size:.92rem}
+.archiveBadge{display:inline-block;font-size:.62rem;padding:3px 6px;border-radius:999px;background:#e5e7eb;color:#374151}
+.freebetRow,.comparisonRow,.dailyCloseRow{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.freebetRow:last-child,.comparisonRow:last-child,.dailyCloseRow:last-child{border-bottom:0}
+body.dark .personSummaryCard{background:#18243a}
+@media(max-width:760px){.personSummaryGrid{grid-template-columns:repeat(2,1fr)}}
+
 </style>
 </head>
 <body>
@@ -234,7 +266,7 @@ header .head{position:relative;justify-content:center;min-height:135px}
  <p>Organizando suas operações</p>
 </div>
 
-<header><div class="head"><div class="headerBrand"><div id="headerTeamCrest" class="teamCrest headerCrest"></div><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v22</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div></div><div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div class="headerBrand"><div id="headerTeamCrest" class="teamCrest headerCrest"></div><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v23</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div></div><div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -247,6 +279,10 @@ header .head{position:relative;justify-content:center;min-height:135px}
 </nav>
 
 <section id="dashboard" class="panel active">
+<div class="globalSearchWrap">
+ <input id="globalSearch" placeholder="Pesquisar pessoa, casa, jogo, movimentação ou meta">
+ <div id="globalSearchResults" class="globalSearchResults hidden"></div>
+</div>
 <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button id="dashboardSettingsBtn" class="secondary">⚙️ Aparência</button></div>
 <div class="card dashboardHero">
  <div class="dashboardHeroGrid">
@@ -465,9 +501,21 @@ header .head{position:relative;justify-content:center;min-height:135px}
    <button class="secondary" onclick="openPanel('audit')">Alterações</button>
    <button class="secondary" onclick="openPanel('trash')">Lixeira</button>
    <button class="secondary" onclick="openPanel('snapshot')">Por data</button>
-   <button class="secondary" onclick="openPanel('reports')">Relatórios</button>
+   <button class="secondary" onclick="openPanel('reports')">Relatórios</button><button class="secondary" onclick="openPanel('freebets')">Freebets</button><button class="secondary" onclick="openPanel('dailyclose')">Fechamento diário</button><button class="secondary" onclick="openPanel('comparisons')">Comparativos</button><button class="secondary" onclick="openPanel('calendar')">Calendário</button><button class="secondary" onclick="openPanel('operations')">Operando agora</button><button class="secondary" onclick="openPanel('appearance')">Configurações</button>
   </div>
  </div>
+</section>
+
+
+<section id="freebets" class="panel">
+ <div class="card"><h3>Central de freebets</h3><div id="freebetSummary"></div></div>
+</section>
+<section id="dailyclose" class="panel">
+ <div class="card"><h3>Fechamento diário</h3><label>Data<input id="dailyCloseDate" type="date"></label><div id="dailyCloseSummary" style="margin-top:10px"></div><button id="saveDailyClose" class="primary" style="margin-top:10px">Fechar dia</button></div>
+ <div class="card"><h3>Fechamentos salvos</h3><div id="dailyCloseList"></div></div>
+</section>
+<section id="comparisons" class="panel">
+ <div class="card"><h3>Comparativo de períodos</h3><div id="comparisonSummary"></div></div>
 </section>
 
 </main>
@@ -521,7 +569,7 @@ header .head{position:relative;justify-content:center;min-height:135px}
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV22";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV23";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -530,11 +578,11 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
-S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],snapshots:Array.isArray(x.snapshots)?x.snapshots:[],settings:x.settings||{},audit:Array.isArray(x.audit)?x.audit:[],trash:Array.isArray(x.trash)?x.trash:[],undoStack:Array.isArray(x.undoStack)?x.undoStack:[]};
+S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],snapshots:Array.isArray(x.snapshots)?x.snapshots:[],settings:x.settings||{},audit:Array.isArray(x.audit)?x.audit:[],trash:Array.isArray(x.trash)?x.trash:[],undoStack:Array.isArray(x.undoStack)?x.undoStack:[],dailyCloses:Array.isArray(x.dailyCloses)?x.dailyCloses:[]};
 localStorage.setItem(KEY,JSON.stringify(S))
 }}catch(e){console.error(e)}}
 function save(){
@@ -572,7 +620,7 @@ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b))
 function render(){
  const tasks=[
   ["painel",renderDash],["calendário",renderCalendar],["operando",renderOperations],["pessoas",renderPeople],["apostas",renderBets],
-  ["histórico",renderHistory],["alterações",renderAudit],["lixeira",renderTrash],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["relatórios",renderReports],["aparência",renderAppearance],["transferências",fillTransfers]
+  ["histórico",renderHistory],["alterações",renderAudit],["lixeira",renderTrash],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["relatórios",renderReports],["aparência",renderAppearance],["freebets",renderFreebets],["fechamento",renderDailyClose],["comparativos",renderComparisons],["transferências",fillTransfers]
  ];
  const errors=[];
  tasks.forEach(([name,fn])=>{try{fn()}catch(e){console.error("Erro ao renderizar "+name,e);errors.push(name+": "+e.message)}});
@@ -594,9 +642,9 @@ function renderDash(){
  $("dashboardTodayGames").innerHTML=todayGames.length?todayGames.map(b=>{let open=(b.entries||[]).filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0);return `<div class="todayGame"><div class="todayGameTop"><div><strong>${esc(b.event)}</strong><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"Sem horário"}</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="muted">${open.length} aberta(s)</div></div></div></div>`}).join(""):'<div class="empty">Nenhum jogo marcado para hoje.</div>'
 }
 function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login+" "+(h.url||"")+" "+(h.tags||[]).join(" ")).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
-function renderPeople(){let ps=[...S.people].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
-let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Bônus</span><b>${money(h.bonus||0)}</b></div><div class="stat"><span>Rollover</span><b>${money(h.rollover||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div>${(h.tags||[]).length?`<div class="muted" style="margin-top:6px">🏷️ ${(h.tags||[]).map(esc).join(" • ")}</div>`:""}${h.expiry?`<div class="muted" style="margin-top:4px">⏰ Validade: ${new Date(h.expiry+"T12:00:00").toLocaleDateString("pt-BR")}</div>`:""}${h.maxStake?`<div class="muted">Limite/aposta: ${money(h.maxStake)}</div>`:""}${h.dailyLimit?`<div class="muted">Limite diário: ${money(h.dailyLimit)}</div>`:""}<div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
-return`<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`}).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'}
+function renderPeople(){let ps=[...S.people].filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].filter(h=>!h.archived).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
+let pf=p.houses.reduce((s,h)=>s+Number(h.freebet||0),0),pbns=p.houses.reduce((s,h)=>s+Number(h.bonus||0),0),openEntries=S.bets.flatMap(b=>b.entries||[]).filter(e=>e.pid===p.id&&e.status==="open").length;let summary=`<div class="personSummaryGrid"><div class="personSummaryCard"><span>Disponível</span><strong>${money(pb)}</strong></div><div class="personSummaryCard"><span>Em jogo</span><strong>${money(pi)}</strong></div><div class="personSummaryCard"><span>Freebets</span><strong>${money(pf)}</strong></div><div class="personSummaryCard"><span>Bônus</span><strong>${money(pbns)}</strong></div><div class="personSummaryCard"><span>Lucro</span><strong>${money(pp)}</strong></div><div class="personSummaryCard"><span>Apostas abertas</span><strong>${openEntries}</strong></div></div>`;let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Bônus</span><b>${money(h.bonus||0)}</b></div><div class="stat"><span>Rollover</span><b>${money(h.rollover||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div>${(h.tags||[]).length?`<div class="muted" style="margin-top:6px">🏷️ ${(h.tags||[]).map(esc).join(" • ")}</div>`:""}${h.expiry?`<div class="muted" style="margin-top:4px">⏰ Validade: ${new Date(h.expiry+"T12:00:00").toLocaleDateString("pt-BR")}</div>`:""}${h.maxStake?`<div class="muted">Limite/aposta: ${money(h.maxStake)}</div>`:""}${h.dailyLimit?`<div class="muted">Limite diário: ${money(h.dailyLimit)}</div>`:""}<div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="secondary" onclick="archiveHouse('${p.id}','${h.id}')">Arquivar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
+return`<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="secondary" onclick="event.stopPropagation();archivePerson('${p.id}')">Arquivar</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${summary}${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`}).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'}
 window.togglePerson=id=>{openPid=openPid===id?null:id;render()};window.toggleFav=(pid,hid)=>{let h=hBy(pid,hid);h.favorite=!h.favorite;save()}
 $("personForm").onsubmit=e=>{e.preventDefault();let name=$("personName").value.trim();if(!name)return;if(S.people.some(p=>p.name.toLowerCase()===name.toLowerCase()))return alert("Nome já cadastrado.");let p={id:uid(),name,houses:[]};S.people.push(p);openPid=p.id;$("personForm").reset();save()}
 ["search","fBalance","fOpen","fResult"].forEach(id=>$(id).oninput=renderPeople)
@@ -713,7 +761,7 @@ $("betForm").onsubmit=e=>{
 };
 
 function snapshotState(label){
- S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];
+ S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];S.dailyCloses=Array.isArray(S.dailyCloses)?S.dailyCloses:[];
  let copy=JSON.parse(JSON.stringify({...S,undoStack:[]}));
  S.undoStack.push({id:uid(),date:new Date().toISOString(),label,state:copy});
  S.undoStack=S.undoStack.slice(-10)
@@ -1250,6 +1298,65 @@ $("resetAppearance").onclick=()=>{
  save();renderAppearance()
 };
 
+
+function updateBottomNav(id){
+ document.querySelectorAll("[data-bottom]").forEach(b=>b.classList.toggle("active",b.dataset.bottom===id))
+}
+document.querySelectorAll("[data-bottom]").forEach(b=>b.onclick=()=>{openPanel(b.dataset.bottom);updateBottomNav(b.dataset.bottom)});
+const oldOpenPanel=window.openPanel;
+window.openPanel=id=>{oldOpenPanel(id);updateBottomNav(["dashboard","people","bets","weekly365","more"].includes(id)?id:"more")};
+$("fabBtn").onclick=()=>$("quickMenu").classList.toggle("open");
+window.closeQuickMenu=()=>$("quickMenu").classList.remove("open");
+document.addEventListener("click",e=>{if(!e.target.closest("#quickMenu")&&!e.target.closest("#fabBtn"))closeQuickMenu()});
+
+function globalResults(q){
+ q=q.trim().toLowerCase();if(!q)return[];
+ let out=[];
+ S.people.forEach(p=>{
+  if((p.name||"").toLowerCase().includes(q))out.push({type:"Pessoa",title:p.name,panel:"people",action:()=>{openPid=p.id}});
+  (p.houses||[]).forEach(h=>{if([h.name,h.login,h.url,...(h.tags||[])].join(" ").toLowerCase().includes(q))out.push({type:"Casa",title:p.name+" • "+h.name,panel:"people",action:()=>{openPid=p.id}})})
+ });
+ S.bets.forEach(b=>{if([b.event,b.note].join(" ").toLowerCase().includes(q))out.push({type:"Jogo",title:b.event,panel:"bets",action:()=>{$("betSearch").value=b.event}})});
+ S.moves.forEach(m=>{if([m.label,m.note].join(" ").toLowerCase().includes(q))out.push({type:"Movimentação",title:m.label,panel:"history"})});
+ (S.weeklyGoals||[]).forEach(g=>{if((g.accountName||"").toLowerCase().includes(q))out.push({type:"Meta",title:g.accountName,panel:"weekly365"})});
+ return out.slice(0,30)
+}
+$("globalSearch").oninput=()=>{
+ let r=globalResults($("globalSearch").value),box=$("globalSearchResults");
+ box.classList.toggle("hidden",!r.length);
+ box.innerHTML=r.map((x,i)=>`<div class="globalResult" onclick="openGlobalResult(${i})"><strong>${esc(x.title)}</strong><div class="muted">${x.type}</div></div>`).join("");
+ window._globalResults=r
+};
+window.openGlobalResult=i=>{let x=(window._globalResults||[])[i];if(!x)return;if(x.action)x.action();openPanel(x.panel);render();$("globalSearchResults").classList.add("hidden")};
+
+window.archivePerson=id=>{let p=pBy(id);if(!p)return;if(confirm("Arquivar esta pessoa?")){p.archived=true;audit("Pessoa arquivada",p.name);save()}};
+window.archiveHouse=(pid,hid)=>{let h=hBy(pid,hid);if(!h)return;if(confirm("Arquivar esta casa?")){h.archived=true;audit("Casa arquivada",h.name);save()}};
+
+function renderFreebets(){
+ let rows=allH().filter(h=>Number(h.freebet||0)>0).sort((a,b)=>Number(b.freebet)-Number(a.freebet)),total=rows.reduce((s,h)=>s+Number(h.freebet||0),0);
+ let converted=S.bets.flatMap(b=>b.entries||[]).filter(e=>e.type==="freebet"&&e.status==="win").reduce((s,e)=>s+Number(e.returned||0),0);
+ $("freebetSummary").innerHTML=`<div class="personSummaryGrid"><div class="personSummaryCard"><span>Total disponível</span><strong>${money(total)}</strong></div><div class="personSummaryCard"><span>Convertido em saldo</span><strong>${money(converted)}</strong></div><div class="personSummaryCard"><span>Casas com freebet</span><strong>${rows.length}</strong></div></div>${rows.map(h=>`<div class="freebetRow"><span>${esc(h.pname)} • ${esc(h.name)}</span><strong>${money(h.freebet)}</strong></div>`).join("")||'<div class="empty">Nenhuma freebet disponível.</div>'}`
+}
+function dailySummary(date){
+ let moves=S.moves.filter(m=>(m.date||"").slice(0,10)===date),deps=moves.filter(m=>m.type==="deposit").reduce((s,m)=>s+Number(m.value||0),0),withs=moves.filter(m=>m.type==="withdraw").reduce((s,m)=>s+Number(m.value||0),0),profit=moves.reduce((s,m)=>s+Number(m.deltaProfit||0),0),games=S.bets.filter(b=>(b.eventDate||b.created||"").slice(0,10)===date),open=games.flatMap(b=>b.entries||[]).filter(e=>e.status==="open").reduce((s,e)=>s+Number(e.stake||0),0);
+ let snap=(S.snapshots||[]).find(x=>x.date===date),capital=snap?snap.capital:total().capital;
+ return{deps,withs,profit,games:games.length,open,capital}
+}
+function renderDailyClose(){
+ let d=$("dailyCloseDate").value||new Date().toISOString().slice(0,10);$("dailyCloseDate").value=d;let x=dailySummary(d);
+ $("dailyCloseSummary").innerHTML=[["Depósitos",money(x.deps)],["Retiradas",money(x.withs)],["Lucro",money(x.profit)],["Jogos",x.games],["Em aberto",money(x.open)],["Patrimônio",money(x.capital)]].map(([a,b])=>`<div class="dailyCloseRow"><span>${a}</span><strong>${b}</strong></div>`).join("");
+ $("dailyCloseList").innerHTML=(S.dailyCloses||[]).slice().reverse().map(x=>`<div class="dailyCloseRow"><span>${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR")}</span><strong>${money(x.summary.capital)}</strong></div>`).join("")||'<div class="empty">Nenhum fechamento salvo.</div>'
+}
+$("dailyCloseDate").onchange=renderDailyClose;
+$("saveDailyClose").onclick=()=>{let date=$("dailyCloseDate").value,summary=dailySummary(date),idx=(S.dailyCloses||[]).findIndex(x=>x.date===date);let row={id:uid(),date,created:new Date().toISOString(),summary};if(idx>=0)S.dailyCloses[idx]=row;else S.dailyCloses.push(row);audit("Dia fechado",date);save()};
+function monthStats(offset){
+ let d=new Date();d.setMonth(d.getMonth()+offset);let key=d.toISOString().slice(0,7),moves=S.moves.filter(m=>(m.date||"").slice(0,7)===key),profit=moves.reduce((s,m)=>s+Number(m.deltaProfit||0),0),volume=S.bets.filter(b=>(b.created||"").slice(0,7)===key).flatMap(b=>b.entries||[]).reduce((s,e)=>s+Number(e.stake||0),0),greens=S.bets.flatMap(b=>b.entries||[]).filter(e=>(e.settled||"").slice(0,7)===key&&e.status==="win").length,reds=S.bets.flatMap(b=>b.entries||[]).filter(e=>(e.settled||"").slice(0,7)===key&&e.status==="loss").length;return{key,profit,volume,greens,reds}
+}
+function renderComparisons(){
+ let now=monthStats(0),prev=monthStats(-1),diff=now.profit-prev.profit;
+ $("comparisonSummary").innerHTML=`<div class="comparisonRow"><span>Mês atual (${now.key})</span><strong>${money(now.profit)}</strong></div><div class="comparisonRow"><span>Mês anterior (${prev.key})</span><strong>${money(prev.profit)}</strong></div><div class="comparisonRow"><span>Diferença</span><strong class="${diff>=0?"positive":"negative"}">${money(diff)}</strong></div><div class="comparisonRow"><span>Volume atual</span><strong>${money(now.volume)}</strong></div><div class="comparisonRow"><span>Volume anterior</span><strong>${money(prev.volume)}</strong></div><div class="comparisonRow"><span>Greens / Reds atuais</span><strong>${now.greens} / ${now.reds}</strong></div>`
+}
+
 function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
@@ -1425,8 +1532,25 @@ $("installBtn").onclick=async()=>{
 };
 updateInstallVisibility();
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();appearanceSettings();applyAppearanceToPage();setTimeout(()=>{$("appSplash")?.classList.add("hiddenSplash")},900);S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
+load();appearanceSettings();applyAppearanceToPage();setTimeout(()=>{$("appSplash")?.classList.add("hiddenSplash")},900);S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];S.dailyCloses=Array.isArray(S.dailyCloses)?S.dailyCloses:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>{if(p.archived==null)p.archived=false;p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.archived==null)h.archived=false;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""})});render();
 })();
 </script>
+
+<button id="fabBtn" class="primary fab">+</button>
+<div id="quickMenu" class="quickMenu">
+ <button class="primary" onclick="openPanel('bets');$('newBet').click();closeQuickMenu()">Nova aposta</button>
+ <button class="secondary" onclick="openPanel('people');$('personName').focus();closeQuickMenu()">Nova pessoa</button>
+ <button class="secondary" onclick="openPanel('people');openTransfer();closeQuickMenu()">Transferir</button>
+ <button class="secondary" onclick="openPanel('weekly365');$('weeklyGoalAccountName').focus();closeQuickMenu()">Semanal Bet365</button>
+ <button class="secondary" onclick="openPanel('more');closeQuickMenu()">Mais ações</button>
+</div>
+<nav class="bottomNav">
+ <button data-bottom="dashboard" class="active"><span>⌂</span>Painel</button>
+ <button data-bottom="people"><span>👥</span>Pessoas</button>
+ <button data-bottom="bets"><span>🎯</span>Apostas</button>
+ <button data-bottom="weekly365"><span>📈</span>Semanal</button>
+ <button data-bottom="more"><span>⋯</span>Mais</button>
+</nav>
+
 </body>
 </html>

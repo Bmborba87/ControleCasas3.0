@@ -1,7 +1,7 @@
 {
   "name": "Controle de Apostas",
   "short_name": "Apostas",
-  "start_url": "./?v=22",
+  "start_url": "./?v=23",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v22",
-  "description": "Controle de apostas com escudo oficial apenas no topo do aplicativo."
+  "id": "./controle-de-apostas-v23",
+  "description": "Controle de apostas otimizado para celular com pesquisa, ações rápidas, freebets e fechamento diário."
 }

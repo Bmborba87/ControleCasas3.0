@@ -1,18 +1,20 @@
-CONTROLE DE APOSTAS — VERSÃO 22
+CONTROLE DE APOSTAS — VERSÃO 23
 
-AJUSTES VISUAIS
-- O escudo oficial aparece somente no topo do aplicativo.
-- O escudo foi centralizado acima de Controle de Apostas.
-- O escudo foi removido completamente da área do patrimônio.
-- O nome do time não aparece mais no dashboard.
-- O nome do aplicativo permanece sempre Controle de Apostas.
-- Removido o campo de legenda/nome personalizado do tema.
-- Adicionada uma tela de abertura discreta com o escudo e o nome do aplicativo.
-- O dashboard ficou novamente focado somente nas informações financeiras.
+OTIMIZAÇÕES
+- Barra inferior para celular: Painel, Pessoas, Apostas, Semanal e Mais.
+- Botão flutuante de ação rápida.
+- Pesquisa global por pessoa, casa, jogo, movimentação e meta.
+- Resumo completo dentro de cada pessoa.
+- Central de freebets.
+- Fechamento diário com registros salvos.
+- Comparativo do mês atual com o anterior.
+- Arquivamento de pessoas e casas sem apagar histórico.
+- Calendário, Operando agora e Configurações agrupados em Mais.
+- Dashboard e todas as funções anteriores preservados.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=22.
-5. Se o layout antigo persistir, remova e reinstale o aplicativo.
+4. Abra com ?v=23.
+5. Se necessário, remova e reinstale o aplicativo.

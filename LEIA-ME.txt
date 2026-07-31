@@ -1,5 +1,11 @@
-BETMANAGER V43
-- Removido o bloco redundante de Chance de Duplo Green: Principal + proteção.
-- Permite cadastrar um ou vários jogos na mesma aposta.
-- Apostas antigas continuam compatíveis.
-- Jogos aparecem dentro do cartão recolhível.
+BETMANAGER — VERSÃO 44
+
+ADIÇÃO POSTERIOR DE ENTRADAS
+- Cada operação possui o botão “+ Adicionar entrada/proteção”.
+- Abre o formulário com os jogos já preenchidos.
+- As entradas antigas são preservadas.
+- É possível incluir uma ou várias novas proteções.
+- O saldo/freebet é descontado apenas das novas entradas.
+- Ajuste de saldo insuficiente continua disponível.
+- Os jogos e a observação também podem ser corrigidos nesse formulário.
+- A nova entrada permanece após salvar e recarregar.

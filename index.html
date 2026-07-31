@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v43</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v44</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -367,7 +367,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </form></dialog>
 
 <dialog id="betDialog"><form id="betForm">
-<div class="dhead"><div><h2>Nova aposta</h2><div class="muted">Cadastre todas as entradas do mesmo jogo juntas.</div></div><button type="button" class="secondary" onclick="closeD('betDialog')">X</button></div>
+<div class="dhead"><div><h2 id="betDialogTitle">Nova aposta</h2><div id="betDialogMode" class="muted"></div><div class="muted">Cadastre todas as entradas do mesmo jogo juntas.</div></div><button type="button" class="secondary" onclick="closeD('betDialog')">X</button></div>
 <div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong>Jogos da aposta</strong><button type="button" id="addBetGameRow" class="secondary">+ Adicionar jogo</button></div><div id="betGames"></div></div>
 <label>Observação<textarea id="betNote" rows="2"></textarea></label>
 <div>
@@ -579,17 +579,20 @@ function doubleGreenPairs(b){
 }
 function personOptions(selected=""){return S.people.map(p=>`<option value="${p.id}" ${p.id===selected?"selected":""}>${esc(p.name)}</option>`).join("")}
 function houseOptions(pid,selected=""){let p=pBy(pid);return (p?p.houses:[]).map(h=>`<option value="${h.id}" ${h.id===selected?"selected":""}>${esc(h.name)} — saldo ${money(h.balance)} • freebet ${money(h.freebet||0)}</option>`).join("")}
+let editingBetId=null;
+let betEntryRoleOffset=0;
 function refreshEntryRoles(){
  [...$("betEntries").children].forEach((row,index)=>{
-  let role=index===0?"main":"protection";
+  let absoluteIndex=betEntryRoleOffset+index;
+  let role=absoluteIndex===0?"main":"protection";
   row.dataset.role=role;
   let badge=row.querySelector(".entryRoleBadge");
   badge.className="entryRoleBadge "+role;
-  badge.textContent=role==="main"?"Entrada principal":"Proteção "+index;
+  badge.textContent=role==="main"?"Entrada principal":"Proteção "+absoluteIndex;
   let compatibleWrap=row.querySelector(".doubleGreenWrap");
   if(compatibleWrap)compatibleWrap.style.display=role==="main"?"none":"block";
   let remove=row.querySelector(".removeEntry");
-  if(remove)remove.style.visibility=role==="main"?"hidden":"visible"
+  if(remove)remove.style.visibility=(role==="main"&&$("betEntries").children.length===1)?"hidden":"visible"
  })
 }
 function addBetEntryRow(pid="",hid="",data={}){
@@ -691,17 +694,43 @@ $("addBetGameRow").onclick=()=>addBetGameRow();
 $("addBetEntry").onclick=()=>addBetEntryRow();
 $("newBet").onclick=()=>{
  if(!allH().length)return alert("Cadastre ao menos uma casa.");
+ editingBetId=null;betEntryRoleOffset=0;
+ $("betDialogTitle").textContent="Nova aposta";
+ $("betDialogMode").textContent="Cadastre a entrada principal e, se necessário, as proteções.";
  $("betForm").reset();$("betGames").innerHTML="";addBetGameRow();$("betEntries").innerHTML="";addBetEntryRow();refreshEntryRoles();$("betDialog").showModal()
 };
 window.openBetFor=(pid,hid)=>{
+ editingBetId=null;betEntryRoleOffset=0;
+ $("betDialogTitle").textContent="Nova aposta";
+ $("betDialogMode").textContent="Cadastre a entrada principal e, se necessário, as proteções.";
  $("betForm").reset();$("betGames").innerHTML="";addBetGameRow();$("betEntries").innerHTML="";addBetEntryRow(pid,hid);refreshEntryRoles();$("betDialog").showModal()
 };
+
+window.addEntriesToBet=gid=>{
+ let b=S.bets.find(x=>x.id===gid);if(!b)return;
+ if(!allH().length)return alert("Cadastre ao menos uma casa.");
+ editingBetId=gid;
+ betEntryRoleOffset=(b.entries||[]).length;
+ $("betDialogTitle").textContent="Adicionar entradas";
+ $("betDialogMode").textContent="As entradas antigas serão preservadas. Cadastre apenas as novas entradas ou proteções.";
+ $("betForm").reset();
+ $("betGames").innerHTML="";
+ normalizeGames(b).forEach(g=>addBetGameRow(g));
+ $("betNote").value=b.note||"";
+ $("betEntries").innerHTML="";
+ addBetEntryRow();
+ refreshEntryRoles();
+ $("betDialog").showModal()
+};
+
 $("betForm").onsubmit=e=>{
  e.preventDefault();
  let games=readGameRows(),note=$("betNote").value.trim();
  let event=games.length===1?games[0].name:games.length+" jogos • "+(games[0]?.name||"Múltipla");
  let eventDate=games.map(g=>g.date).filter(Boolean).sort()[0]||"";
  let rows=[...$("betEntries").children],entries=[],adjustments=[];
+ let targetBet=editingBetId?S.bets.find(b=>b.id===editingBetId):null;
+ let existingCount=targetBet?(targetBet.entries||[]).length:0;
  let projectedCash=new Map(),projectedFreebet=new Map();
  if(!games.length||games.some(g=>!g.name))return alert("Informe todos os jogos da aposta.");
 
@@ -738,7 +767,8 @@ $("betForm").onsubmit=e=>{
    }
    projectedFreebet.set(key,available-x.stake)
   }
-  entries.push({...x,role:entries.length===0?"main":"protection",doubleGreenCompatible:entries.length===0?false:Boolean(x.doubleGreenCompatible),id:uid(),created:new Date().toISOString(),status:"open",returned:0,settled:null})
+  let absoluteIndex=existingCount+entries.length;
+  entries.push({...x,role:absoluteIndex===0?"main":"protection",doubleGreenCompatible:absoluteIndex===0?false:Boolean(x.doubleGreenCompatible),id:uid(),created:new Date().toISOString(),status:"open",returned:0,settled:null})
  }
 
  adjustments.forEach(a=>{
@@ -752,9 +782,31 @@ $("betForm").onsubmit=e=>{
   if(x.type==="cash"){h.balance-=x.stake;h.inPlay+=x.stake;move("bet",x.stake,x.pid,x.houseId,"Nova entrada: "+event,note,-x.stake,x.stake,0)}
   else{h.freebet=Number(h.freebet||0)-x.stake;move("freebet_bet",x.stake,x.pid,x.houseId,"Entrada com freebet: "+event,note,0,0,0)}
  });
- S.bets.unshift({id:uid(),event,eventDate,games,note,created:new Date().toISOString(),entries,balanceAdjustments:adjustments.map(a=>({...a,date:new Date().toISOString()}))});
+ if(targetBet){
+  targetBet.games=games;
+  targetBet.event=event;
+  targetBet.eventDate=eventDate;
+  targetBet.note=note;
+  targetBet.entries=Array.isArray(targetBet.entries)?targetBet.entries:[];
+  targetBet.entries.push(...entries);
+  targetBet.entries.forEach((entry,index)=>{
+   entry.role=index===0?"main":"protection";
+   if(index===0)entry.doubleGreenCompatible=false
+  });
+  targetBet.balanceAdjustments=Array.isArray(targetBet.balanceAdjustments)?targetBet.balanceAdjustments:[];
+  targetBet.balanceAdjustments.push(...adjustments.map(a=>({...a,date:new Date().toISOString()})));
+  audit("Entradas adicionadas",`${event} • ${entries.length} nova(s) entrada(s)`);
+ }else{
+  S.bets.unshift({id:uid(),event,eventDate,games,note,created:new Date().toISOString(),entries,balanceAdjustments:adjustments.map(a=>({...a,date:new Date().toISOString()}))})
+ }
+ editingBetId=null;betEntryRoleOffset=0;
  save();$("betDialog").close()
 };
+
+$("betDialog").addEventListener("close",()=>{
+ editingBetId=null;
+ betEntryRoleOffset=0
+});
 
 function snapshotState(label){
  S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];
@@ -832,7 +884,7 @@ function renderBets(){
    
    ${!open&&groupWins(b)>=2?`<div class="doubleGreen doubleGreenPossible"><span>Duplo green confirmado</span><strong>${groupWins(b)} apostas ficaram green</strong></div>`:""}
    ${(b.balanceAdjustments||[]).length?`<div class="balanceAdjustmentNote">Atualização durante o cadastro: ${(b.balanceAdjustments||[]).map(a=>`${esc(a.houseName)} +${money(a.value)}`).join(" • ")}</div>`:""}
-   <div class="entryActionRow"><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogo</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir jogo</button></div>${entries}</div></details>`
+   <div class="entryActionRow"><button class="primary" onclick="addEntriesToBet('${b.id}')">+ Adicionar entrada/proteção</button><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogos</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir operação</button></div>${entries}</div></details>`
  }).join(""):'<div class="card empty">Nenhuma operação cadastrada.</div>'
 }
 $("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;

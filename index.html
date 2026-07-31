@@ -39,7 +39,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 @media(max-width:760px){.entryGrid,.entryBuilder .entryGrid{grid-template-columns:1fr 1fr}.entryGrid button{grid-column:span 2}}
 
 
-.weeklyGoalForm{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;align-items:end}
+.weeklyGoalForm{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px;align-items:end}
 .weeklyGoal{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:11px;overflow:hidden}
 .weeklyGoalHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:13px}
 .weeklyGoalTitle{display:flex;gap:9px;align-items:flex-start}
@@ -68,7 +68,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 </head>
 <body>
 
-<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v12</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v13</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -147,11 +147,8 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
   <div class="card">
     <h3>Criar nova meta</h3>
     <form id="weeklyGoalForm" class="weeklyGoalForm">
-      <label>Nome da meta
-        <input id="weeklyGoalName" placeholder="Ex.: Semana 01">
-      </label>
-      <label>Vincular ao nome
-        <select id="weeklyGoalPerson"></select>
+      <label>Nome da conta
+        <input id="weeklyGoalAccountName" placeholder="Digite qualquer nome">
       </label>
       <label>Meta semanal
         <input id="weeklyGoalTarget" inputmode="decimal" value="1500,00">
@@ -214,7 +211,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV12";let S={people:[],bets:[],moves:[],weeklyGoals:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV13";let S={people:[],bets:[],moves:[],weeklyGoals:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -223,7 +220,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -402,17 +399,14 @@ $("settleForm").onsubmit=e=>{
  save();$("settleDialog").close()
 };
 
-function weeklyPersonOptions(selected=""){
- return S.people.map(p=>`<option value="${p.id}" ${p.id===selected?"selected":""}>${esc(p.name)}</option>`).join("")
-}
+
 function weeklyCurrent(goal){
  return (goal.entries||[]).reduce((sum,e)=>sum+Number(e.value||0),0)
 }
 function weeklyNormalizeGoal(g){
  return {
   id:g.id||uid(),
-  name:g.name||g.nome||"Meta semanal",
-  personId:g.personId||g.pid||g.pessoaId||"",
+  accountName:g.accountName||g.personName||g.nomeConta||g.name||g.nome||"Sem nome",
   target:Number(g.target??g.meta??1500)||1500,
   created:g.created||g.createdAt||new Date().toISOString(),
   entries:Array.isArray(g.entries)?g.entries.map(e=>({
@@ -425,19 +419,15 @@ function weeklyNormalizeGoal(g){
 }
 function renderWeeklyGoals(){
  if(!Array.isArray(S.weeklyGoals))S.weeklyGoals=[];
- $("weeklyGoalPerson").innerHTML=weeklyPersonOptions();
- if(!S.people.length){
-  $("weeklyGoalPerson").innerHTML='<option value="">Cadastre um nome primeiro</option>'
- }
  let goals=[...S.weeklyGoals].sort((a,b)=>new Date(b.created)-new Date(a.created));
  $("weeklyGoalsList").innerHTML=goals.length?goals.map(g=>{
-  let person=pBy(g.personId),current=weeklyCurrent(g),remaining=Math.max(0,g.target-current),percent=g.target>0?Math.max(0,current/g.target*100):0,complete=current>=g.target;
+  let current=weeklyCurrent(g),remaining=Math.max(0,g.target-current),percent=g.target>0?Math.max(0,current/g.target*100):0,complete=current>=g.target;
   let entries=[...(g.entries||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
   return `<section class="weeklyGoal ${complete?"weeklyComplete":""}">
    <div class="weeklyGoalHead">
     <div class="weeklyGoalTitle">
      <span class="weeklyBadge">${complete?"Meta concluída":"Em andamento"}</span>
-     <div><h3>${esc(g.name)}</h3><div class="muted">${esc(person?person.name:"Nome removido")} • Meta ${money(g.target)}</div></div>
+     <div><h3>${esc(g.accountName)}</h3><div class="muted">Meta ${money(g.target)}</div></div>
     </div>
     <strong>${money(current)}</strong>
    </div>
@@ -470,12 +460,13 @@ function renderWeeklyGoals(){
 }
 $("weeklyGoalForm").onsubmit=e=>{
  e.preventDefault();
- if(!S.people.length)return alert("Cadastre pelo menos um nome antes de criar a meta.");
- let name=$("weeklyGoalName").value.trim()||"Semanal Bet365",personId=$("weeklyGoalPerson").value,target=n($("weeklyGoalTarget").value);
- if(!personId)return alert("Selecione um nome.");
+ let accountName=$("weeklyGoalAccountName").value.trim(),target=n($("weeklyGoalTarget").value);
+ if(!accountName)return alert("Digite o nome da conta.");
  if(!(target>0))return alert("Digite uma meta válida.");
- S.weeklyGoals.push({id:uid(),name,personId,target,created:new Date().toISOString(),entries:[]});
- $("weeklyGoalForm").reset();$("weeklyGoalTarget").value="1500,00";save()
+ S.weeklyGoals.push({id:uid(),accountName,target,created:new Date().toISOString(),entries:[]});
+ $("weeklyGoalForm").reset();
+ $("weeklyGoalTarget").value="1500,00";
+ save()
 };
 window.addWeeklyValue=(event,goalId)=>{
  event.preventDefault();
@@ -487,13 +478,12 @@ window.addWeeklyValue=(event,goalId)=>{
 };
 window.editWeeklyGoal=goalId=>{
  let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
- let name=prompt("Nome da meta:",g.name);if(name===null)return;
+ let accountName=prompt("Nome da conta:",g.accountName);if(accountName===null)return;
  let targetRaw=prompt("Valor da meta:",Number(g.target).toLocaleString("pt-BR",{minimumFractionDigits:2}));if(targetRaw===null)return;
  let target=n(targetRaw);if(!(target>0))return alert("Meta inválida.");
- let people=S.people.map((p,i)=>`${i+1} - ${p.name}`).join("\n"),currentIndex=Math.max(0,S.people.findIndex(p=>p.id===g.personId)),personRaw=prompt("Escolha o número do nome:\n"+people,String(currentIndex+1));
- if(personRaw===null)return;
- let selected=S.people[Number(personRaw)-1];if(!selected)return alert("Nome inválido.");
- g.name=name.trim()||"Semanal Bet365";g.target=target;g.personId=selected.id;save()
+ g.accountName=accountName.trim()||"Sem nome";
+ g.target=target;
+ save()
 };
 window.resetWeeklyGoal=goalId=>{
  let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
@@ -506,7 +496,6 @@ window.deleteWeeklyEntry=(goalId,entryId)=>{
  let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
  if(confirm("Excluir este lançamento?")){g.entries=g.entries.filter(e=>e.id!==entryId);save()}
 };
-
 function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}

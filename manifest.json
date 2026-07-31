@@ -1,7 +1,7 @@
 {
   "name": "Controle de Apostas",
   "short_name": "Apostas",
-  "start_url": "./?v=12",
+  "start_url": "./?v=13",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v12",
+  "id": "./controle-de-apostas-v13",
   "description": "Gestão de apostas, saldos, freebets e metas semanais."
 }

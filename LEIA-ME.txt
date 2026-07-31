@@ -1,26 +1,18 @@
-CONTROLE DE APOSTAS — VERSÃO 10
+CONTROLE DE APOSTAS — VERSÃO 11
 
-CORREÇÃO PRINCIPAL
-O JSON estava sendo lido e convertido, mas o painel tentava atualizar elementos
-que não existiam no HTML. Isso interrompia a renderização antes das pessoas
-aparecerem e gerava o erro:
-Cannot set properties of null (setting 'textContent').
-
-ALTERAÇÕES
-- Todos os elementos exigidos pelo dashboard foram adicionados.
-- A atualização dos indicadores agora é protegida contra elementos ausentes.
-- A importação passou a ser transacional:
-  1. lê e converte o backup;
-  2. tenta desenhar os dados;
-  3. só depois salva no navegador.
-- Se algo falhar, os dados anteriores são restaurados.
-- A confirmação informa quantas pessoas foram encontradas.
-- Login continua totalmente removido.
-- Procura automaticamente os dados locais das versões 9, 8 e anteriores.
+CORREÇÕES
+- Função setText adicionada corretamente.
+- O painel não interrompe mais a renderização das pessoas se uma seção opcional falhar.
+- O importador não confunde erro visual com JSON inválido.
+- O backup só é confirmado após conversão e armazenamento.
+- A mensagem de sucesso informa o total de pessoas e casas.
+- Testado com o backup antigo enviado: 5 pessoas e 69 casas reconhecidas.
+- Login continua removido.
+- Procura dados locais das versões 10, 9, 8 e anteriores.
 
 ATUALIZAÇÃO
-1. Extraia o ZIP.
-2. Substitua todos os arquivos no GitHub.
+1. Extraia este ZIP.
+2. Substitua todos os arquivos do GitHub.
 3. Faça Commit changes.
-4. Abra o endereço acrescentando ?v=10.
-5. Atualize a página com Ctrl+F5 ou remova e reinstale o aplicativo se necessário.
+4. Abra com ?v=11 no final.
+5. No celular, caso a versão antiga persista, remova o aplicativo instalado e instale novamente.

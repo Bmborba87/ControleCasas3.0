@@ -1,19 +1,28 @@
-CONTROLE DE CASAS — VERSÃO 2
+CONTROLE DE CASAS PROFISSIONAL V2
 
-Novos recursos:
-- Duplicar casas selecionadas para outro nome.
-- Casas duplicadas começam com saldo zero.
-- Adicionar e remover valores rapidamente.
-- Colocar valores em jogo.
-- Finalizar apostas e calcular lucro/prejuízo.
-- Rentabilidade por casa, nome e geral.
-- Aplicativo instalável.
+Inclui:
+- Painel geral.
+- Pessoas e casas recolhíveis.
+- Favoritos e filtros.
+- Duplicação seletiva de casas.
+- Adição e remoção rápida de valores.
+- Transferência entre casas.
+- Registro individual de apostas.
+- Finalização com green, red ou anulada.
+- Saldo disponível, em jogo, patrimônio, lucro e rentabilidade.
+- Histórico de movimentações.
+- Consulta do patrimônio em qualquer data.
+- Backup por exportação/importação.
+- Instalação no celular como aplicativo.
 
-Atualização:
-1. Faça backup da versão atual.
-2. Envie todos os arquivos deste ZIP para a raiz do repositório.
-3. Substitua os antigos e faça Commit changes.
-4. Abra a página com ?app=2 no final.
-5. Se o app instalado não atualizar, remova-o e instale novamente.
+ATUALIZAÇÃO:
+1. Faça um backup da versão anterior.
+2. Extraia este ZIP.
+3. Envie TODOS os arquivos para a raiz do GitHub.
+4. Substitua os arquivos antigos e faça Commit.
+5. Abra a página com ?v=2 no final.
+6. Instale novamente caso a versão antiga continue no celular.
 
-Rentabilidade = lucro líquido acumulado / total depositado.
+IMPORTANTE:
+A consulta por data funciona com as movimentações registradas nesta nova versão.
+Movimentos feitos antes da instalação desta versão não podem ser reconstruídos automaticamente.

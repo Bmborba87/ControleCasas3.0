@@ -1,23 +1,34 @@
-CONTROLE DE APOSTAS — VERSÃO 15
+CONTROLE DE APOSTAS — VERSÃO 16
 
-CORREÇÕES E RECURSOS
-- Aposta anulada em dinheiro devolve a entrada e gera lucro zero.
-- Freebet anulada volta ao saldo de freebet e gera lucro zero.
-- Excluir entrada individual desfaz corretamente saldo, em jogo, freebet e lucro.
-- Excluir jogo inteiro com reversão de todas as entradas.
-- Editar valor, odd, tipo, pessoa e casa.
-- Editar nome e data do jogo.
-- Duplicar entrada.
-- Mover entrada para outro jogo ou criar um jogo novo.
-- Histórico de alterações.
-- Botão Desfazer para alterações estruturais recentes.
-- Lixeira com restauração por até 30 dias.
-- Apagar definitivamente.
-- Modo escuro redesenhado com contraste muito maior.
+PERSONALIZAÇÃO
+- Temas inspirados em combinações de cores de times.
+- Opção Sem time.
+- Estilo Discreto ou Torcedor.
+- Duas cores manuais em Tema personalizado.
+- Nome personalizado no cabeçalho.
+- Imagem opcional no cabeçalho.
+- Tema salvo no aparelho.
+- Compatível com modo claro e escuro.
+- Lucro, prejuízo e alertas mantêm cores financeiras próprias.
+
+DASHBOARD
+- Cartão principal de patrimônio.
+- Jogos de hoje.
+- Entradas do dia.
+- Valor em jogo no dia.
+- Lista dos jogos de hoje com horário e valores.
+- Indicadores e estatísticas anteriores preservados.
+
+CALENDÁRIO
+- Navegação mensal.
+- Quantidade de jogos e entradas em cada dia.
+- Valor aberto em cada data.
+- Detalhes ao tocar no dia.
+- Acesso direto ao jogo selecionado.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=15.
-5. Remova e reinstale o app se o cache antigo persistir.
+4. Abra com ?v=16.
+5. Remova e reinstale o aplicativo se o cache antigo persistir.

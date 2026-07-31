@@ -113,14 +113,66 @@ body.dark .undoBar{background:#12213a;border-color:#3b82f6}
 .entryActionRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .entryActionRow button{font-size:.72rem;padding:7px 8px}
 
+
+:root{
+ --team-primary:#2563eb;--team-secondary:#172033;--team-accent:#ffffff;
+ --header-image:none
+}
+header{
+ background:linear-gradient(135deg,var(--team-secondary),var(--team-primary));
+ position:sticky;background-size:cover;background-position:center
+}
+body.fan-style header::after{
+ content:"";position:absolute;inset:0;background-image:var(--header-image);
+ background-size:cover;background-position:center;opacity:.16;pointer-events:none
+}
+body.fan-style header .head{position:relative;z-index:1}
+body.fan-style .tab.active,body.fan-style .primary{background:var(--team-primary)}
+body.fan-style .weeklyProgress>div{background:linear-gradient(90deg,var(--team-primary),var(--green))}
+body.subtle-style .tab.active,body.subtle-style .primary{background:var(--team-primary)}
+.appearanceGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.colorRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.colorInput{height:46px;padding:4px}
+.themePreview{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:10px}
+.themePreviewHeader{padding:18px;color:#fff;background:linear-gradient(135deg,var(--team-secondary),var(--team-primary))}
+.themeSwatches{display:flex;gap:8px;padding:12px}
+.swatch{width:42px;height:42px;border-radius:10px;border:1px solid var(--border)}
+.calendarHeader{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.calendarGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.calendarWeekday{text-align:center;color:var(--muted);font-size:.72rem;font-weight:bold;padding:5px}
+.calendarDay{min-height:88px;border:1px solid var(--border);border-radius:9px;padding:7px;background:var(--card);cursor:pointer}
+.calendarDay:hover{border-color:var(--team-primary)}
+.calendarDay.otherMonth{opacity:.38}
+.calendarDay.today{outline:2px solid var(--team-primary)}
+.calendarDay.selected{background:color-mix(in srgb,var(--team-primary) 12%,var(--card));border-color:var(--team-primary)}
+.calendarNumber{font-weight:bold;font-size:.82rem}
+.calendarInfo{font-size:.66rem;color:var(--muted);margin-top:5px;line-height:1.35}
+.calendarDot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--team-primary);margin-right:3px}
+.todayGames{display:grid;gap:8px}
+.todayGame{border:1px solid var(--border);border-radius:10px;padding:10px}
+.todayGameTop{display:flex;justify-content:space-between;gap:10px}
+.dashboardHero{background:linear-gradient(135deg,var(--team-secondary),var(--team-primary));color:#fff;border:0}
+.dashboardHero .muted{color:rgba(255,255,255,.78)}
+.dashboardHeroGrid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:10px}
+.heroMain strong{font-size:1.7rem;display:block;margin-top:4px}
+.heroStat{background:rgba(255,255,255,.12);border-radius:10px;padding:10px}
+.heroStat span{font-size:.68rem;opacity:.82;display:block}.heroStat b{font-size:1rem}
+.imageStatus{font-size:.76rem;color:var(--muted);margin-top:5px}
+@media(max-width:760px){
+ .appearanceGrid,.colorRow{grid-template-columns:1fr}
+ .calendarGrid{gap:3px}.calendarDay{min-height:68px;padding:5px}.calendarInfo{font-size:.58rem}
+ .dashboardHeroGrid{grid-template-columns:1fr 1fr}.heroMain{grid-column:1/-1}
+}
+
 </style>
 </head>
 <body>
 
-<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v15</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="headerTools"><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v16</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="headerTools"><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
+<button class="tab" data-tab="calendar">Calendário</button>
 <button class="tab" data-tab="people">Pessoas</button>
 <button class="tab" data-tab="bets">Apostas</button>
 <button class="tab" data-tab="history">Histórico</button>
@@ -130,9 +182,19 @@ body.dark .undoBar{background:#12213a;border-color:#3b82f6}
 <button class="tab" data-tab="weekly365">Semanal Bet365</button>
 <button class="tab" data-tab="arbitrage">Arbitragem</button>
 <button class="tab" data-tab="reports">Relatórios</button>
+<button class="tab" data-tab="appearance">Aparência</button>
 </nav>
 
 <section id="dashboard" class="panel active">
+<div class="card dashboardHero">
+ <div class="dashboardHeroGrid">
+  <div class="heroMain"><span>Patrimônio total</span><strong id="heroCapital">R$ 0,00</strong><div class="muted" id="heroThemeName">Controle de Apostas</div></div>
+  <div class="heroStat"><span>Jogos hoje</span><b id="heroGamesToday">0</b></div>
+  <div class="heroStat"><span>Entradas hoje</span><b id="heroEntriesToday">0</b></div>
+  <div class="heroStat"><span>Em jogo hoje</span><b id="heroInPlayToday">R$ 0,00</b></div>
+ </div>
+</div>
+<div class="card"><h3>Jogos de hoje</h3><div id="dashboardTodayGames" class="todayGames"></div></div>
 <div class="grid summary">
 <div class="metric"><span>Patrimônio</span><strong id="dCapital">R$ 0,00</strong></div>
 <div class="metric"><span>Disponível</span><strong id="dBalance">R$ 0,00</strong></div>
@@ -257,6 +319,71 @@ body.dark .undoBar{background:#12213a;border-color:#3b82f6}
  <div class="card"><h3>Lixeira</h3><p class="muted">Itens excluídos ficam disponíveis para restauração por até 30 dias.</p><div id="trashList"></div></div>
 </section>
 
+
+<section id="calendar" class="panel">
+ <div class="card">
+  <div class="calendarHeader">
+   <button id="calendarPrev" class="secondary">←</button>
+   <h3 id="calendarTitle" style="margin:0">Calendário</h3>
+   <button id="calendarNext" class="secondary">→</button>
+  </div>
+  <div class="calendarGrid" id="calendarWeekdays"></div>
+  <div class="calendarGrid" id="calendarGrid"></div>
+ </div>
+ <div class="card">
+  <h3 id="calendarSelectedTitle">Detalhes do dia</h3>
+  <div id="calendarDayDetails"></div>
+ </div>
+</section>
+
+<section id="appearance" class="panel">
+ <div class="card">
+  <h3>Personalização por time</h3>
+  <p class="muted">Os temas usam combinações de cores inspiradas em times. As cores financeiras permanecem fixas para evitar confusão.</p>
+  <div class="appearanceGrid">
+   <label>Tema
+    <select id="teamTheme">
+     <option value="neutral">Sem time</option>
+     <option value="redblack">Vermelho e preto</option>
+     <option value="greenwhite">Verde e branco</option>
+     <option value="blackwhite">Preto e branco</option>
+     <option value="bluewhite">Azul e branco</option>
+     <option value="tricolor">Tricolor vermelho, preto e branco</option>
+     <option value="navyred">Azul-marinho e vermelho</option>
+     <option value="yellowblack">Amarelo e preto</option>
+     <option value="custom">Personalizado</option>
+    </select>
+   </label>
+   <label>Estilo
+    <select id="themeStyle">
+     <option value="subtle">Discreto</option>
+     <option value="fan">Torcedor</option>
+    </select>
+   </label>
+  </div>
+  <div class="colorRow" style="margin-top:9px">
+   <label>Cor principal<input id="customPrimary" class="colorInput" type="color" value="#2563eb"></label>
+   <label>Cor secundária<input id="customSecondary" class="colorInput" type="color" value="#172033"></label>
+  </div>
+  <label style="margin-top:9px">Nome exibido no tema
+   <input id="themeDisplayName" placeholder="Ex.: Meu time">
+  </label>
+  <label style="margin-top:9px">Imagem opcional do cabeçalho
+   <input id="themeImageInput" type="file" accept="image/png,image/jpeg,image/webp">
+  </label>
+  <div id="themeImageStatus" class="imageStatus">Nenhuma imagem personalizada.</div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
+   <button id="applyAppearance" class="primary">Aplicar tema</button>
+   <button id="removeThemeImage" class="secondary">Remover imagem</button>
+   <button id="resetAppearance" class="secondary">Restaurar padrão</button>
+  </div>
+  <div class="themePreview">
+   <div class="themePreviewHeader"><strong id="previewThemeName">Controle de Apostas</strong><div style="opacity:.8;font-size:.78rem">Prévia do cabeçalho</div></div>
+   <div class="themeSwatches"><div id="previewPrimary" class="swatch"></div><div id="previewSecondary" class="swatch"></div></div>
+  </div>
+ </div>
+</section>
+
 </main>
 
 <dialog id="houseDialog"><form id="houseForm">
@@ -308,7 +435,7 @@ body.dark .undoBar{background:#12213a;border-color:#3b82f6}
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV15";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV16";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -317,7 +444,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -344,8 +471,8 @@ function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
 function render(){
  const tasks=[
-  ["painel",renderDash],["operando",renderOperations],["pessoas",renderPeople],["apostas",renderBets],
-  ["histórico",renderHistory],["alterações",renderAudit],["lixeira",renderTrash],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["arbitragem",renderArbitrage],["relatórios",renderReports],["transferências",fillTransfers]
+  ["painel",renderDash],["calendário",renderCalendar],["operando",renderOperations],["pessoas",renderPeople],["apostas",renderBets],
+  ["histórico",renderHistory],["alterações",renderAudit],["lixeira",renderTrash],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["arbitragem",renderArbitrage],["relatórios",renderReports],["aparência",renderAppearance],["transferências",fillTransfers]
  ];
  const errors=[];
  tasks.forEach(([name,fn])=>{try{fn()}catch(e){console.error("Erro ao renderizar "+name,e);errors.push(name+": "+e.message)}});
@@ -360,7 +487,11 @@ function renderDash(){
  let hs=allH(),expiring=hs.filter(h=>h.expiry&&((new Date(h.expiry+"T23:59:59")-new Date())/86400000)>=0&&((new Date(h.expiry+"T23:59:59")-new Date())/86400000)<=7),inactive=hs.filter(h=>h.balance>0&&h.lastMovement&&((new Date()-new Date(h.lastMovement))/86400000)>30);
  $("dashAlerts").innerHTML=(expiring.length?expiring.map(h=>`<div class="row"><span>⏰ ${esc(h.name)}</span><strong>${Math.ceil((new Date(h.expiry+"T23:59:59")-new Date())/86400000)} dia(s)</strong></div>`).join(""):"")+(inactive.length?inactive.map(h=>`<div class="row"><span>💤 ${esc(h.name)}</span><strong>+30 dias</strong></div>`).join(""):"")||'<div class="empty">Nenhum alerta.</div>';
  let best=[...hs].sort((a,b)=>b.profit-a.profit)[0],worst=[...hs].sort((a,b)=>a.profit-b.profit)[0];
- $("dashHighlights").innerHTML=`<div class="row"><span>Mais lucrativa</span><strong>${best?esc(best.name)+" • "+money(best.profit):"—"}</strong></div><div class="row"><span>Menos lucrativa</span><strong>${worst?esc(worst.name)+" • "+money(worst.profit):"—"}</strong></div>`
+ $("dashHighlights").innerHTML=`<div class="row"><span>Mais lucrativa</span><strong>${best?esc(best.name)+" • "+money(best.profit):"—"}</strong></div><div class="row"><span>Menos lucrativa</span><strong>${worst?esc(worst.name)+" • "+money(worst.profit):"—"}</strong></div>`;
+ let todayGames=S.bets.filter(b=>(b.eventDate||"").slice(0,10)===today),todayEntries=todayGames.flatMap(b=>b.entries||[]),todayOpen=todayEntries.filter(e=>e.status==="open"),todayStake=todayOpen.reduce((s,e)=>s+Number(e.stake||0),0);
+ setText("heroCapital",money(t.capital));setText("heroGamesToday",todayGames.length);setText("heroEntriesToday",todayEntries.length);setText("heroInPlayToday",money(todayStake));
+ setText("heroThemeName",(S.settings&&S.settings.appearance&&S.settings.appearance.displayName)||"Controle de Apostas");
+ $("dashboardTodayGames").innerHTML=todayGames.length?todayGames.map(b=>{let open=(b.entries||[]).filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0);return `<div class="todayGame"><div class="todayGameTop"><div><strong>${esc(b.event)}</strong><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"Sem horário"}</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="muted">${open.length} aberta(s)</div></div></div></div>`}).join(""):'<div class="empty">Nenhum jogo marcado para hoje.</div>'
 }
 function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login+" "+(h.url||"")+" "+(h.tags||[]).join(" ")).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
 function renderPeople(){let ps=[...S.people].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
@@ -797,6 +928,74 @@ window.restoreTrash=id=>{
 };
 window.purgeTrash=id=>{if(confirm("Apagar definitivamente?")){S.trash=S.trash.filter(x=>x.id!==id);save()}};
 
+
+let calendarCursor=new Date(),calendarSelected=new Date().toISOString().slice(0,10);
+function localDateKey(date){return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function gamesForDate(key){return S.bets.filter(b=>(b.eventDate||b.created||"").slice(0,10)===key)}
+function renderCalendar(){
+ const weekdays=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+ $("calendarWeekdays").innerHTML=weekdays.map(x=>`<div class="calendarWeekday">${x}</div>`).join("");
+ let y=calendarCursor.getFullYear(),m=calendarCursor.getMonth(),first=new Date(y,m,1),start=new Date(y,m,1-first.getDay());
+ $("calendarTitle").textContent=new Date(y,m,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+ let cells=[];
+ for(let i=0;i<42;i++){
+  let d=new Date(start);d.setDate(start.getDate()+i);let key=localDateKey(d),games=gamesForDate(key),entries=games.flatMap(g=>g.entries||[]),stake=entries.filter(e=>e.status==="open").reduce((s,e)=>s+Number(e.stake||0),0);
+  cells.push(`<div class="calendarDay ${d.getMonth()!==m?"otherMonth":""} ${key===localDateKey(new Date())?"today":""} ${key===calendarSelected?"selected":""}" onclick="selectCalendarDay('${key}')"><div class="calendarNumber">${d.getDate()}</div>${games.length?`<div class="calendarInfo"><span class="calendarDot"></span>${games.length} jogo(s)<br>${entries.length} entrada(s)<br>${money(stake)}</div>`:""}</div>`)
+ }
+ $("calendarGrid").innerHTML=cells.join("");renderCalendarDay()
+}
+window.selectCalendarDay=key=>{calendarSelected=key;renderCalendar()};
+$("calendarPrev").onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);renderCalendar()};
+$("calendarNext").onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);renderCalendar()};
+function renderCalendarDay(){
+ let games=gamesForDate(calendarSelected),date=new Date(calendarSelected+"T12:00:00");
+ $("calendarSelectedTitle").textContent=date.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+ $("calendarDayDetails").innerHTML=games.length?games.map(b=>{let entries=b.entries||[],open=entries.filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0);return `<div class="todayGame"><div class="todayGameTop"><div><strong>${esc(b.event)}</strong><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"Sem horário"} • ${entries.length} entrada(s)</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="muted">${open.length} aberta(s)</div></div></div><div class="entryActionRow"><button class="secondary" onclick="switchToBet('${b.id}')">Abrir jogo</button></div></div>`}).join(""):'<div class="empty">Nenhum jogo nesta data.</div>'
+}
+const TEAM_THEMES={
+ neutral:{primary:"#2563eb",secondary:"#172033",name:"Controle de Apostas"},
+ redblack:{primary:"#dc2626",secondary:"#090909",name:"Vermelho e preto"},
+ greenwhite:{primary:"#15803d",secondary:"#064e3b",name:"Verde e branco"},
+ blackwhite:{primary:"#111827",secondary:"#4b5563",name:"Preto e branco"},
+ bluewhite:{primary:"#2563eb",secondary:"#1e3a8a",name:"Azul e branco"},
+ tricolor:{primary:"#dc2626",secondary:"#111827",name:"Tricolor"},
+ navyred:{primary:"#1e3a8a",secondary:"#991b1b",name:"Azul-marinho e vermelho"},
+ yellowblack:{primary:"#eab308",secondary:"#111827",name:"Amarelo e preto"},
+ custom:{primary:"#2563eb",secondary:"#172033",name:"Tema personalizado"}
+};
+function appearanceSettings(){
+ S.settings=S.settings||{};S.settings.appearance=S.settings.appearance||{theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:""};
+ return S.settings.appearance
+}
+function applyAppearanceToPage(){
+ let a=appearanceSettings(),preset=TEAM_THEMES[a.theme]||TEAM_THEMES.neutral,primary=a.theme==="custom"?(a.primary||preset.primary):preset.primary,secondary=a.theme==="custom"?(a.secondary||preset.secondary):preset.secondary;
+ document.documentElement.style.setProperty("--team-primary",primary);document.documentElement.style.setProperty("--team-secondary",secondary);
+ document.documentElement.style.setProperty("--header-image",a.headerImage?`url("${a.headerImage}")`:"none");
+ document.body.classList.toggle("fan-style",a.style==="fan");document.body.classList.toggle("subtle-style",a.style!=="fan");
+ setText("heroThemeName",a.displayName||preset.name);$("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;
+ $("previewThemeName").textContent=a.displayName||preset.name;$("appHeaderTitle").childNodes[0].nodeValue=(a.displayName||"Controle de Apostas")+" "
+}
+function renderAppearance(){
+ let a=appearanceSettings();$("teamTheme").value=a.theme||"neutral";$("themeStyle").value=a.style||"subtle";$("customPrimary").value=a.primary||"#2563eb";$("customSecondary").value=a.secondary||"#172033";$("themeDisplayName").value=a.displayName||"";
+ $("themeImageStatus").textContent=a.headerImage?"Imagem personalizada adicionada.":"Nenhuma imagem personalizada.";applyAppearanceToPage()
+}
+function previewAppearance(){
+ let theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral,primary=theme==="custom"?$("customPrimary").value:preset.primary,secondary=theme==="custom"?$("customSecondary").value:preset.secondary;
+ $("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;$("previewThemeName").textContent=$("themeDisplayName").value.trim()||preset.name
+}
+["teamTheme","themeStyle","customPrimary","customSecondary","themeDisplayName"].forEach(id=>$(id).addEventListener("input",previewAppearance));
+$("themeImageInput").onchange=function(){
+ let file=this.files[0];if(!file)return;if(file.size>1500000)return alert("Use uma imagem menor que 1,5 MB.");
+ let reader=new FileReader();reader.onload=()=>{appearanceSettings().headerImage=reader.result;$("themeImageStatus").textContent="Imagem pronta para aplicar.";previewAppearance()};reader.readAsDataURL(file)
+};
+$("applyAppearance").onclick=()=>{
+ let a=appearanceSettings(),theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral;
+ a.theme=theme;a.style=$("themeStyle").value;a.primary=$("customPrimary").value;a.secondary=$("customSecondary").value;a.displayName=$("themeDisplayName").value.trim()||preset.name;
+ save();applyAppearanceToPage();alert("Tema aplicado.")
+};
+$("removeThemeImage").onclick=()=>{appearanceSettings().headerImage="";$("themeImageInput").value="";save();renderAppearance()};
+$("resetAppearance").onclick=()=>{S.settings.appearance={theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:""};save();renderAppearance()};
+
 function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
@@ -978,7 +1177,7 @@ $("installBtn").onclick=async()=>{
  }else installInstructions()
 };
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
+load();appearanceSettings();applyAppearanceToPage();S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
 })();
 </script>
 </body>

@@ -271,7 +271,7 @@ body.dark .personSummaryCard{background:#18243a}
   <div class="headerBrand">
    <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
    <div>
-    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v28</small></h1>
+    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v29</small></h1>
     <p>Gestão de apostas, casas, freebets, bônus e resultados.</p>
    </div>
   </div>
@@ -309,9 +309,9 @@ window.goToSection=function(id){
 (function(){
   "use strict";
 
-  var BACKUP_KEY="controleApostasV28";
+  var BACKUP_KEY="controleApostasData";
   var LEGACY_KEYS=[
-    "controleApostasV27","controleApostasV26","controleApostasV25","controleApostasV24",
+    "controleApostasV28","controleApostasV27","controleApostasV26","controleApostasV25","controleApostasV24",
     "controleApostasV23","controleApostasV22","controleApostasV21","controleApostasV20",
     "controleApostasV19","controleApostasV18","controleApostasV17","controleApostasV16",
     "controleApostasV15","controleApostasV14","controleApostasV13","controleApostasV12",
@@ -518,7 +518,7 @@ window.goToSection=function(id){
     }
   }
   function backupCurrentState(){
-    var keys=[BACKUP_KEY].concat(LEGACY_KEYS);
+    var keys=[BACKUP_KEY,"controleApostasRecovery"].concat(LEGACY_KEYS);
     for(var i=0;i<keys.length;i++){
       try{
         var raw=localStorage.getItem(keys[i]);
@@ -577,7 +577,7 @@ window.goToSection=function(id){
         if(!migrated.people.length&&!migrated.bets.length&&!migrated.moves.length){
           throw new Error("Nenhum dado reconhecido foi encontrado.")
         }
-        localStorage.setItem(BACKUP_KEY,JSON.stringify(migrated));
+        localStorage.setItem(BACKUP_KEY,JSON.stringify(migrated));localStorage.setItem("controleApostasRecovery",JSON.stringify(migrated));
         alert(
           "Backup importado com sucesso.\n\n"+
           "Pessoas: "+migrated.people.length+"\n"+
@@ -601,6 +601,15 @@ window.goToSection=function(id){
     reader.readAsText(file,"UTF-8");
     return false
   };
+
+  
+  window.addEventListener("pagehide",function(){
+    try{
+      if(window.S&&typeof window.storageSafeState==="function"){
+        localStorage.setItem(BACKUP_KEY,JSON.stringify(window.storageSafeState(window.S)))
+      }
+    }catch(error){console.warn("Falha no salvamento ao sair:",error)}
+  });
 
   window.__migrateIndependentBackup=migrateIndependentBackup;
 })();
@@ -838,7 +847,7 @@ window.goToSection=function(id){
 
 <section id="more" class="panel">
  <div class="card">
-  <h3>Outras opções</h3>
+  <h3>Outras opções</h3><div id="saveStatus" class="muted" style="margin-bottom:10px">Dados salvos automaticamente neste aparelho.</div>
   <div class="grid" style="grid-template-columns:repeat(2,1fr)">
    <button class="secondary" onclick="return goToSection('history')">Histórico</button>
    <button class="secondary" onclick="return goToSection('audit')">Alterações</button>
@@ -912,26 +921,107 @@ window.goToSection=function(id){
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV28";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasData";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
 function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes(","))x=x.replace(/\./g,"").replace(",",".");let z=Number(x);return Number.isFinite(z)?z:NaN}
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
-function load(){try{
-let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV27")}if(!raw){raw=localStorage.getItem("controleApostasV26")}if(!raw){raw=localStorage.getItem("controleApostasV25")}if(!raw){raw=localStorage.getItem("controleApostasV24")}if(!raw){raw=localStorage.getItem("controleApostasV23")}if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
-if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
-let x=raw?JSON.parse(raw):null;
-if(x&&Array.isArray(x.people)){
-S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],snapshots:Array.isArray(x.snapshots)?x.snapshots:[],settings:x.settings||{},audit:Array.isArray(x.audit)?x.audit:[],trash:Array.isArray(x.trash)?x.trash:[],undoStack:Array.isArray(x.undoStack)?x.undoStack:[],dailyCloses:Array.isArray(x.dailyCloses)?x.dailyCloses:[]};
-localStorage.setItem(KEY,JSON.stringify(S))
-}}catch(e){console.error(e)}}
+window.storageSafeState=function storageSafeState(source){
+ let copy=JSON.parse(JSON.stringify(source||{}));
+ copy.people=Array.isArray(copy.people)?copy.people:[];
+ copy.bets=Array.isArray(copy.bets)?copy.bets:[];
+ copy.moves=Array.isArray(copy.moves)?copy.moves:[];
+ copy.weeklyGoals=Array.isArray(copy.weeklyGoals)?copy.weeklyGoals:[];
+ copy.snapshots=Array.isArray(copy.snapshots)?copy.snapshots:[];
+ copy.audit=Array.isArray(copy.audit)?copy.audit:[];
+ copy.trash=Array.isArray(copy.trash)?copy.trash:[];
+ copy.undoStack=Array.isArray(copy.undoStack)?copy.undoStack:[];
+ copy.dailyCloses=Array.isArray(copy.dailyCloses)?copy.dailyCloses:[];
+ copy.settings=copy.settings||{};
+ if(copy.settings.appearance){
+  let appearance=copy.settings.appearance;
+  if(appearance.officialCrests&&typeof appearance.officialCrests==="object"){
+   Object.keys(appearance.officialCrests).forEach(key=>{
+    let value=appearance.officialCrests[key];
+    if(typeof value==="string"&&value.startsWith("data:"))delete appearance.officialCrests[key]
+   })
+  }
+  if(typeof appearance.headerImage==="string"&&appearance.headerImage.startsWith("data:")&&appearance.headerImage.length>350000){
+   appearance.headerImage=""
+  }
+  if(typeof appearance.crestImage==="string"&&appearance.crestImage.startsWith("data:")&&appearance.crestImage.length>350000){
+   appearance.crestImage=""
+  }
+ }
+ return copy
+}
+window.persistState=function persistState(){
+ let safe=storageSafeState(S);
+ try{
+  localStorage.setItem(KEY,JSON.stringify(safe));
+  localStorage.setItem("controleApostasLastSave",new Date().toISOString());
+  return true
+ }catch(error){
+  console.error("Falha ao salvar dados:",error);
+  try{
+   safe.audit=(safe.audit||[]).slice(0,100);
+   safe.trash=(safe.trash||[]).slice(0,50);
+   safe.undoStack=[];
+   safe.snapshots=(safe.snapshots||[]).slice(-90);
+   localStorage.setItem(KEY,JSON.stringify(safe));
+   localStorage.setItem("controleApostasLastSave",new Date().toISOString());
+   return true
+  }catch(secondError){
+   console.error("Segunda tentativa de salvamento falhou:",secondError);
+   alert("Não foi possível salvar os dados no aparelho. Exporte um backup e verifique o espaço disponível do navegador.");
+   return false
+  }
+ }
+}
+function load(){
+ try{
+  const keys=[
+   KEY,"controleApostasV28","controleApostasV27","controleApostasV26","controleApostasV25",
+   "controleApostasV24","controleApostasV23","controleApostasV22","controleApostasV21",
+   "controleApostasV20","controleApostasV19","controleApostasV18","controleApostasV17",
+   "controleApostasV16","controleApostasV15","controleApostasV14","controleApostasV13",
+   "controleApostasV12","controleApostasV11","controleApostasV10","controleApostasV9",
+   "controleApostasV8","controleCasasProfV7","controleCasasProfV6","controleCasasProfV2",
+   "controleCasasProfissional_v1"
+  ];
+  let raw=null,sourceKey="";
+  for(const key of keys){
+   raw=localStorage.getItem(key);
+   if(raw){sourceKey=key;break}
+  }
+  if(!raw)return;
+  let x=JSON.parse(raw);
+  if(x&&Array.isArray(x.people)){
+   S={
+    people:x.people,
+    bets:Array.isArray(x.bets)?x.bets:[],
+    moves:Array.isArray(x.moves)?x.moves:[],
+    weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],
+    snapshots:Array.isArray(x.snapshots)?x.snapshots:[],
+    settings:x.settings||{},
+    audit:Array.isArray(x.audit)?x.audit:[],
+    trash:Array.isArray(x.trash)?x.trash:[],
+    undoStack:Array.isArray(x.undoStack)?x.undoStack:[],
+    dailyCloses:Array.isArray(x.dailyCloses)?x.dailyCloses:[]
+   };
+   if(sourceKey!==KEY)persistState()
+  }
+ }catch(error){
+  console.error("Erro ao carregar dados:",error)
+ }
+}
 function save(){
- createDailySnapshot();
- localStorage.setItem(KEY,JSON.stringify(S));
- render()
+ try{createDailySnapshot()}catch(error){console.error("Snapshot não salvo:",error)}
+ let saved=persistState();
+ render();
+ return saved
 }
 function createDailySnapshot(){
  if(!Array.isArray(S.snapshots))S.snapshots=[];
@@ -958,6 +1048,13 @@ window.openPanel=id=>{
  window.scrollTo({top:0,behavior:"smooth"})
 };
 document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
+
+function renderSaveStatus(){
+ let el=$("saveStatus");if(!el)return;
+ let last=localStorage.getItem("controleApostasLastSave");
+ el.textContent=last?"Último salvamento: "+new Date(last).toLocaleString("pt-BR"):"Dados salvos automaticamente neste aparelho."
+}
+
 function render(){
  const tasks=[
   ["painel",renderDash],["calendário",renderCalendar],["operando",renderOperations],["pessoas",renderPeople],["apostas",renderBets],
@@ -965,7 +1062,7 @@ function render(){
  ];
  const errors=[];
  tasks.forEach(([name,fn])=>{try{fn()}catch(e){console.error("Erro ao renderizar "+name,e);errors.push(name+": "+e.message)}});
- if(errors.length)console.warn("Renderização parcial:",errors)
+ if(errors.length)console.warn("Renderização parcial:",errors);renderSaveStatus()
 }
 function renderDash(){
  let t=total();setText("dCapital",money(t.capital));setText("dBalance",money(t.balance));setText("dInPlay",money(t.inPlay));setText("dRoi",pct(t.roi));setText("dProfit",money(t.profit));setText("dPeople",t.people);setText("dHouses",t.houses);setText("dOpen",t.open);setText("dFreebet",money(t.freebet));setText("dBonus",money(t.bonus));
@@ -1521,19 +1618,12 @@ async function cacheOfficialCrest(theme,force=false){
  if(a.officialCrests[theme]&&!force)return a.officialCrests[theme];
  setCrestStatus("Baixando escudo oficial...");
  try{
-  let source=await wikiPageImage(TEAM_WIKI_TITLES[theme]),stored=source;
-  try{
-   let imageResponse=await fetch(source,{mode:"cors"});
-   if(imageResponse.ok){
-    let blob=await imageResponse.blob();
-    if(blob.size<=1300000)stored=await blobToDataUrl(blob)
-   }
-  }catch(imageError){console.warn("Escudo será usado pela URL:",imageError)}
-  a.officialCrests[theme]=stored;
-  localStorage.setItem(KEY,JSON.stringify(S));
+  let source=await wikiPageImage(TEAM_WIKI_TITLES[theme]);
+  a.officialCrests[theme]=source;
+  persistState();
   renderAllCrests(theme);
-  setCrestStatus("Escudo oficial carregado e salvo neste aparelho.");
-  return stored
+  setCrestStatus("Escudo oficial carregado.");
+  return source
  }catch(error){
   console.error("Falha ao carregar escudo oficial:",error);
   setCrestStatus("Não foi possível baixar o escudo oficial. Tente novamente com internet.");

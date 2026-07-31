@@ -1,31 +1,27 @@
-CONTROLE DE APOSTAS — VERSÃO 28
+CONTROLE DE APOSTAS — VERSÃO 29
 
-BACKUP CORRIGIDO
-- Importar e exportar agora funcionam independentemente do restante do JavaScript.
-- Cada botão possui sua ação diretamente no HTML.
-- O importador aceita backups antigos com:
-  people/pessoas
-  houses/casas
-  data como lista
-  campos em português ou inglês
-  listas ou objetos
-  JSON com BOM invisível
-  JSON salvo dentro de outro JSON
-- O arquivo importado é convertido para o formato atual antes de ser salvo.
-- A mensagem de sucesso informa pessoas, casas, jogos e metas recuperadas.
-- O exportador procura dados da versão atual e de diversas versões anteriores.
-- O backup exportado usa o formato atual da versão 28.
+CORREÇÃO DA PERSISTÊNCIA
+- Os dados agora usam uma chave permanente: controleApostasData.
+- Novas versões não criarão mais uma chave diferente para cada atualização.
+- A versão 29 procura automaticamente os dados das versões anteriores.
+- Ao encontrar dados antigos, migra para a chave permanente.
+- Imagens grandes de escudos não são mais salvas junto com os dados financeiros.
+- O escudo oficial é armazenado como URL leve.
+- Se o armazenamento estiver cheio, o aplicativo reduz históricos auxiliares e tenta novamente.
+- Uma cópia de recuperação é criada após importações.
+- O aplicativo tenta salvar também quando a página é fechada ou colocada em segundo plano.
+- A área “Mais” mostra o horário do último salvamento.
 
-TESTE REALIZADO
-- Backup antigo enviado pelo usuário.
-- 5 pessoas reconhecidas.
-- 69 casas reconhecidas.
-- Conversão concluída sem erro.
+TESTE
+- Estado com pessoas, casas, apostas e metas foi salvo na chave permanente.
+- Foi simulada uma nova abertura da página.
+- Os mesmos dados foram recuperados sem zerar.
 
 ATUALIZAÇÃO
-1. Extraia o ZIP.
-2. Substitua todos os arquivos no GitHub.
-3. Faça Commit changes.
-4. Abra com ?v=28.
-5. No computador, use Ctrl+Shift+R.
-6. No celular, remova e reinstale o aplicativo se o service worker antigo continuar ativo.
+1. Exporte um backup da versão atual antes de substituir os arquivos.
+2. Extraia este ZIP.
+3. Substitua todos os arquivos no GitHub.
+4. Faça Commit changes.
+5. Abra com ?v=29.
+6. Importe seu backup.
+7. Atualize a página para confirmar que os dados permanecem.

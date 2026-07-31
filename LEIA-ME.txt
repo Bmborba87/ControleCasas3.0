@@ -1,18 +1,31 @@
-CONTROLE DE APOSTAS — VERSÃO 27
+CONTROLE DE APOSTAS — VERSÃO 28
 
-CORREÇÃO DA NAVEGAÇÃO
-- Corrigida uma estrutura quebrada no início do HTML.
-- O cabeçalho foi reconstruído corretamente.
-- Cada botão da barra inferior agora possui sua ação diretamente no HTML.
-- A navegação não depende mais do restante do JavaScript terminar de carregar.
-- Mesmo que outra função apresente erro, Painel, Pessoas, Apostas, Semanal e Mais continuam funcionando.
-- A barra inferior foi elevada acima dos demais elementos e recebe toques diretamente.
-- Os botões ocultos da navegação antiga também usam o mesmo sistema confiável.
+BACKUP CORRIGIDO
+- Importar e exportar agora funcionam independentemente do restante do JavaScript.
+- Cada botão possui sua ação diretamente no HTML.
+- O importador aceita backups antigos com:
+  people/pessoas
+  houses/casas
+  data como lista
+  campos em português ou inglês
+  listas ou objetos
+  JSON com BOM invisível
+  JSON salvo dentro de outro JSON
+- O arquivo importado é convertido para o formato atual antes de ser salvo.
+- A mensagem de sucesso informa pessoas, casas, jogos e metas recuperadas.
+- O exportador procura dados da versão atual e de diversas versões anteriores.
+- O backup exportado usa o formato atual da versão 28.
+
+TESTE REALIZADO
+- Backup antigo enviado pelo usuário.
+- 5 pessoas reconhecidas.
+- 69 casas reconhecidas.
+- Conversão concluída sem erro.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=27.
-5. Pressione Ctrl+Shift+R no computador.
-6. No celular, remova e reinstale o aplicativo para limpar o service worker antigo.
+4. Abra com ?v=28.
+5. No computador, use Ctrl+Shift+R.
+6. No celular, remova e reinstale o aplicativo se o service worker antigo continuar ativo.

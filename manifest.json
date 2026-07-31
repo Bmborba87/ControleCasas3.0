@@ -1,7 +1,7 @@
 {
   "name": "Controle de Apostas",
   "short_name": "Apostas",
-  "start_url": "./?v=27",
+  "start_url": "./?v=28",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v27",
-  "description": "Controle de apostas com navegação inferior independente e corrigida."
+  "id": "./controle-de-apostas-v28",
+  "description": "Controle de apostas com importação e exportação de backup independentes."
 }

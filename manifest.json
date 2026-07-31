@@ -1,7 +1,7 @@
 {
-  "name": "Controle de Apostas",
-  "short_name": "Apostas",
-  "start_url": "./?v=33",
+  "name": "BetManager",
+  "short_name": "BetManager",
+  "start_url": "./?v=34",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v33",
-  "description": "Controle de apostas com carregamento dos dados antes da interface."
+  "id": "./betmanager-v34",
+  "description": "Gestão de casas, apostas, saldos, freebets e resultados."
 }

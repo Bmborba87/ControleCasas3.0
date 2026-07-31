@@ -9,7 +9,7 @@ window.__EMPTY_APP_STATE__={
 };
 window.__APP_BOOTSTRAP__=(function(){
  var keys=[
-  "controleApostasData","controleApostasRecovery","controleApostasV33",
+  "controleApostasData","controleApostasRecovery","controleApostasV34",
   "controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27",
   "controleApostasV26","controleApostasV25","controleApostasV24","controleApostasV23",
   "controleApostasV22","controleApostasV21","controleApostasV20","controleApostasV19",
@@ -42,7 +42,7 @@ window.__APP_BOOTSTRAP__=(function(){
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
-<title>Controle de Apostas</title>
+<title>BetManager</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#6b7280;--border:#e5e7eb;--blue:#2563eb;--green:#15803d;--red:#dc2626;--orange:#b45309;--dark:#111827}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -222,7 +222,7 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
  filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))
 }
 .headerBrand{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;flex:1}
-.headerCrest{width:88px;height:96px}
+.headerCrest{width:54px;height:60px}
 
 .crestPreviewWrap{display:flex;align-items:center;gap:14px;margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:12px}
 .crestLoading{
@@ -231,19 +231,19 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
 }
 }
 @media(max-width:620px){
- .headerCrest{width:72px;height:80px}
+ .headerCrest{width:46px;height:52px}
 }
 
  .teamCrest span{font-size:.78rem}
 }
 
 
-header .head{position:relative;justify-content:center;min-height:135px}
+header .head{position:relative;justify-content:center;min-height:96px}
 .headerTools{position:absolute;right:0;top:0}
 .headerBrand h1{margin:0}
 .headerBrand p{margin-top:3px}
 @media(max-width:620px){
- header .head{min-height:120px}
+ header .head{min-height:88px}
  .headerTools{right:0;top:0}
  .headerTools button{padding:6px 7px}
 }
@@ -305,8 +305,8 @@ body.dark .personSummaryCard{background:#18243a}
   <div class="headerBrand">
    <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
    <div>
-    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v33</small></h1>
-    <p>Gestão de apostas, casas, freebets, bônus e resultados.</p>
+    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v34</small></h1>
+    
    </div>
   </div>
   <div class="headerTools">
@@ -574,7 +574,7 @@ window.goToSection=function(id){
       var url=URL.createObjectURL(blob);
       var a=document.createElement("a");
       a.href=url;
-      a.download="backup-controle-de-apostas-v28-"+new Date().toISOString().slice(0,10)+".json";
+      a.download="backup-betmanager-v28-"+new Date().toISOString().slice(0,10)+".json";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -615,21 +615,27 @@ window.goToSection=function(id){
         var serialized=JSON.stringify(migrated);
         localStorage.setItem(BACKUP_KEY,serialized);
         localStorage.setItem("controleApostasRecovery",serialized);
-        localStorage.setItem("controleApostasV33",serialized);
+        localStorage.setItem("controleApostasV34",serialized);
         COMPATIBLE_KEYS.forEach(function(key){
           try{localStorage.setItem(key,serialized)}catch(error){console.warn("Falha na chave "+key,error)}
         });
-        localStorage.setItem("controleApostasImportPending","1");
+
+        var result;
+        if(typeof window.applyImportedState==="function"){
+          result=window.applyImportedState(migrated)
+        }else{
+          window.S=migrated;
+          result={people:migrated.people.length,houses:houses}
+        }
 
         alert(
-          "Backup importado com sucesso.\n\n"+
-          "Pessoas: "+migrated.people.length+"\n"+
-          "Casas: "+houses+"\n"+
+          "Backup importado e carregado com sucesso.\n\n"+
+          "Pessoas: "+result.people+"\n"+
+          "Casas: "+result.houses+"\n"+
           "Jogos/apostas: "+migrated.bets.length+"\n"+
           "Metas semanais: "+migrated.weeklyGoals.length+
-          "\n\nO aplicativo será reaberto com os dados carregados."
-        );
-        location.replace(location.pathname+"?v=33#importado")
+          "\n\nOs dados já aparecem na tela Pessoas."
+        )
       }catch(error){
         console.error("Erro ao importar:",error);
         alert("Não foi possível importar este backup.\n\nDetalhe: "+(error.message||error)+"\n\nO arquivo original não foi alterado.")
@@ -869,7 +875,7 @@ window.goToSection=function(id){
   <button id="removeCrestImage" class="secondary" style="margin-top:7px">Usar escudo oficial automático</button>
   <div class="crestPreviewWrap">
    <div id="appearanceCrestPreview" class="teamCrest"></div>
-   <div><strong>Prévia do escudo</strong><div class="muted">O nome do aplicativo permanece Controle de Apostas.</div><div class="muted" style="margin-top:3px">Fonte automática: imagem principal do artigo do clube na Wikipédia.</div></div>
+   <div><strong>Prévia do escudo</strong><div class="muted">O nome do aplicativo permanece BetManager.</div><div class="muted" style="margin-top:3px">Fonte automática: imagem principal do artigo do clube na Wikipédia.</div></div>
   </div>
   <label style="margin-top:9px">Imagem opcional do cabeçalho
    <input id="themeImageInput" type="file" accept="image/png,image/jpeg,image/webp">
@@ -881,7 +887,7 @@ window.goToSection=function(id){
    <button id="resetAppearance" class="secondary">Restaurar padrão</button>
   </div>
   <div class="themePreview">
-   <div class="themePreviewHeader"><strong>Controle de Apostas</strong><div style="opacity:.8;font-size:.78rem">Prévia do cabeçalho</div></div>
+   <div class="themePreviewHeader"><strong>BetManager</strong><div style="opacity:.8;font-size:.78rem">Prévia do cabeçalho</div></div>
    <div class="themeSwatches"><div id="previewPrimary" class="swatch"></div><div id="previewSecondary" class="swatch"></div></div>
   </div>
  </div>
@@ -1023,6 +1029,57 @@ window.persistState=function persistState(){
   }
  }
 }
+
+window.normalizeCurrentState=function normalizeCurrentState(state){
+ state=state&&typeof state==="object"?state:{};
+ state.people=Array.isArray(state.people)?state.people:[];
+ state.bets=Array.isArray(state.bets)?state.bets:[];
+ state.moves=Array.isArray(state.moves)?state.moves:[];
+ state.weeklyGoals=Array.isArray(state.weeklyGoals)?state.weeklyGoals:[];
+ state.snapshots=Array.isArray(state.snapshots)?state.snapshots:[];
+ state.settings=state.settings||{};
+ state.audit=Array.isArray(state.audit)?state.audit:[];
+ state.trash=Array.isArray(state.trash)?state.trash:[];
+ state.undoStack=Array.isArray(state.undoStack)?state.undoStack:[];
+ state.dailyCloses=Array.isArray(state.dailyCloses)?state.dailyCloses:[];
+ state.people.forEach(p=>{
+  p.archived=Boolean(p.archived);
+  p.houses=Array.isArray(p.houses)?p.houses:[];
+  p.houses.forEach(h=>{
+   h.balance=Number(h.balance||0);
+   h.inPlay=Number(h.inPlay||0);
+   h.profit=Number(h.profit||0);
+   h.deposits=Number(h.deposits||0);
+   h.withdrawals=Number(h.withdrawals||0);
+   h.freebet=Number(h.freebet||0);
+   h.bonus=Number(h.bonus||0);
+   h.rollover=Number(h.rollover||0);
+   h.maxStake=Number(h.maxStake||0);
+   h.dailyLimit=Number(h.dailyLimit||0);
+   h.archived=Boolean(h.archived);
+   h.favorite=Boolean(h.favorite);
+   h.url=h.url||"";
+   h.expiry=h.expiry||"";
+   h.tags=Array.isArray(h.tags)?h.tags:[];
+   h.lastMovement=h.lastMovement||""
+  })
+ });
+ return state
+};
+window.applyImportedState=function applyImportedState(imported){
+ S=window.S=normalizeCurrentState(imported);
+ try{normalizeBets()}catch(error){console.error("Falha ao normalizar apostas:",error)}
+ try{S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal)}catch(error){console.error("Falha ao normalizar metas:",error)}
+ if(typeof persistState==="function"&&!persistState()){
+  throw new Error("Não foi possível salvar o backup no armazenamento do aparelho.")
+ }
+ if(typeof render==="function")render();
+ if(typeof goToSection==="function")goToSection("people");
+ let people=S.people.length;
+ let houses=S.people.reduce((sum,p)=>sum+p.houses.length,0);
+ return {people,houses}
+};
+
 function load(){
  try{
   if(S&&Array.isArray(S.people)){
@@ -1100,7 +1157,7 @@ function renderDash(){
  $("dashHighlights").innerHTML=`<div class="row"><span>Mais lucrativa</span><strong>${best?esc(best.name)+" • "+money(best.profit):"—"}</strong></div><div class="row"><span>Menos lucrativa</span><strong>${worst?esc(worst.name)+" • "+money(worst.profit):"—"}</strong></div>`;
  let todayGames=S.bets.filter(b=>(b.eventDate||"").slice(0,10)===today),todayEntries=todayGames.flatMap(b=>b.entries||[]),todayOpen=todayEntries.filter(e=>e.status==="open"),todayStake=todayOpen.reduce((s,e)=>s+Number(e.stake||0),0);
  setText("heroCapital",money(t.capital));setText("heroGamesToday",todayGames.length);setText("heroEntriesToday",todayEntries.length);setText("heroInPlayToday",money(todayStake));
- setText("heroThemeName",(S.settings&&S.settings.appearance&&S.settings.appearance.displayName)||"Controle de Apostas");
+ setText("heroThemeName",(S.settings&&S.settings.appearance&&S.settings.appearance.displayName)||"BetManager");
  $("dashboardTodayGames").innerHTML=todayGames.length?todayGames.map(b=>{let open=(b.entries||[]).filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0);return `<div class="todayGame"><div class="todayGameTop"><div><strong>${esc(b.event)}</strong><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"Sem horário"}</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="muted">${open.length} aberta(s)</div></div></div></div>`}).join(""):'<div class="empty">Nenhum jogo marcado para hoje.</div>'
 }
 function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login+" "+(h.url||"")+" "+(h.tags||[]).join(" ")).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
@@ -1563,7 +1620,7 @@ function renderCalendarDay(){
 const TEAM_THEMES={
  abc:{primary:"#111111",secondary:"#4b5563",accent:"#ffffff",name:"ABC",short:"ABC"},
  america_rn:{primary:"#dc2626",secondary:"#991b1b",accent:"#ffffff",name:"América-RN",short:"AMR"},
- neutral:{primary:"#2563eb",secondary:"#172033",accent:"#ffffff",name:"Controle de Apostas",short:"CA"},
+ neutral:{primary:"#2563eb",secondary:"#172033",accent:"#ffffff",name:"BetManager",short:"CA"},
  america_mg:{primary:"#16a34a",secondary:"#111827",accent:"#ffffff",name:"América-MG",short:"AMG"},
  athletico_pr:{primary:"#dc2626",secondary:"#111111",accent:"#ffffff",name:"Athletico-PR",short:"CAP"},
  atletico_mg:{primary:"#111111",secondary:"#4b5563",accent:"#ffffff",name:"Atlético-MG",short:"CAM"},
@@ -1611,7 +1668,7 @@ const TEAM_WIKI_TITLES={
 };
 
 function appearanceSettings(){
- S.settings=S.settings||{};S.settings.appearance=S.settings.appearance||{theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:"",crestImage:"",officialCrests:{}};
+ S.settings=S.settings||{};S.settings.appearance=S.settings.appearance||{theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"BetManager",headerImage:"",crestImage:"",officialCrests:{}};
  return S.settings.appearance
 }
 
@@ -1707,7 +1764,7 @@ function applyAppearanceToPage(){
  renderAllCrests(a.theme);
  if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage&&!(a.officialCrests||{})[a.theme])setTimeout(()=>cacheOfficialCrest(a.theme),100);
  let title=$("appHeaderTitle");
- if(title&&title.childNodes.length)title.childNodes[0].nodeValue="Controle de Apostas "
+ if(title&&title.childNodes.length)title.childNodes[0].nodeValue="BetManager "
 }
 
 $("settingsBtn").onclick=()=>goToSection("appearance");
@@ -1764,7 +1821,7 @@ $("applyAppearance").onclick=()=>{
 $("removeThemeImage").onclick=()=>{appearanceSettings().headerImage="";$("themeImageInput").value="";save();renderAppearance()};
 $("resetAppearance").onclick=()=>{
  let cache=(appearanceSettings().officialCrests||{});
- S.settings.appearance={theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:"",crestImage:"",officialCrests:cache};
+ S.settings.appearance={theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"BetManager",headerImage:"",crestImage:"",officialCrests:cache};
  save();renderAppearance()
 };
 
@@ -1952,42 +2009,13 @@ try{
  load();
  appearanceSettings();
  try{applyAppearanceToPage()}catch(themeError){console.error("Erro ao aplicar aparência:",themeError)}
- S.audit=Array.isArray(S.audit)?S.audit:[];
- S.trash=Array.isArray(S.trash)?S.trash:[];
- S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];
- S.dailyCloses=Array.isArray(S.dailyCloses)?S.dailyCloses:[];
+ S=window.S=normalizeCurrentState(S);
  try{cleanTrash()}catch(e){console.error(e)}
  try{applyTheme()}catch(e){console.error(e)}
  try{createDailySnapshot()}catch(e){console.error(e)}
  try{normalizeBets()}catch(e){console.error(e)}
- S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);
- S.people=(Array.isArray(S.people)?S.people:[]);
- S.people.forEach(p=>{
-  if(p.archived==null)p.archived=false;
-  p.houses=Array.isArray(p.houses)?p.houses:[];
-  p.houses.forEach(h=>{
-   if(h.freebet==null)h.freebet=0;
-   if(h.archived==null)h.archived=false;
-   if(h.url==null)h.url="";
-   if(h.bonus==null)h.bonus=0;
-   if(h.rollover==null)h.rollover=0;
-   if(h.maxStake==null)h.maxStake=0;
-   if(h.dailyLimit==null)h.dailyLimit=0;
-   if(h.expiry==null)h.expiry="";
-   if(!Array.isArray(h.tags))h.tags=[];
-   if(!h.lastMovement)h.lastMovement=""
-  })
- });
+ S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal);
  render();
- if(localStorage.getItem("controleApostasImportPending")==="1"||location.hash==="#importado"){
-  localStorage.removeItem("controleApostasImportPending");
-  setTimeout(()=>{
-   let people=Array.isArray(S.people)?S.people.length:0;
-   let houses=(S.people||[]).reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0);
-   goToSection("people");
-   alert("Dados carregados no aplicativo.\n\nPessoas: "+people+"\nCasas: "+houses)
-  },100)
- }
 }catch(initError){
  console.error("Erro de inicialização:",initError);
  let box=$("startupError"),text=$("startupErrorText");

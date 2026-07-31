@@ -1,4 +1,4 @@
-const CACHE="controle-apostas-v33";
+const CACHE="betmanager-v34";
 const ASSETS=["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));

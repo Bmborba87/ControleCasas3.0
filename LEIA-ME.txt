@@ -1,23 +1,19 @@
-CONTROLE DE APOSTAS — VERSÃO 8
+CONTROLE DE APOSTAS — VERSÃO 9
 
-NOVIDADES
-- Nome alterado para Controle de Apostas.
-- Dashboard com patrimônio, saldo, valor em jogo, freebets, bônus, lucro diário, lucro mensal, ROI e apostas abertas.
-- Estatísticas de greens, reds, anuladas e taxa de green.
-- Casa mais lucrativa e menos lucrativa.
-- Cadastro de bônus, rollover, validade e tags.
-- Alertas de freebet/bônus vencendo em até 7 dias.
-- Alertas de saldo parado por mais de 30 dias.
-- Casas favoritas continuam aparecendo primeiro.
-- Busca também encontra tags.
-- Todas as funções anteriores foram mantidas.
+CORREÇÕES
+- Login removido completamente.
+- O aplicativo abre diretamente.
+- Importação refeita para aceitar backups antigos.
+- Compatível com campos em português e inglês.
+- Aceita listas e objetos.
+- Remove BOM invisível.
+- Aceita JSON salvo dentro de uma string JSON.
+- Exibe o motivo do erro de importação.
+- Procura automaticamente os dados locais da versão 8 e anteriores.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=8 no final do endereço.
-5. Caso apareça a versão antiga, remova o app instalado e instale novamente.
-
-DADOS ANTIGOS
-A versão 8 procura automaticamente os dados das versões 7, 6 e anteriores no navegador.
+4. Abra com ?v=9 no final do endereço.
+5. Se aparecer a versão antiga, remova o aplicativo instalado ou limpe os dados do site.

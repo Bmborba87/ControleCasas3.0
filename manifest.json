@@ -1,7 +1,7 @@
 {
   "name": "Controle de Apostas",
   "short_name": "Apostas",
-  "start_url": "./?v=8",
+  "start_url": "./?v=9",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,5 +17,5 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v8"
+  "id": "./controle-de-apostas-v9"
 }

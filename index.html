@@ -25,11 +25,6 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 .hidden{display:none!important}
 @media(max-width:760px){.summary{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.stats{grid-template-columns:1fr 1fr}.row{grid-template-columns:90px 1fr}.row strong{grid-column:2}}
 
-.loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,#111827,#1e3a8a);display:grid;place-items:center;padding:18px;z-index:9999}
-.loginBox{width:min(420px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
-.loginBox h2{margin:0 0 5px}.loginBox p{margin:0 0 16px;color:var(--muted);font-size:.85rem}
-.loginBox form{display:grid;gap:11px}.loginError{min-height:18px;color:var(--red);font-size:.8rem}
-.loginActions{display:flex;justify-content:space-between;align-items:center;gap:8px}.remember{display:flex;align-items:center;gap:7px;color:var(--text);font-size:.8rem}.remember input{width:auto}
 .userMenu{display:flex;gap:7px;align-items:center}.userEmail{font-size:.72rem;color:#cbd5e1;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:620px){.userEmail{display:none}}
 
@@ -47,24 +42,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 </head>
 <body>
 
-<div id="loginScreen" class="loginScreen">
-  <div class="loginBox">
-    <h2 id="loginTitle">Entrar</h2>
-    <p id="loginText">Use seu e-mail e senha para acessar o aplicativo.</p>
-    <form id="loginForm">
-      <label>E-mail<input id="loginEmail" type="email" autocomplete="username" placeholder="seuemail@exemplo.com" required></label>
-      <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" minlength="4" placeholder="Sua senha" required></label>
-      <label id="confirmLabel" class="hidden">Confirmar senha<input id="loginConfirm" type="password" autocomplete="new-password" minlength="4" placeholder="Repita a senha"></label>
-      <div class="loginActions">
-        <label class="remember"><input id="rememberLogin" type="checkbox" checked> Manter conectado</label>
-        <button class="primary" id="loginSubmit">Entrar</button>
-      </div>
-      <div id="loginError" class="loginError"></div>
-    </form>
-  </div>
-</div>
-
-<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v8</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><span id="userEmail" class="userEmail"></span><button id="installBtn" class="secondary">Instalar</button><button id="logoutBtn" class="secondary">Sair</button></div></div></header>
+<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v9</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -169,61 +147,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <script>
 (()=>{"use strict";
-const AUTH_KEY="controleCasasAuthV1",SESSION_KEY="controleCasasSessionV1";
-async function hashPassword(text){
- const data=new TextEncoder().encode(text);
- const hash=await crypto.subtle.digest("SHA-256",data);
- return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("")
-}
-function getAuth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY))}catch(e){return null}}
-function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch(e){return null}}
-function showApp(email){
- document.getElementById("loginScreen").classList.add("hidden");
- document.getElementById("userEmail").textContent=email||"";
-}
-function showLogin(){
- document.getElementById("loginScreen").classList.remove("hidden");
-}
-async function initAuth(){
- const auth=getAuth(),session=getSession()||(()=>{try{return JSON.parse(sessionStorage.getItem(SESSION_KEY))}catch(e){return null}})();
- const creating=!auth;
- document.getElementById("loginTitle").textContent=creating?"Criar acesso":"Entrar";
- document.getElementById("loginText").textContent=creating?"Cadastre um e-mail e uma senha para proteger este aparelho.":"Use seu e-mail e senha para acessar o aplicativo.";
- document.getElementById("confirmLabel").classList.toggle("hidden",!creating);
- document.getElementById("loginSubmit").textContent=creating?"Criar acesso":"Entrar";
- if(session&&session.email&&auth&&session.email===auth.email){showApp(auth.email);return}
- showLogin()
-}
-document.getElementById("loginForm").addEventListener("submit",async function(e){
- e.preventDefault();
- const email=document.getElementById("loginEmail").value.trim().toLowerCase();
- const password=document.getElementById("loginPassword").value;
- const confirm=document.getElementById("loginConfirm").value;
- const remember=document.getElementById("rememberLogin").checked;
- const error=document.getElementById("loginError");error.textContent="";
- let auth=getAuth();
- try{
-  if(!auth){
-   if(password.length<4){error.textContent="A senha deve ter pelo menos 4 caracteres.";return}
-   if(password!==confirm){error.textContent="As senhas não coincidem.";return}
-   auth={email,passwordHash:await hashPassword(password),createdAt:new Date().toISOString()};
-   localStorage.setItem(AUTH_KEY,JSON.stringify(auth))
-  }else{
-   const hash=await hashPassword(password);
-   if(email!==auth.email||hash!==auth.passwordHash){error.textContent="E-mail ou senha incorretos.";return}
-  }
-  if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify({email:auth.email,createdAt:new Date().toISOString()}));
-  else sessionStorage.setItem(SESSION_KEY,JSON.stringify({email:auth.email}));
-  showApp(auth.email)
- }catch(err){error.textContent="Não foi possível acessar. Tente novamente."}
-});
-document.getElementById("logoutBtn").addEventListener("click",function(){
- localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);
- document.getElementById("loginPassword").value="";
- showLogin()
-});
-
-const KEY="controleApostasV8";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV9";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
@@ -231,7 +155,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -406,66 +330,142 @@ function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime()
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
 $("snapshotDate").value=new Date().toISOString().slice(0,10);$("snapshotDate").onchange=renderSnapshot;
 function normalizeOldHouse(h){
+ h=h||{};
+ let balance=h.balance??h.saldo??h.valor??h.amount??0;
+ let inPlay=h.inPlay??h.emJogo??h.moneyInPlay??h.valorEmJogo??0;
+ let profit=h.profit??h.lucro??h.resultado??0;
+ let freebet=h.freebet??h.freeBet??h.saldoFreebet??h.saldo_freebet??0;
+ let bonus=h.bonus??h.bonusBalance??h.saldoBonus??0;
+ let rollover=h.rollover??h.rolloverRemaining??h.rolloverRestante??0;
  return {
-  id:h.id||uid(),
-  name:h.name||h.house||"Casa",
-  login:h.login||"",
-  url:h.url||h.website||h.link||"",
-  note:h.note||"",
-  balance:Number(h.balance||0),
-  inPlay:Number(h.inPlay||0),
-  profit:Number(h.profit||0),
-  deposits:Number(h.deposits!=null?h.deposits:(h.balance||0)),
-  favorite:Boolean(h.favorite),
-  freebet:Number(h.freebet||0)
+  id:h.id||h._id||uid(),
+  name:h.name||h.nome||h.house||h.casa||"Casa",
+  login:h.login||h.usuario||h.email||"",
+  url:h.url||h.website||h.link||h.site||"",
+  note:h.note||h.notes||h.observacao||h.obs||"",
+  balance:Number(balance)||0,
+  inPlay:Number(inPlay)||0,
+  profit:Number(profit)||0,
+  deposits:Number(h.deposits??h.depositos??balance)||0,
+  favorite:Boolean(h.favorite??h.favorita??false),
+  freebet:Number(freebet)||0,
+  bonus:Number(bonus)||0,
+  rollover:Number(rollover)||0,
+  expiry:h.expiry||h.validade||h.expiration||"",
+  tags:Array.isArray(h.tags)?h.tags:(typeof h.tags==="string"?h.tags.split(",").map(x=>x.trim()).filter(Boolean):[]),
+  lastMovement:h.lastMovement||h.ultimaMovimentacao||""
  }
 }
 function migrateBackup(x){
- let people,bets=[],moves=[];
- if(Array.isArray(x)){people=x}
- else if(x&&Array.isArray(x.data)){people=x.data}
- else if(x&&Array.isArray(x.people)){people=x.people;bets=Array.isArray(x.bets)?x.bets:[];moves=Array.isArray(x.moves)?x.moves:[]}
- else throw new Error("Formato não reconhecido");
- people=people.map(p=>({
-  id:p.id||uid(),
-  name:p.name||"Sem nome",
-  houses:Array.isArray(p.houses)?p.houses.map(normalizeOldHouse):[]
- }));
- bets=bets.map(b=>{
-  if(Array.isArray(b.entries))return {...b,entries:b.entries.map(e=>({...e,id:e.id||uid(),type:e.type||"cash",status:e.status||"open",returned:Number(e.returned||0)}))};
-  return {id:b.id||uid(),event:b.event||b.sport||"Aposta",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid||b.personId||"",houseId:b.houseId||"",stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
+ let people=[],bets=[],moves=[];
+ if(typeof x==="string")x=JSON.parse(x.trim().replace(/^\uFEFF/,""));
+ if(Array.isArray(x)){
+  people=x
+ }else if(x&&typeof x==="object"){
+  let root=x.data&&typeof x.data==="object"&&!Array.isArray(x.data)?x.data:x;
+  people=root.people||root.pessoas||root.users||root.clientes||root.data||[];
+  bets=root.bets||root.apostas||root.games||root.jogos||[];
+  moves=root.moves||root.movements||root.movimentacoes||root.historico||[];
+  if(!Array.isArray(people)&&people&&typeof people==="object")people=Object.values(people);
+  if(!Array.isArray(bets)&&bets&&typeof bets==="object")bets=Object.values(bets);
+  if(!Array.isArray(moves)&&moves&&typeof moves==="object")moves=Object.values(moves)
+ }
+ if(!Array.isArray(people))throw new Error("Lista de pessoas não encontrada");
+ people=people.map(p=>{
+  p=p||{};
+  let houses=p.houses||p.casas||p.accounts||p.contas||[];
+  if(!Array.isArray(houses)&&houses&&typeof houses==="object")houses=Object.values(houses);
+  return {
+   id:p.id||p._id||uid(),
+   name:p.name||p.nome||p.person||p.pessoa||"Sem nome",
+   houses:Array.isArray(houses)?houses.map(normalizeOldHouse):[]
+  }
  });
- moves=moves.map(m=>({
-  id:m.id||uid(),
-  date:m.date||new Date().toISOString(),
-  type:m.type||"imported",
-  value:Number(m.value||0),
-  pid:m.pid||m.personId||"",
-  hid:m.hid||m.houseId||"",
-  label:m.label||"Movimentação importada",
-  note:m.note||"",
-  deltaBalance:Number(m.deltaBalance||0),
-  deltaInPlay:Number(m.deltaInPlay||0),
-  deltaProfit:Number(m.deltaProfit||0)
- }));
+ bets=(Array.isArray(bets)?bets:[]).map(b=>{
+  b=b||{};
+  let entries=b.entries||b.entradas;
+  if(Array.isArray(entries)){
+   return {
+    ...b,
+    id:b.id||uid(),
+    event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",
+    note:b.note||b.observacao||"",
+    created:b.created||b.createdAt||b.data||new Date().toISOString(),
+    entries:entries.map(e=>({
+     ...e,
+     id:e.id||uid(),
+     pid:e.pid||e.personId||e.pessoaId||"",
+     houseId:e.houseId||e.hid||e.casaId||"",
+     stake:Number(e.stake??e.valor??e.aposta??0)||0,
+     odd:Number(e.odd??e.cotacao??0)||0,
+     type:e.type||e.tipo||"cash",
+     status:e.status||e.resultado||"open",
+     returned:Number(e.returned??e.retorno??0)||0
+    }))
+   }
+  }
+  return {
+   id:b.id||uid(),
+   event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",
+   note:b.note||b.observacao||"",
+   created:b.created||b.createdAt||b.data||new Date().toISOString(),
+   entries:[{
+    id:uid(),
+    pid:b.pid||b.personId||b.pessoaId||"",
+    houseId:b.houseId||b.hid||b.casaId||"",
+    stake:Number(b.stake??b.valor??b.aposta??0)||0,
+    odd:Number(b.odd??b.cotacao??0)||0,
+    type:b.type||b.tipo||"cash",
+    status:b.status||b.resultado||"open",
+    returned:Number(b.returned??b.retorno??0)||0,
+    settled:b.settled||b.finalizadaEm||null
+   }]
+  }
+ });
+ moves=(Array.isArray(moves)?moves:[]).map(m=>{
+  m=m||{};
+  return {
+   id:m.id||uid(),
+   date:m.date||m.data||m.createdAt||new Date().toISOString(),
+   type:m.type||m.tipo||"imported",
+   value:Number(m.value??m.valor??0)||0,
+   pid:m.pid||m.personId||m.pessoaId||"",
+   hid:m.hid||m.houseId||m.casaId||"",
+   label:m.label||m.descricao||m.titulo||"Movimentação importada",
+   note:m.note||m.observacao||"",
+   deltaBalance:Number(m.deltaBalance??m.variacaoSaldo??0)||0,
+   deltaInPlay:Number(m.deltaInPlay??m.variacaoEmJogo??0)||0,
+   deltaProfit:Number(m.deltaProfit??m.variacaoLucro??0)||0
+  }
+ });
  return {people,bets,moves}
 }
-$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-casas.json";a.click();URL.revokeObjectURL(url)};
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v9.json";a.click();URL.revokeObjectURL(url)};
 $("importBtn").onclick=()=>$("importFile").click();
 $("importFile").onchange=function(){
  let f=this.files[0];if(!f)return;
  let r=new FileReader();
  r.onload=()=>{
   try{
-   let x=JSON.parse(r.result);
-   S=migrateBackup(x);
-   save();
+   let text=String(r.result||"").replace(/^\uFEFF/,"").trim();
+   if(!text)throw new Error("Arquivo vazio");
+   let x=JSON.parse(text);
+   if(typeof x==="string")x=JSON.parse(x.replace(/^\uFEFF/,"").trim());
+   let migrated=migrateBackup(x);
+   if(!migrated.people.length&&!migrated.bets.length&&!migrated.moves.length)throw new Error("Backup sem dados reconhecidos");
+   S=migrated;
+   localStorage.setItem(KEY,JSON.stringify(S));
+   render();
    alert("Backup importado e convertido com sucesso.");
   }catch(e){
-   alert("Arquivo inválido ou incompatível.");
+   console.error("Erro na importação:",e);
+   alert("Não foi possível importar este backup.\n\nDetalhe: "+(e&&e.message?e.message:"formato não reconhecido")+"\n\nO arquivo original não foi alterado.");
+  }finally{
+   $("importFile").value=""
   }
  };
- r.readAsText(f)
+ r.onerror=()=>alert("Não foi possível ler o arquivo selecionado.");
+ r.readAsText(f,"UTF-8")
 }
 window.closeD=id=>$(id).close();
 let dp=null;
@@ -496,7 +496,7 @@ $("installBtn").onclick=async()=>{
  }else installInstructions()
 };
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();normalizeBets();S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();initAuth();
+load();normalizeBets();S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
 })();
 </script>
 </body>

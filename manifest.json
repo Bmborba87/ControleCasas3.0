@@ -1,7 +1,7 @@
 {
   "name": "Controle de Apostas",
   "short_name": "Apostas",
-  "start_url": "./?v=20",
+  "start_url": "./?v=21",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v20",
-  "description": "Controle de apostas com escudos oficiais baixados automaticamente."
+  "id": "./controle-de-apostas-v21",
+  "description": "Controle de apostas com exibição limpa do escudo oficial do time."
 }

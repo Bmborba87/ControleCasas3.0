@@ -42,7 +42,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 </head>
 <body>
 
-<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v9</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v10</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -62,8 +62,17 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 <div class="metric"><span>Pessoas</span><strong id="dPeople">0</strong></div>
 <div class="metric"><span>Casas</span><strong id="dHouses">0</strong></div>
 <div class="metric"><span>Apostas abertas</span><strong id="dOpen">0</strong></div>
+<div class="metric"><span>Freebets</span><strong id="dFreebet">R$ 0,00</strong></div>
+<div class="metric"><span>Bônus</span><strong id="dBonus">R$ 0,00</strong></div>
+<div class="metric"><span>Lucro hoje</span><strong id="dToday">R$ 0,00</strong></div>
+<div class="metric"><span>Lucro no mês</span><strong id="dMonth">R$ 0,00</strong></div>
 </div>
 <div class="card"><h3>Resumo por pessoa</h3><div id="dashPeople"></div></div>
+<div class="grid">
+<div class="card"><h3>Estatísticas</h3><div id="dashStats"></div></div>
+<div class="card"><h3>Alertas</h3><div id="dashAlerts"></div></div>
+<div class="card"><h3>Destaques</h3><div id="dashHighlights"></div></div>
+</div>
 </section>
 
 <section id="people" class="panel">
@@ -147,7 +156,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV9";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV10";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
@@ -155,7 +164,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -170,8 +179,8 @@ function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
 function render(){renderDash();renderPeople();renderBets();renderHistory();renderSnapshot();fillTransfers()}
 function renderDash(){
- let t=total();$("dCapital").textContent=money(t.capital);$("dBalance").textContent=money(t.balance);$("dInPlay").textContent=money(t.inPlay);$("dRoi").textContent=pct(t.roi);$("dProfit").textContent=money(t.profit);$("dPeople").textContent=t.people;$("dHouses").textContent=t.houses;$("dOpen").textContent=t.open;$("dFreebet").textContent=money(t.freebet);$("dBonus").textContent=money(t.bonus);
- let today=new Date().toISOString().slice(0,10),month=today.slice(0,7),profitToday=S.moves.filter(m=>m.date&&m.date.slice(0,10)===today).reduce((s,m)=>s+Number(m.deltaProfit||0),0),profitMonth=S.moves.filter(m=>m.date&&m.date.slice(0,7)===month).reduce((s,m)=>s+Number(m.deltaProfit||0),0);$("dToday").textContent=money(profitToday);$("dMonth").textContent=money(profitMonth);
+ let t=total();setText("dCapital",money(t.capital));setText("dBalance",money(t.balance));setText("dInPlay",money(t.inPlay));setText("dRoi",pct(t.roi));setText("dProfit",money(t.profit));setText("dPeople",t.people);setText("dHouses",t.houses);setText("dOpen",t.open);setText("dFreebet",money(t.freebet));setText("dBonus",money(t.bonus));
+ let today=new Date().toISOString().slice(0,10),month=today.slice(0,7),profitToday=S.moves.filter(m=>m.date&&m.date.slice(0,10)===today).reduce((s,m)=>s+Number(m.deltaProfit||0),0),profitMonth=S.moves.filter(m=>m.date&&m.date.slice(0,7)===month).reduce((s,m)=>s+Number(m.deltaProfit||0),0);setText("dToday",money(profitToday));setText("dMonth",money(profitMonth));
  let rows=[...S.people].map(p=>{let b=p.houses.reduce((s,h)=>s+h.balance,0),i=p.houses.reduce((s,h)=>s+h.inPlay,0),pr=p.houses.reduce((s,h)=>s+h.profit,0);return{name:p.name,cap:b+i,pr}}).sort((a,b)=>b.cap-a.cap);$("dashPeople").innerHTML=rows.length?rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>${money(r.cap)}</span><strong class="${r.pr>=0?"positive":"negative"}">${money(r.pr)}</strong></div>`).join(""):'<div class="empty">Nenhum dado cadastrado.</div>';
  let entries=S.bets.flatMap(b=>b.entries||[]),greens=entries.filter(e=>e.status==="win").length,reds=entries.filter(e=>e.status==="loss").length,voids=entries.filter(e=>e.status==="void").length,rate=greens+reds?greens/(greens+reds)*100:0;
  $("dashStats").innerHTML=`<div class="row"><span>Greens</span><strong>${greens}</strong></div><div class="row"><span>Reds</span><strong>${reds}</strong></div><div class="row"><span>Anuladas</span><strong>${voids}</strong></div><div class="row"><span>Taxa de green</span><strong>${pct(rate)}</strong></div>`;
@@ -440,12 +449,13 @@ function migrateBackup(x){
  });
  return {people,bets,moves}
 }
-$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v9.json";a.click();URL.revokeObjectURL(url)};
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v10.json";a.click();URL.revokeObjectURL(url)};
 $("importBtn").onclick=()=>$("importFile").click();
 $("importFile").onchange=function(){
  let f=this.files[0];if(!f)return;
  let r=new FileReader();
  r.onload=()=>{
+  let previousState=S;
   try{
    let text=String(r.result||"").replace(/^\uFEFF/,"").trim();
    if(!text)throw new Error("Arquivo vazio");
@@ -454,10 +464,12 @@ $("importFile").onchange=function(){
    let migrated=migrateBackup(x);
    if(!migrated.people.length&&!migrated.bets.length&&!migrated.moves.length)throw new Error("Backup sem dados reconhecidos");
    S=migrated;
-   localStorage.setItem(KEY,JSON.stringify(S));
    render();
-   alert("Backup importado e convertido com sucesso.");
+   localStorage.setItem(KEY,JSON.stringify(S));
+   alert("Backup importado e convertido com sucesso.\n\nPessoas encontradas: "+S.people.length);
   }catch(e){
+   S=previousState;
+   try{render()}catch(renderError){console.error("Erro ao restaurar a tela:",renderError)}
    console.error("Erro na importação:",e);
    alert("Não foi possível importar este backup.\n\nDetalhe: "+(e&&e.message?e.message:"formato não reconhecido")+"\n\nO arquivo original não foi alterado.");
   }finally{

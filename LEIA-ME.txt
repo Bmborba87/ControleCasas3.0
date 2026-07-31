@@ -1,19 +1,26 @@
-CONTROLE DE APOSTAS — VERSÃO 9
+CONTROLE DE APOSTAS — VERSÃO 10
 
-CORREÇÕES
-- Login removido completamente.
-- O aplicativo abre diretamente.
-- Importação refeita para aceitar backups antigos.
-- Compatível com campos em português e inglês.
-- Aceita listas e objetos.
-- Remove BOM invisível.
-- Aceita JSON salvo dentro de uma string JSON.
-- Exibe o motivo do erro de importação.
-- Procura automaticamente os dados locais da versão 8 e anteriores.
+CORREÇÃO PRINCIPAL
+O JSON estava sendo lido e convertido, mas o painel tentava atualizar elementos
+que não existiam no HTML. Isso interrompia a renderização antes das pessoas
+aparecerem e gerava o erro:
+Cannot set properties of null (setting 'textContent').
+
+ALTERAÇÕES
+- Todos os elementos exigidos pelo dashboard foram adicionados.
+- A atualização dos indicadores agora é protegida contra elementos ausentes.
+- A importação passou a ser transacional:
+  1. lê e converte o backup;
+  2. tenta desenhar os dados;
+  3. só depois salva no navegador.
+- Se algo falhar, os dados anteriores são restaurados.
+- A confirmação informa quantas pessoas foram encontradas.
+- Login continua totalmente removido.
+- Procura automaticamente os dados locais das versões 9, 8 e anteriores.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=9 no final do endereço.
-5. Se aparecer a versão antiga, remova o aplicativo instalado ou limpe os dados do site.
+4. Abra o endereço acrescentando ?v=10.
+5. Atualize a página com Ctrl+F5 ou remova e reinstale o aplicativo se necessário.

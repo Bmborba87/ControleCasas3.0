@@ -1,18 +1,24 @@
-CONTROLE DE APOSTAS — VERSÃO 11
+CONTROLE DE APOSTAS — VERSÃO 12
 
-CORREÇÕES
-- Função setText adicionada corretamente.
-- O painel não interrompe mais a renderização das pessoas se uma seção opcional falhar.
-- O importador não confunde erro visual com JSON inválido.
-- O backup só é confirmado após conversão e armazenamento.
-- A mensagem de sucesso informa o total de pessoas e casas.
-- Testado com o backup antigo enviado: 5 pessoas e 69 casas reconhecidas.
-- Login continua removido.
-- Procura dados locais das versões 10, 9, 8 e anteriores.
+NOVA ABA: SEMANAL BET365
+- Regras exibidas na própria aba:
+  NÃO contam Ganhos Aumentados 25% ou 30%, Super Aumentadas e apostas com odds abaixo de 2.
+- Meta padrão de R$ 1.500.
+- Criação de quantas metas forem necessárias.
+- Cada meta é vinculada a um nome cadastrado.
+- Barra de progresso, percentual e valor restante.
+- Lançamentos positivos ou negativos.
+- Histórico separado dentro de cada meta.
+- Edição, reinício e exclusão de metas.
+- As metas são incluídas nos novos backups.
+- Backups antigos continuam sendo aceitos e recebem uma lista vazia de metas.
+
+NOVO ÍCONE
+- Ícone redesenhado com alvo, gráfico ascendente e identidade visual de apostas.
 
 ATUALIZAÇÃO
-1. Extraia este ZIP.
+1. Extraia o ZIP.
 2. Substitua todos os arquivos do GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=11 no final.
-5. No celular, caso a versão antiga persista, remova o aplicativo instalado e instale novamente.
+4. Abra o endereço com ?v=12.
+5. Se o aplicativo antigo continuar instalado, remova e instale novamente.

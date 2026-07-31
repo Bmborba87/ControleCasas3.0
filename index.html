@@ -38,11 +38,37 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 .doubleGreen span{display:block;color:#047857;font-size:.7rem}.doubleGreen strong{color:#065f46;font-size:1.05rem}
 @media(max-width:760px){.entryGrid,.entryBuilder .entryGrid{grid-template-columns:1fr 1fr}.entryGrid button{grid-column:span 2}}
 
+
+.weeklyGoalForm{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;align-items:end}
+.weeklyGoal{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:11px;overflow:hidden}
+.weeklyGoalHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:13px}
+.weeklyGoalTitle{display:flex;gap:9px;align-items:flex-start}
+.weeklyGoalTitle h3{margin:0 0 3px}
+.weeklyProgress{height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:0 13px}
+.weeklyProgress>div{height:100%;background:linear-gradient(90deg,#2563eb,#22c55e);width:0;transition:width .25s}
+.weeklyNumbers{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;color:var(--muted);padding:7px 13px 0}
+.weeklyGoalActions{display:flex;gap:6px;flex-wrap:wrap;padding:10px 13px;border-bottom:1px solid var(--border)}
+.weeklyGoalActions button{font-size:.74rem;padding:7px 8px}
+.weeklyAddForm{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;align-items:end;padding:11px 13px;border-bottom:1px solid var(--border)}
+.weeklyEntries{padding:0 13px 13px}
+.weeklyEntry{display:grid;grid-template-columns:110px 1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.weeklyEntry:last-child{border-bottom:0}
+.weeklyComplete{background:#ecfdf5;border-color:#86efac}
+.weeklyComplete .weeklyGoalHead{background:#f0fdf4}
+.weeklyBadge{display:inline-block;padding:4px 7px;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-size:.7rem;font-weight:bold}
+.weeklyComplete .weeklyBadge{background:#dcfce7;color:#15803d}
+@media(max-width:760px){
+ .weeklyGoalForm{grid-template-columns:1fr}
+ .weeklyAddForm{grid-template-columns:1fr}
+ .weeklyEntry{grid-template-columns:90px 1fr}
+ .weeklyEntry .weeklyValue,.weeklyEntry button{grid-column:2}
+}
+
 </style>
 </head>
 <body>
 
-<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v11</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v12</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -50,6 +76,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 <button class="tab" data-tab="bets">Apostas</button>
 <button class="tab" data-tab="history">Histórico</button>
 <button class="tab" data-tab="snapshot">Por data</button>
+<button class="tab" data-tab="weekly365">Semanal Bet365</button>
 </nav>
 
 <section id="dashboard" class="panel active">
@@ -105,6 +132,37 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 </div>
 <div class="card"><h3>Detalhamento por pessoa</h3><div id="snapshotList"></div></div>
 </section>
+
+<section id="weekly365" class="panel">
+  <div class="card">
+    <h3>Semanal Bet365</h3>
+    <p class="muted" style="line-height:1.55;margin:0">
+      Lembre-se que <strong>NÃO contam</strong> as categorias:
+      <strong>Ganhos Aumentados 25% ou 30%</strong>,
+      <strong>Super Aumentadas</strong> e quaisquer apostas com
+      <strong>odds abaixo de 2</strong>.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Criar nova meta</h3>
+    <form id="weeklyGoalForm" class="weeklyGoalForm">
+      <label>Nome da meta
+        <input id="weeklyGoalName" placeholder="Ex.: Semana 01">
+      </label>
+      <label>Vincular ao nome
+        <select id="weeklyGoalPerson"></select>
+      </label>
+      <label>Meta semanal
+        <input id="weeklyGoalTarget" inputmode="decimal" value="1500,00">
+      </label>
+      <button class="primary">Criar meta</button>
+    </form>
+  </div>
+
+  <div id="weeklyGoalsList"></div>
+</section>
+
 </main>
 
 <dialog id="houseDialog"><form id="houseForm">
@@ -156,7 +214,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV11";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV12";let S={people:[],bets:[],moves:[],weeklyGoals:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -165,11 +223,11 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
-S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[]};
+S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[]};
 localStorage.setItem(KEY,JSON.stringify(S))
 }}catch(e){console.error(e)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(S));render()}
@@ -181,7 +239,7 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelect
 function render(){
  const tasks=[
   ["painel",renderDash],["pessoas",renderPeople],["apostas",renderBets],
-  ["histórico",renderHistory],["por data",renderSnapshot],["transferências",fillTransfers]
+  ["histórico",renderHistory],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["transferências",fillTransfers]
  ];
  const errors=[];
  tasks.forEach(([name,fn])=>{try{fn()}catch(e){console.error("Erro ao renderizar "+name,e);errors.push(name+": "+e.message)}});
@@ -343,6 +401,112 @@ $("settleForm").onsubmit=e=>{
  move("settle",ret,entry.pid,entry.houseId,"Entrada finalizada: "+(b.event||"Aposta"),res,ret,entry.type==="cash"?-entry.stake:0,profitDelta);
  save();$("settleDialog").close()
 };
+
+function weeklyPersonOptions(selected=""){
+ return S.people.map(p=>`<option value="${p.id}" ${p.id===selected?"selected":""}>${esc(p.name)}</option>`).join("")
+}
+function weeklyCurrent(goal){
+ return (goal.entries||[]).reduce((sum,e)=>sum+Number(e.value||0),0)
+}
+function weeklyNormalizeGoal(g){
+ return {
+  id:g.id||uid(),
+  name:g.name||g.nome||"Meta semanal",
+  personId:g.personId||g.pid||g.pessoaId||"",
+  target:Number(g.target??g.meta??1500)||1500,
+  created:g.created||g.createdAt||new Date().toISOString(),
+  entries:Array.isArray(g.entries)?g.entries.map(e=>({
+   id:e.id||uid(),
+   date:e.date||e.data||new Date().toISOString(),
+   value:Number(e.value??e.valor??0)||0,
+   note:e.note||e.observacao||""
+  })):[]
+ }
+}
+function renderWeeklyGoals(){
+ if(!Array.isArray(S.weeklyGoals))S.weeklyGoals=[];
+ $("weeklyGoalPerson").innerHTML=weeklyPersonOptions();
+ if(!S.people.length){
+  $("weeklyGoalPerson").innerHTML='<option value="">Cadastre um nome primeiro</option>'
+ }
+ let goals=[...S.weeklyGoals].sort((a,b)=>new Date(b.created)-new Date(a.created));
+ $("weeklyGoalsList").innerHTML=goals.length?goals.map(g=>{
+  let person=pBy(g.personId),current=weeklyCurrent(g),remaining=Math.max(0,g.target-current),percent=g.target>0?Math.max(0,current/g.target*100):0,complete=current>=g.target;
+  let entries=[...(g.entries||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  return `<section class="weeklyGoal ${complete?"weeklyComplete":""}">
+   <div class="weeklyGoalHead">
+    <div class="weeklyGoalTitle">
+     <span class="weeklyBadge">${complete?"Meta concluída":"Em andamento"}</span>
+     <div><h3>${esc(g.name)}</h3><div class="muted">${esc(person?person.name:"Nome removido")} • Meta ${money(g.target)}</div></div>
+    </div>
+    <strong>${money(current)}</strong>
+   </div>
+   <div class="weeklyProgress"><div style="width:${Math.min(100,percent)}%"></div></div>
+   <div class="weeklyNumbers"><span>${pct(percent)} concluído</span><span>Faltam ${money(remaining)}</span></div>
+   <div class="weeklyGoalActions">
+    <button class="secondary" onclick="editWeeklyGoal('${g.id}')">Editar</button>
+    <button class="warning" onclick="resetWeeklyGoal('${g.id}')">Reiniciar</button>
+    <button class="danger" onclick="deleteWeeklyGoal('${g.id}')">Excluir</button>
+   </div>
+   <form class="weeklyAddForm" onsubmit="addWeeklyValue(event,'${g.id}')">
+    <label>Valor
+     <input class="weeklyValueInput" inputmode="decimal" placeholder="0,00">
+    </label>
+    <label>Observação
+     <input class="weeklyNoteInput" placeholder="Opcional">
+    </label>
+    <button class="primary">Adicionar</button>
+   </form>
+   <div class="weeklyEntries">
+    ${entries.length?entries.map(e=>`<div class="weeklyEntry">
+      <span>${new Date(e.date).toLocaleDateString("pt-BR")}</span>
+      <span>${esc(e.note||"Lançamento")}</span>
+      <strong class="weeklyValue ${e.value>=0?"positive":"negative"}">${e.value>=0?"+":""}${money(e.value)}</strong>
+      <button class="danger" onclick="deleteWeeklyEntry('${g.id}','${e.id}')">Excluir</button>
+    </div>`).join(""):'<div class="empty">Nenhum valor lançado nesta meta.</div>'}
+   </div>
+  </section>`
+ }).join(""):'<div class="card empty">Nenhuma meta semanal criada.</div>'
+}
+$("weeklyGoalForm").onsubmit=e=>{
+ e.preventDefault();
+ if(!S.people.length)return alert("Cadastre pelo menos um nome antes de criar a meta.");
+ let name=$("weeklyGoalName").value.trim()||"Semanal Bet365",personId=$("weeklyGoalPerson").value,target=n($("weeklyGoalTarget").value);
+ if(!personId)return alert("Selecione um nome.");
+ if(!(target>0))return alert("Digite uma meta válida.");
+ S.weeklyGoals.push({id:uid(),name,personId,target,created:new Date().toISOString(),entries:[]});
+ $("weeklyGoalForm").reset();$("weeklyGoalTarget").value="1500,00";save()
+};
+window.addWeeklyValue=(event,goalId)=>{
+ event.preventDefault();
+ let form=event.target,input=form.querySelector(".weeklyValueInput"),note=form.querySelector(".weeklyNoteInput"),value=n(input.value),goal=S.weeklyGoals.find(g=>g.id===goalId);
+ if(!goal)return;
+ if(!Number.isFinite(value)||value===0)return alert("Digite um valor diferente de zero.");
+ goal.entries.push({id:uid(),date:new Date().toISOString(),value,note:note.value.trim()});
+ form.reset();save()
+};
+window.editWeeklyGoal=goalId=>{
+ let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
+ let name=prompt("Nome da meta:",g.name);if(name===null)return;
+ let targetRaw=prompt("Valor da meta:",Number(g.target).toLocaleString("pt-BR",{minimumFractionDigits:2}));if(targetRaw===null)return;
+ let target=n(targetRaw);if(!(target>0))return alert("Meta inválida.");
+ let people=S.people.map((p,i)=>`${i+1} - ${p.name}`).join("\n"),currentIndex=Math.max(0,S.people.findIndex(p=>p.id===g.personId)),personRaw=prompt("Escolha o número do nome:\n"+people,String(currentIndex+1));
+ if(personRaw===null)return;
+ let selected=S.people[Number(personRaw)-1];if(!selected)return alert("Nome inválido.");
+ g.name=name.trim()||"Semanal Bet365";g.target=target;g.personId=selected.id;save()
+};
+window.resetWeeklyGoal=goalId=>{
+ let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
+ if(confirm("Reiniciar esta meta e apagar todos os lançamentos?")){g.entries=[];g.created=new Date().toISOString();save()}
+};
+window.deleteWeeklyGoal=goalId=>{
+ if(confirm("Excluir esta meta semanal?")){S.weeklyGoals=S.weeklyGoals.filter(g=>g.id!==goalId);save()}
+};
+window.deleteWeeklyEntry=(goalId,entryId)=>{
+ let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
+ if(confirm("Excluir este lançamento?")){g.entries=g.entries.filter(e=>e.id!==entryId);save()}
+};
+
 function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
@@ -375,7 +539,7 @@ function normalizeOldHouse(h){
  }
 }
 function migrateBackup(x){
- let people=[],bets=[],moves=[];
+ let people=[],bets=[],moves=[],weeklyGoals=[];
  if(typeof x==="string")x=JSON.parse(x.trim().replace(/^\uFEFF/,""));
  if(Array.isArray(x)){
   people=x
@@ -384,9 +548,11 @@ function migrateBackup(x){
   people=root.people||root.pessoas||root.users||root.clientes||root.data||[];
   bets=root.bets||root.apostas||root.games||root.jogos||[];
   moves=root.moves||root.movements||root.movimentacoes||root.historico||[];
+  weeklyGoals=root.weeklyGoals||root.metasSemanais||root.semanalBet365||[];
   if(!Array.isArray(people)&&people&&typeof people==="object")people=Object.values(people);
   if(!Array.isArray(bets)&&bets&&typeof bets==="object")bets=Object.values(bets);
-  if(!Array.isArray(moves)&&moves&&typeof moves==="object")moves=Object.values(moves)
+  if(!Array.isArray(moves)&&moves&&typeof moves==="object")moves=Object.values(moves);
+  if(!Array.isArray(weeklyGoals)&&weeklyGoals&&typeof weeklyGoals==="object")weeklyGoals=Object.values(weeklyGoals)
  }
  if(!Array.isArray(people))throw new Error("Lista de pessoas não encontrada");
  people=people.map(p=>{
@@ -456,9 +622,10 @@ function migrateBackup(x){
    deltaProfit:Number(m.deltaProfit??m.variacaoLucro??0)||0
   }
  });
- return {people,bets,moves}
+ weeklyGoals=(Array.isArray(weeklyGoals)?weeklyGoals:[]).map(weeklyNormalizeGoal);
+ return {people,bets,moves,weeklyGoals}
 }
-$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v11.json";a.click();URL.revokeObjectURL(url)};
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v12.json";a.click();URL.revokeObjectURL(url)};
 $("importBtn").onclick=()=>$("importFile").click();
 $("importFile").onchange=function(){
  let f=this.files[0];if(!f)return;
@@ -476,8 +643,8 @@ $("importFile").onchange=function(){
    S=migrated;
    localStorage.setItem(KEY,JSON.stringify(S));
    render();
-   const houses=S.people.reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0);
-   alert("Backup importado com sucesso.\n\nPessoas: "+S.people.length+"\nCasas: "+houses);
+   const houses=S.people.reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0),goals=Array.isArray(S.weeklyGoals)?S.weeklyGoals.length:0;
+   alert("Backup importado com sucesso.\n\nPessoas: "+S.people.length+"\nCasas: "+houses+"\nMetas semanais: "+goals);
   }catch(e){
    S=previousState;
    console.error("Erro na importação:",e);
@@ -519,7 +686,7 @@ $("installBtn").onclick=async()=>{
  }else installInstructions()
 };
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();normalizeBets();S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
+load();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
 })();
 </script>
 </body>

@@ -1,43 +1,33 @@
-CONTROLE DE CASAS PROFISSIONAL V2
+CONTROLE DE CASAS PROFISSIONAL — VERSÃO 6
 
-Inclui:
-- Painel geral.
-- Pessoas e casas recolhíveis.
-- Favoritos e filtros.
-- Duplicação seletiva de casas.
-- Adição e remoção rápida de valores.
-- Transferência entre casas.
-- Registro individual de apostas.
-- Finalização com green, red ou anulada.
-- Saldo disponível, em jogo, patrimônio, lucro e rentabilidade.
-- Histórico de movimentações.
-- Consulta do patrimônio em qualquer data.
-- Backup por exportação/importação.
-- Instalação no celular como aplicativo.
+NOVIDADES
+- Um mesmo jogo pode conter várias entradas em pessoas e casas diferentes.
+- Cada entrada aparece separadamente dentro do jogo.
+- Cada entrada pode ser finalizada separadamente.
+- O jogo mostra o potencial total de duplo green.
+- O campo “esporte” foi removido.
+- Cada casa mostra seu saldo de freebet.
+- O botão “Freebet” permite informar ou corrigir o valor disponível.
 
-ATUALIZAÇÃO:
-1. Faça um backup da versão anterior.
-2. Extraia este ZIP.
-3. Envie TODOS os arquivos para a raiz do GitHub.
-4. Substitua os arquivos antigos e faça Commit.
-5. Abra a página com ?v=2 no final.
-6. Instale novamente caso a versão antiga continue no celular.
+CÁLCULO DO DUPLO GREEN
+- Entrada com saldo: lucro possível = valor × (odd - 1).
+- Entrada com freebet: lucro possível = valor × (odd - 1).
+- O potencial total do jogo é a soma do lucro possível de todas as entradas.
 
-IMPORTANTE:
-A consulta por data funciona com as movimentações registradas nesta nova versão.
-Movimentos feitos antes da instalação desta versão não podem ser reconstruídos automaticamente.
+FREEBET
+- Ao registrar uma entrada como freebet, o valor é retirado do saldo de freebet da casa.
+- O retorno sugerido é valor × (odd - 1), porque normalmente a freebet não retorna junto com o prêmio.
+- O retorno recebido entra no saldo disponível da casa.
 
+ATUALIZAÇÃO NO GITHUB
+1. Extraia este ZIP.
+2. Apague ou substitua os arquivos antigos do repositório.
+3. Envie todos os arquivos desta pasta.
+4. Faça Commit changes.
+5. Abra o endereço acrescentando ?v=6 ao final.
+6. Caso o celular continue mostrando a versão anterior, remova o aplicativo instalado e instale novamente.
 
-CORREÇÃO DE COMPATIBILIDADE:
-Esta versão aceita backups:
-- da versão profissional;
-- da versão anterior no formato {version, data};
-- das versões antigas que exportavam apenas uma lista de pessoas.
-Os nomes, casas e saldos são convertidos automaticamente.
-
-
-VERSÃO V3:
-- Cache renovado para impedir que o celular continue abrindo o importador antigo.
-- Migração automática dos dados locais da V2.
-- Compatibilidade com o backup enviado pelo usuário.
-- O arquivo backup_convertido_controle_casas.json já está pronto para importação.
+COMPATIBILIDADE
+- Pessoas, casas e saldos anteriores são preservados pelo armazenamento do navegador.
+- Apostas antigas são convertidas automaticamente para jogos com uma única entrada.
+- Os backups antigos continuam podendo ser importados.

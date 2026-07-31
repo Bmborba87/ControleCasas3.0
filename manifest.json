@@ -1,23 +1,20 @@
 {
-  "name": "Controle de Casas Profissional v3",
-  "short_name": "Casas Pro v3",
-  "start_url": "./?v=3",
-  "scope": "./",
+  "name": "Controle de Casas Profissional v6",
+  "short_name": "Casas Pro v6",
+  "start_url": "./?v=6",
   "display": "standalone",
-  "background_color": "#f4f7fb",
+  "background_color": "#111827",
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }

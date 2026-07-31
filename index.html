@@ -24,10 +24,47 @@ input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);bor
 dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;max-height:92vh}dialog::backdrop{background:rgba(0,0,0,.6)}dialog form{padding:15px;display:grid;gap:10px}.dhead{display:flex;justify-content:space-between;align-items:start;gap:8px}.dhead h2{margin:0;font-size:1.05rem}.dactions{display:flex;justify-content:flex-end;gap:7px}label{display:grid;gap:5px;color:var(--muted);font-size:.79rem;font-weight:bold}.checks{display:grid;gap:7px;max-height:250px;overflow:auto;border:1px solid var(--border);border-radius:9px;padding:8px}.check{display:flex;gap:8px;align-items:center;color:var(--text)}.check input{width:auto}
 .hidden{display:none!important}
 @media(max-width:760px){.summary{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}.stats{grid-template-columns:1fr 1fr}.row{grid-template-columns:90px 1fr}.row strong{grid-column:2}}
+
+.loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,#111827,#1e3a8a);display:grid;place-items:center;padding:18px;z-index:9999}
+.loginBox{width:min(420px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.loginBox h2{margin:0 0 5px}.loginBox p{margin:0 0 16px;color:var(--muted);font-size:.85rem}
+.loginBox form{display:grid;gap:11px}.loginError{min-height:18px;color:var(--red);font-size:.8rem}
+.loginActions{display:flex;justify-content:space-between;align-items:center;gap:8px}.remember{display:flex;align-items:center;gap:7px;color:var(--text);font-size:.8rem}.remember input{width:auto}
+.userMenu{display:flex;gap:7px;align-items:center}.userEmail{font-size:.72rem;color:#cbd5e1;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:620px){.userEmail{display:none}}
+
+
+.betGroup{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
+.betEntry{border:1px solid var(--border);border-radius:10px;padding:10px;margin-top:9px;background:#f8fafc}
+.entryGrid{display:grid;grid-template-columns:1.2fr 1.2fr .8fr .8fr .8fr auto;gap:7px;align-items:end}
+.entryBuilder{border:1px solid var(--border);border-radius:10px;padding:10px;background:#f8fafc;margin-top:8px}
+.entryBuilder .entryGrid{grid-template-columns:1fr 1fr .7fr .7fr .8fr auto}
+.doubleGreen{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:10px;margin-top:10px}
+.doubleGreen span{display:block;color:#047857;font-size:.7rem}.doubleGreen strong{color:#065f46;font-size:1.05rem}
+@media(max-width:760px){.entryGrid,.entryBuilder .entryGrid{grid-template-columns:1fr 1fr}.entryGrid button{grid-column:span 2}}
+
 </style>
 </head>
 <body>
-<header><div class="head"><div><h1>Controle de Casas <small style="font-size:.65rem;color:#93c5fd">v3</small></h1><p>Saldos, apostas, transferências e rentabilidade.</p></div><button id="installBtn" class="secondary hidden">Instalar</button></div></header>
+
+<div id="loginScreen" class="loginScreen">
+  <div class="loginBox">
+    <h2 id="loginTitle">Entrar</h2>
+    <p id="loginText">Use seu e-mail e senha para acessar o aplicativo.</p>
+    <form id="loginForm">
+      <label>E-mail<input id="loginEmail" type="email" autocomplete="username" placeholder="seuemail@exemplo.com" required></label>
+      <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" minlength="4" placeholder="Sua senha" required></label>
+      <label id="confirmLabel" class="hidden">Confirmar senha<input id="loginConfirm" type="password" autocomplete="new-password" minlength="4" placeholder="Repita a senha"></label>
+      <div class="loginActions">
+        <label class="remember"><input id="rememberLogin" type="checkbox" checked> Manter conectado</label>
+        <button class="primary" id="loginSubmit">Entrar</button>
+      </div>
+      <div id="loginError" class="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<header><div class="head"><div><h1>Controle de Casas <small style="font-size:.65rem;color:#93c5fd">v6</small></h1><p>Saldos, apostas, transferências e rentabilidade.</p></div><div class="userMenu"><span id="userEmail" class="userEmail"></span><button id="installBtn" class="secondary hidden">Instalar</button><button id="logoutBtn" class="secondary">Sair</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -65,7 +102,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <section id="bets" class="panel">
 <div class="card" style="display:flex;justify-content:space-between;align-items:center"><div><h3 style="margin-bottom:3px">Apostas</h3><div class="muted">Registre e finalize cada aposta.</div></div><button id="newBet" class="primary">Nova aposta</button></div>
-<div class="filters"><input id="betSearch" placeholder="Pesquisar"><select id="betStatus"><option value="all">Todos os status</option><option value="open">Em aberto</option><option value="win">Green</option><option value="loss">Red</option><option value="void">Anulada</option></select><span></span><span></span></div>
+<div class="filters"><input id="betSearch" placeholder="Pesquisar"><select id="betStatus"><option value="all">Todos</option><option value="open">Com entradas abertas</option><option value="settled">Finalizadas</option></select><span></span><span></span></div>
 <div id="betsList" class="grid"></div>
 </section>
 
@@ -110,20 +147,83 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 </form></dialog>
 
 <dialog id="betDialog"><form id="betForm">
-<div class="dhead"><div><h2>Nova aposta</h2><div class="muted">O valor sai do saldo e entra em jogo.</div></div><button type="button" class="secondary" onclick="closeD('betDialog')">X</button></div>
-<label>Pessoa<select id="betPerson"></select></label><label>Casa<select id="betHouse"></select></label><label>Esporte<input id="betSport"></label><label>Jogo/evento<input id="betEvent"></label><label>Valor<input id="betStake" inputmode="decimal"></label><label>Odd<input id="betOdd" inputmode="decimal"></label><label>Observação<textarea id="betNote" rows="2"></textarea></label>
-<div class="dactions"><button type="button" class="secondary" onclick="closeD('betDialog')">Cancelar</button><button class="primary">Salvar aposta</button></div>
+<div class="dhead"><div><h2>Nova aposta</h2><div class="muted">Cadastre todas as entradas do mesmo jogo juntas.</div></div><button type="button" class="secondary" onclick="closeD('betDialog')">X</button></div>
+<label>Jogo/evento<input id="betEvent" required placeholder="Ex.: Time A x Time B"></label>
+<label>Observação<textarea id="betNote" rows="2"></textarea></label>
+<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+    <strong>Entradas</strong>
+    <button type="button" id="addBetEntry" class="secondary">+ Adicionar entrada</button>
+  </div>
+  <div id="betEntries"></div>
+</div>
+<div class="doubleGreen"><span>Potencial total de duplo green</span><strong id="betDoubleGreenPreview">R$ 0,00</strong><div class="muted">Soma do lucro possível se todas as entradas ficarem green.</div></div>
+<div class="dactions"><button type="button" class="secondary" onclick="closeD('betDialog')">Cancelar</button><button class="primary">Salvar jogo</button></div>
 </form></dialog>
 
 <dialog id="settleDialog"><form id="settleForm">
 <div class="dhead"><div><h2>Finalizar aposta</h2><div id="settleSub" class="muted"></div></div><button type="button" class="secondary" onclick="closeD('settleDialog')">X</button></div>
-<input id="settleId" type="hidden"><label>Resultado<select id="settleResult"><option value="win">Green</option><option value="loss">Red</option><option value="void">Anulada</option></select></label><label>Retorno recebido<input id="settleReturn" inputmode="decimal" placeholder="0,00"></label>
+<input id="settleGroupId" type="hidden"><input id="settleEntryId" type="hidden"><label>Resultado<select id="settleResult"><option value="win">Green</option><option value="loss">Red</option><option value="void">Anulada</option></select></label><label>Retorno recebido<input id="settleReturn" inputmode="decimal" placeholder="0,00"></label>
 <div class="dactions"><button type="button" class="secondary" onclick="closeD('settleDialog')">Cancelar</button><button class="primary">Finalizar</button></div>
 </form></dialog>
 
 <script>
 (()=>{"use strict";
-const KEY="controleCasasProfV3";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
+const AUTH_KEY="controleCasasAuthV1",SESSION_KEY="controleCasasSessionV1";
+async function hashPassword(text){
+ const data=new TextEncoder().encode(text);
+ const hash=await crypto.subtle.digest("SHA-256",data);
+ return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("")
+}
+function getAuth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY))}catch(e){return null}}
+function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch(e){return null}}
+function showApp(email){
+ document.getElementById("loginScreen").classList.add("hidden");
+ document.getElementById("userEmail").textContent=email||"";
+}
+function showLogin(){
+ document.getElementById("loginScreen").classList.remove("hidden");
+}
+async function initAuth(){
+ const auth=getAuth(),session=getSession()||(()=>{try{return JSON.parse(sessionStorage.getItem(SESSION_KEY))}catch(e){return null}})();
+ const creating=!auth;
+ document.getElementById("loginTitle").textContent=creating?"Criar acesso":"Entrar";
+ document.getElementById("loginText").textContent=creating?"Cadastre um e-mail e uma senha para proteger este aparelho.":"Use seu e-mail e senha para acessar o aplicativo.";
+ document.getElementById("confirmLabel").classList.toggle("hidden",!creating);
+ document.getElementById("loginSubmit").textContent=creating?"Criar acesso":"Entrar";
+ if(session&&session.email&&auth&&session.email===auth.email){showApp(auth.email);return}
+ showLogin()
+}
+document.getElementById("loginForm").addEventListener("submit",async function(e){
+ e.preventDefault();
+ const email=document.getElementById("loginEmail").value.trim().toLowerCase();
+ const password=document.getElementById("loginPassword").value;
+ const confirm=document.getElementById("loginConfirm").value;
+ const remember=document.getElementById("rememberLogin").checked;
+ const error=document.getElementById("loginError");error.textContent="";
+ let auth=getAuth();
+ try{
+  if(!auth){
+   if(password.length<4){error.textContent="A senha deve ter pelo menos 4 caracteres.";return}
+   if(password!==confirm){error.textContent="As senhas não coincidem.";return}
+   auth={email,passwordHash:await hashPassword(password),createdAt:new Date().toISOString()};
+   localStorage.setItem(AUTH_KEY,JSON.stringify(auth))
+  }else{
+   const hash=await hashPassword(password);
+   if(email!==auth.email||hash!==auth.passwordHash){error.textContent="E-mail ou senha incorretos.";return}
+  }
+  if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify({email:auth.email,createdAt:new Date().toISOString()}));
+  else sessionStorage.setItem(SESSION_KEY,JSON.stringify({email:auth.email}));
+  showApp(auth.email)
+ }catch(err){error.textContent="Não foi possível acessar. Tente novamente."}
+});
+document.getElementById("logoutBtn").addEventListener("click",function(){
+ localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY);
+ document.getElementById("loginPassword").value="";
+ showLogin()
+});
+
+const KEY="controleCasasProfV6";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
@@ -140,38 +240,132 @@ localStorage.setItem(KEY,JSON.stringify(S))
 }}catch(e){console.error(e)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(S));render()}
 function pBy(id){return S.people.find(p=>p.id===id)} function hBy(pid,hid){let p=pBy(pid);return p&&p.houses.find(h=>h.id===hid)}
-function allH(){return S.people.flatMap(p=>p.houses.map(h=>({...h,pid:p.id,pname:p.name})))}
+function allH(){return S.people.flatMap(p=>p.houses.map(h=>({...h,freebet:Number(h.freebet||0),pid:p.id,pname:p.name})))}
 function move(type,value,pid,hid,label,note,deltaBalance=0,deltaInPlay=0,deltaProfit=0){S.moves.unshift({id:uid(),date:new Date().toISOString(),type,value,pid,hid,label,note:note||"",deltaBalance,deltaInPlay,deltaProfit})}
-function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs.reduce((s,h)=>s+h.inPlay,0),profit=hs.reduce((s,h)=>s+h.profit,0),deposits=hs.reduce((s,h)=>s+h.deposits,0);return{balance,inPlay,capital:balance+inPlay,profit,deposits,roi:deposits?profit/deposits*100:0,houses:hs.length,people:S.people.length,open:S.bets.filter(b=>b.status==="open").length}}
+function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs.reduce((s,h)=>s+h.inPlay,0),profit=hs.reduce((s,h)=>s+h.profit,0),deposits=hs.reduce((s,h)=>s+h.deposits,0);return{balance,inPlay,capital:balance+inPlay,profit,deposits,roi:deposits?profit/deposits*100:0,houses:hs.length,people:S.people.length,open:S.bets.filter(b=>(b.entries||[]).some(e=>e.status==="open")).length}}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
 function render(){renderDash();renderPeople();renderBets();renderHistory();renderSnapshot();fillTransfers()}
 function renderDash(){let t=total();$("dCapital").textContent=money(t.capital);$("dBalance").textContent=money(t.balance);$("dInPlay").textContent=money(t.inPlay);$("dRoi").textContent=pct(t.roi);$("dProfit").textContent=money(t.profit);$("dPeople").textContent=t.people;$("dHouses").textContent=t.houses;$("dOpen").textContent=t.open;
 let rows=[...S.people].map(p=>{let b=p.houses.reduce((s,h)=>s+h.balance,0),i=p.houses.reduce((s,h)=>s+h.inPlay,0),pr=p.houses.reduce((s,h)=>s+h.profit,0);return{name:p.name,cap:b+i,pr}}).sort((a,b)=>b.cap-a.cap);$("dashPeople").innerHTML=rows.length?rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>${money(r.cap)}</span><strong class="${r.pr>=0?"positive":"negative"}">${money(r.pr)}</strong></div>`).join(""):'<div class="empty">Nenhum dado cadastrado.</div>'}
-function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>b.houseId===h.id&&b.status==="open");return(!q||(p.name+" "+h.name+" "+h.login).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
+function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
 function renderPeople(){let ps=[...S.people].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
-let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div><div class="stat"><span>Rentabilidade</span><b>${pct(roi)}</b></div></div><div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
+let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div><div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button><button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
 return`<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`}).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'}
 window.togglePerson=id=>{openPid=openPid===id?null:id;render()};window.toggleFav=(pid,hid)=>{let h=hBy(pid,hid);h.favorite=!h.favorite;save()}
 $("personForm").onsubmit=e=>{e.preventDefault();let name=$("personName").value.trim();if(!name)return;if(S.people.some(p=>p.name.toLowerCase()===name.toLowerCase()))return alert("Nome já cadastrado.");let p={id:uid(),name,houses:[]};S.people.push(p);openPid=p.id;$("personForm").reset();save()}
 ["search","fBalance","fOpen","fResult"].forEach(id=>$(id).oninput=renderPeople)
 window.addHouse=pid=>{$("houseForm").reset();$("housePid").value=pid;$("houseHid").value="";$("houseTitle").textContent="Adicionar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
 window.editHouse=(pid,hid)=>{let h=hBy(pid,hid);$("housePid").value=pid;$("houseHid").value=hid;$("houseName").value=h.name;$("houseLogin").value=h.login;$("houseBalance").value=h.balance.toLocaleString("pt-BR",{minimumFractionDigits:2});$("houseNote").value=h.note;$("houseTitle").textContent="Editar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
-$("houseForm").onsubmit=e=>{e.preventDefault();let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value,name=$("houseName").value.trim(),bal=n($("houseBalance").value);if(!name||isNaN(bal))return alert("Preencha nome e saldo.");if(hid){let h=hBy(pid,hid),diff=bal-h.balance;h.name=name;h.login=$("houseLogin").value.trim();h.note=$("houseNote").value.trim();if(diff!==0){h.balance=bal;if(diff>0)h.deposits+=diff;move("adjust",Math.abs(diff),pid,hid,"Ajuste de saldo","",diff,0,0)}}else{let h={id:uid(),name,login:$("houseLogin").value.trim(),note:$("houseNote").value.trim(),balance:bal,inPlay:0,profit:0,deposits:bal,favorite:false};p.houses.push(h);if(bal)move("deposit",bal,pid,h.id,"Saldo inicial","",bal,0,0)}save();$("houseDialog").close()}
+$("houseForm").onsubmit=e=>{e.preventDefault();let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value,name=$("houseName").value.trim(),bal=n($("houseBalance").value);if(!name||isNaN(bal))return alert("Preencha nome e saldo.");if(hid){let h=hBy(pid,hid),diff=bal-h.balance;h.name=name;h.login=$("houseLogin").value.trim();h.note=$("houseNote").value.trim();if(diff!==0){h.balance=bal;if(diff>0)h.deposits+=diff;move("adjust",Math.abs(diff),pid,hid,"Ajuste de saldo","",diff,0,0)}}else{let h={id:uid(),name,login:$("houseLogin").value.trim(),note:$("houseNote").value.trim(),balance:bal,inPlay:0,profit:0,deposits:bal,freebet:0,favorite:false};p.houses.push(h);if(bal)move("deposit",bal,pid,h.id,"Saldo inicial","",bal,0,0)}save();$("houseDialog").close()}
 window.openMove=(pid,hid,type)=>{let h=hBy(pid,hid);$("moveForm").reset();$("movePid").value=pid;$("moveHid").value=hid;$("moveType").value=type;$("moveTitle").textContent=type==="deposit"?"Adicionar valor":"Remover valor";$("moveSub").textContent=pBy(pid).name+" • "+h.name;$("moveDialog").showModal()}
 $("moveForm").onsubmit=e=>{e.preventDefault();let pid=$("movePid").value,hid=$("moveHid").value,h=hBy(pid,hid),type=$("moveType").value,v=n($("moveValue").value),note=$("moveNote").value.trim();if(!(v>0))return alert("Valor inválido.");if(type==="deposit"){h.balance+=v;h.deposits+=v;move(type,v,pid,hid,"Valor adicionado",note,v,0,0)}else{if(v>h.balance)return alert("Saldo insuficiente.");h.balance-=v;move(type,v,pid,hid,"Valor removido",note,-v,0,0)}save();$("moveDialog").close()}
 window.editPerson=id=>{let p=pBy(id),x=prompt("Novo nome:",p.name);if(x&&x.trim()){p.name=x.trim();save()}};window.delPerson=id=>{if(confirm("Excluir pessoa e todas as casas?")){S.people=S.people.filter(p=>p.id!==id);save()}};window.delHouse=(pid,hid)=>{if(confirm("Excluir esta casa?")){pBy(pid).houses=pBy(pid).houses.filter(h=>h.id!==hid);save()}}
+window.editFreebet=(pid,hid)=>{
+ let h=hBy(pid,hid),raw=prompt("Valor atual de freebet em "+h.name+":",Number(h.freebet||0).toLocaleString("pt-BR",{minimumFractionDigits:2}));
+ if(raw===null)return;
+ let v=n(raw);if(!(v>=0))return alert("Valor inválido.");
+ let diff=v-Number(h.freebet||0);h.freebet=v;
+ move("freebet_adjust",Math.abs(diff),pid,hid,"Ajuste de freebet","",0,0,0);
+ save()
+};
 function fillTransfers(){let opts=allH().map(h=>`<option value="${h.pid}|${h.id}">${esc(h.pname)} • ${esc(h.name)}</option>`).join("");$("transferFrom").innerHTML=opts;$("transferTo").innerHTML=opts}
 window.openTransfer=()=>{$("transferForm").reset();fillTransfers();$("transferDialog").showModal()}
 $("transferForm").onsubmit=e=>{e.preventDefault();let [fp,fh]=$("transferFrom").value.split("|"),[tp,th]=$("transferTo").value.split("|"),v=n($("transferValue").value),note=$("transferNote").value.trim();if(fp===tp&&fh===th)return alert("Escolha casas diferentes.");let from=hBy(fp,fh),to=hBy(tp,th);if(!(v>0)||v>from.balance)return alert("Valor inválido ou saldo insuficiente.");from.balance-=v;to.balance+=v;move("transfer_out",v,fp,fh,"Transferência enviada",note,-v,0,0);move("transfer_in",v,tp,th,"Transferência recebida",note,v,0,0);save();$("transferDialog").close()}
 window.openDup=pid=>{let p=pBy(pid);$("dupPid").value=pid;$("dupSource").textContent="Origem: "+p.name;$("dupTarget").innerHTML=S.people.filter(x=>x.id!==pid).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");$("dupList").innerHTML=p.houses.map(h=>`<label class="check"><input type="checkbox" value="${h.id}">${esc(h.name)}</label>`).join("")||'<div class="empty">Sem casas.</div>';$("duplicateDialog").showModal()}
-$("duplicateForm").onsubmit=e=>{e.preventDefault();let src=pBy($("dupPid").value),dst=pBy($("dupTarget").value),ids=[...$("dupList").querySelectorAll("input:checked")].map(x=>x.value);if(!dst||!ids.length)return alert("Selecione destino e casas.");ids.forEach(id=>{let h=src.houses.find(x=>x.id===id);if(!dst.houses.some(x=>x.name.toLowerCase()===h.name.toLowerCase()))dst.houses.push({id:uid(),name:h.name,login:"",note:h.note,balance:0,inPlay:0,profit:0,deposits:0,favorite:false})});openPid=dst.id;save();$("duplicateDialog").close()}
-function fillBetPeople(pid){$("betPerson").innerHTML=S.people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");if(pid)$("betPerson").value=pid;fillBetHouses()}
-function fillBetHouses(hid){let p=pBy($("betPerson").value);$("betHouse").innerHTML=(p?p.houses:[]).map(h=>`<option value="${h.id}">${esc(h.name)}</option>`).join("");if(hid)$("betHouse").value=hid}
-$("betPerson").onchange=()=>fillBetHouses();$("newBet").onclick=()=>{if(!allH().length)return alert("Cadastre ao menos uma casa.");$("betForm").reset();fillBetPeople();$("betDialog").showModal()};window.openBetFor=(pid,hid)=>{$("betForm").reset();fillBetPeople(pid);fillBetHouses(hid);$("betDialog").showModal()}
-$("betForm").onsubmit=e=>{e.preventDefault();let pid=$("betPerson").value,hid=$("betHouse").value,h=hBy(pid,hid),stake=n($("betStake").value),odd=n($("betOdd").value);if(!h||!(stake>0)||stake>h.balance)return alert("Valor inválido ou saldo insuficiente.");h.balance-=stake;h.inPlay+=stake;let b={id:uid(),pid,houseId:hid,sport:$("betSport").value.trim(),event:$("betEvent").value.trim(),stake,odd:isNaN(odd)?0:odd,note:$("betNote").value.trim(),status:"open",created:new Date().toISOString(),settled:null,returned:0};S.bets.unshift(b);move("bet",stake,pid,hid,"Nova aposta: "+(b.event||b.sport||"Aposta"),b.note,-stake,stake,0);save();$("betDialog").close()}
-function renderBets(){let q=$("betSearch").value.toLowerCase(),st=$("betStatus").value;let bs=S.bets.filter(b=>(st==="all"||b.status===st));bs=bs.filter(b=>{let p=pBy(b.pid),h=hBy(b.pid,b.houseId);return((b.event+" "+b.sport+" "+(p?p.name:"")+" "+(h?h.name:"")).toLowerCase().includes(q))});$("betsList").innerHTML=bs.length?bs.map(b=>{let p=pBy(b.pid),h=hBy(b.pid,b.houseId),statusTxt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[b.status];return`<div class="bet"><div class="betTop"><div><strong>${esc(b.event||"Aposta")}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:"")+" • "+(b.sport||""))}</div></div><span class="status ${b.status}">${statusTxt}</span></div><div class="stats" style="padding:10px 0 0"><div class="stat"><span>Valor</span><b>${money(b.stake)}</b></div><div class="stat"><span>Odd</span><b>${b.odd||"-"}</b></div><div class="stat"><span>Retorno esperado</span><b>${money(b.stake*(b.odd||0))}</b></div><div class="stat"><span>Retorno real</span><b>${money(b.returned)}</b></div></div>${b.status==="open"?`<div class="actions" style="padding-left:0;padding-right:0;border:0"><button class="primary" onclick="openSettle('${b.id}')">Finalizar</button></div>`:""}</div>`}).join(""):'<div class="card empty">Nenhuma aposta.</div>'}
-$("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;window.openSettle=id=>{let b=S.bets.find(x=>x.id===id);$("settleId").value=id;$("settleSub").textContent=b.event||"Aposta";$("settleReturn").value=b.odd? (b.stake*b.odd).toFixed(2).replace(".",","):"";$("settleDialog").showModal()}
-$("settleForm").onsubmit=e=>{e.preventDefault();let b=S.bets.find(x=>x.id===$("settleId").value),h=hBy(b.pid,b.houseId),res=$("settleResult").value,ret=n($("settleReturn").value);if(!(ret>=0))return alert("Retorno inválido.");h.inPlay-=b.stake;h.balance+=ret;h.profit+=ret-b.stake;b.status=res;b.returned=ret;b.settled=new Date().toISOString();move("settle",ret,b.pid,b.houseId,"Aposta finalizada: "+(b.event||"Aposta"),res,ret,-b.stake,ret-b.stake);save();$("settleDialog").close()}
+$("duplicateForm").onsubmit=e=>{e.preventDefault();let src=pBy($("dupPid").value),dst=pBy($("dupTarget").value),ids=[...$("dupList").querySelectorAll("input:checked")].map(x=>x.value);if(!dst||!ids.length)return alert("Selecione destino e casas.");ids.forEach(id=>{let h=src.houses.find(x=>x.id===id);if(!dst.houses.some(x=>x.name.toLowerCase()===h.name.toLowerCase()))dst.houses.push({id:uid(),name:h.name,login:"",note:h.note,balance:0,inPlay:0,profit:0,deposits:0,freebet:0,favorite:false})});openPid=dst.id;save();$("duplicateDialog").close()}
+
+function normalizeBets(){
+ S.bets=(S.bets||[]).map(b=>{
+  if(Array.isArray(b.entries))return {...b,event:b.event||"Aposta",note:b.note||"",entries:b.entries.map(e=>({...e,id:e.id||uid(),type:e.type||"cash",freebetUsed:Number(e.freebetUsed||0),status:e.status||"open",returned:Number(e.returned||0)}))};
+  return {id:b.id||uid(),event:b.event||b.sport||"Aposta",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid,houseId:b.houseId,stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",freebetUsed:0,status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
+ })
+}
+function entryProfitPotential(e){return Number(e.stake||0)*Math.max(0,Number(e.odd||0)-1)}
+function groupPotential(b){return (b.entries||[]).reduce((s,e)=>s+entryProfitPotential(e),0)}
+function groupStatus(b){return (b.entries||[]).some(e=>e.status==="open")?"open":"settled"}
+function personOptions(selected=""){return S.people.map(p=>`<option value="${p.id}" ${p.id===selected?"selected":""}>${esc(p.name)}</option>`).join("")}
+function houseOptions(pid,selected=""){let p=pBy(pid);return (p?p.houses:[]).map(h=>`<option value="${h.id}" ${h.id===selected?"selected":""}>${esc(h.name)} — saldo ${money(h.balance)} • freebet ${money(h.freebet||0)}</option>`).join("")}
+function addBetEntryRow(pid="",hid=""){
+ if(!pid&&S.people[0])pid=S.people[0].id;
+ let id=uid(),row=document.createElement("div");row.className="entryBuilder";row.dataset.id=id;
+ row.innerHTML=`<div class="entryGrid">
+ <label>Pessoa<select class="entryPerson">${personOptions(pid)}</select></label>
+ <label>Casa<select class="entryHouse">${houseOptions(pid,hid)}</select></label>
+ <label>Tipo<select class="entryType"><option value="cash">Saldo</option><option value="freebet">Freebet</option></select></label>
+ <label>Valor<input class="entryStake" inputmode="decimal" placeholder="0,00"></label>
+ <label>Odd<input class="entryOdd" inputmode="decimal" placeholder="0,00"></label>
+ <button type="button" class="danger removeEntry">Remover</button>
+ </div><div class="muted entryPreview">Lucro possível: ${money(0)}</div>`;
+ row.querySelector(".entryPerson").onchange=e=>{row.querySelector(".entryHouse").innerHTML=houseOptions(e.target.value);updateBetPreview()};
+ row.querySelector(".removeEntry").onclick=()=>{if($("betEntries").children.length>1){row.remove();updateBetPreview()}};
+ row.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",updateBetPreview));
+ $("betEntries").appendChild(row);updateBetPreview()
+}
+function readEntryRow(row){
+ return {pid:row.querySelector(".entryPerson").value,houseId:row.querySelector(".entryHouse").value,type:row.querySelector(".entryType").value,stake:n(row.querySelector(".entryStake").value),odd:n(row.querySelector(".entryOdd").value)}
+}
+function updateBetPreview(){
+ let sum=0;[...$("betEntries").children].forEach(row=>{let e=readEntryRow(row),v=(e.stake>0&&e.odd>0)?entryProfitPotential(e):0;sum+=v;row.querySelector(".entryPreview").textContent="Lucro possível: "+money(v)});
+ $("betDoubleGreenPreview").textContent=money(sum)
+}
+$("addBetEntry").onclick=()=>addBetEntryRow();
+$("newBet").onclick=()=>{
+ if(!allH().length)return alert("Cadastre ao menos uma casa.");
+ $("betForm").reset();$("betEntries").innerHTML="";addBetEntryRow();$("betDialog").showModal()
+};
+window.openBetFor=(pid,hid)=>{
+ $("betForm").reset();$("betEntries").innerHTML="";addBetEntryRow(pid,hid);$("betDialog").showModal()
+};
+$("betForm").onsubmit=e=>{
+ e.preventDefault();let event=$("betEvent").value.trim(),note=$("betNote").value.trim(),rows=[...$("betEntries").children],entries=[];
+ if(!event)return alert("Informe o jogo/evento.");
+ for(let row of rows){
+  let x=readEntryRow(row),h=hBy(x.pid,x.houseId);
+  if(!h||!(x.stake>0)||!(x.odd>0))return alert("Preencha casa, valor e odd de todas as entradas.");
+  if(x.type==="cash"&&x.stake>h.balance)return alert("Saldo insuficiente em "+h.name+".");
+  if(x.type==="freebet"&&x.stake>Number(h.freebet||0))return alert("Freebet insuficiente em "+h.name+".");
+  entries.push({...x,id:uid(),status:"open",returned:0,settled:null})
+ }
+ entries.forEach(x=>{
+  let h=hBy(x.pid,x.houseId);
+  if(x.type==="cash"){h.balance-=x.stake;h.inPlay+=x.stake;move("bet",x.stake,x.pid,x.houseId,"Nova entrada: "+event,note,-x.stake,x.stake,0)}
+  else{h.freebet=Number(h.freebet||0)-x.stake;move("freebet_bet",x.stake,x.pid,x.houseId,"Entrada com freebet: "+event,note,0,0,0)}
+ });
+ S.bets.unshift({id:uid(),event,note,created:new Date().toISOString(),entries});
+ save();$("betDialog").close()
+};
+function renderBets(){
+ let q=$("betSearch").value.toLowerCase(),st=$("betStatus").value;
+ let bs=S.bets.filter(b=>st==="all"||groupStatus(b)===st).filter(b=>{
+  let text=[b.event,b.note,...(b.entries||[]).flatMap(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId);return [p?p.name:"",h?h.name:""]})].join(" ").toLowerCase();
+  return text.includes(q)
+ });
+ $("betsList").innerHTML=bs.length?bs.map(b=>{
+  let open=(b.entries||[]).filter(e=>e.status==="open").length,totalStake=(b.entries||[]).reduce((s,e)=>s+Number(e.stake||0),0);
+  let entries=(b.entries||[]).map(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status;
+   return `<div class="betEntry"><div class="betTop"><div><strong>${esc((p?p.name:"")+" • "+(h?h.name:""))}</strong><div class="muted">${e.type==="freebet"?"Freebet":"Saldo"} • ${txt}</div></div><span class="status ${e.status}">${txt}</span></div><div class="stats" style="padding:9px 0 0"><div class="stat"><span>Entrada</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd||"-"}</b></div><div class="stat"><span>Lucro possível</span><b>${money(entryProfitPotential(e))}</b></div><div class="stat"><span>Retorno real</span><b>${money(e.returned||0)}</b></div></div>${e.status==="open"?`<div class="actions" style="padding:7px 0 0;border:0"><button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar entrada</button></div>`:""}</div>`
+  }).join("");
+  return `<div class="betGroup"><div class="betTop"><div><strong>${esc(b.event||"Aposta")}</strong><div class="muted">${(b.entries||[]).length} entrada(s) • ${open} aberta(s) • Total apostado ${money(totalStake)}</div></div><span class="status ${open?"open":"win"}">${open?"Em andamento":"Finalizada"}</span></div><div class="doubleGreen"><span>Potencial total de duplo green</span><strong>${money(groupPotential(b))}</strong></div>${entries}</div>`
+ }).join(""):'<div class="card empty">Nenhuma aposta.</div>'
+}
+$("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;
+window.openSettle=(gid,eid)=>{
+ let b=S.bets.find(x=>x.id===gid),entry=b.entries.find(x=>x.id===eid);
+ $("settleGroupId").value=gid;$("settleEntryId").value=eid;
+ $("settleSub").textContent=b.event||"Aposta";
+ $("settleReturn").value=entry.odd?(entry.type==="freebet"?entry.stake*(entry.odd-1):entry.stake*entry.odd).toFixed(2).replace(".",","):"";
+ $("settleDialog").showModal()
+};
+$("settleForm").onsubmit=e=>{
+ e.preventDefault();let b=S.bets.find(x=>x.id===$("settleGroupId").value),entry=b.entries.find(x=>x.id===$("settleEntryId").value),h=hBy(entry.pid,entry.houseId),res=$("settleResult").value,ret=n($("settleReturn").value);
+ if(!(ret>=0))return alert("Retorno inválido.");
+ let profitDelta;
+ if(entry.type==="cash"){h.inPlay-=entry.stake;h.balance+=ret;profitDelta=ret-entry.stake}
+ else{h.balance+=ret;profitDelta=ret}
+ h.profit+=profitDelta;entry.status=res;entry.returned=ret;entry.settled=new Date().toISOString();
+ move("settle",ret,entry.pid,entry.houseId,"Entrada finalizada: "+(b.event||"Aposta"),res,ret,entry.type==="cash"?-entry.stake:0,profitDelta);
+ save();$("settleDialog").close()
+};
 function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
@@ -186,7 +380,8 @@ function normalizeOldHouse(h){
   inPlay:Number(h.inPlay||0),
   profit:Number(h.profit||0),
   deposits:Number(h.deposits!=null?h.deposits:(h.balance||0)),
-  favorite:Boolean(h.favorite)
+  favorite:Boolean(h.favorite),
+  freebet:Number(h.freebet||0)
  }
 }
 function migrateBackup(x){
@@ -200,20 +395,10 @@ function migrateBackup(x){
   name:p.name||"Sem nome",
   houses:Array.isArray(p.houses)?p.houses.map(normalizeOldHouse):[]
  }));
- bets=bets.map(b=>({
-  id:b.id||uid(),
-  pid:b.pid||b.personId||"",
-  houseId:b.houseId||"",
-  sport:b.sport||"",
-  event:b.event||"",
-  stake:Number(b.stake||0),
-  odd:Number(b.odd||0),
-  note:b.note||"",
-  status:b.status||"open",
-  created:b.created||new Date().toISOString(),
-  settled:b.settled||null,
-  returned:Number(b.returned||0)
- }));
+ bets=bets.map(b=>{
+  if(Array.isArray(b.entries))return {...b,entries:b.entries.map(e=>({...e,id:e.id||uid(),type:e.type||"cash",status:e.status||"open",returned:Number(e.returned||0)}))};
+  return {id:b.id||uid(),event:b.event||b.sport||"Aposta",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid||b.personId||"",houseId:b.houseId||"",stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
+ });
  moves=moves.map(m=>({
   id:m.id||uid(),
   date:m.date||new Date().toISOString(),
@@ -249,7 +434,7 @@ $("importFile").onchange=function(){
 window.closeD=id=>$(id).close();
 let dp=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;$("installBtn").classList.remove("hidden")});$("installBtn").onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$("installBtn").classList.add("hidden")};
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();render();
+load();normalizeBets();S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0}));render();initAuth();
 })();
 </script>
 </body>

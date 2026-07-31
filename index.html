@@ -136,6 +136,19 @@ body.dark .doubleGreenPossible{background:#052e16;border-color:#166534}
 .entryExtraGrid{display:grid;grid-template-columns:1.5fr 1fr;gap:8px;margin-top:8px}
 @media(max-width:760px){.entryExtraGrid{grid-template-columns:1fr}.entryBuilder .entryGrid{grid-template-columns:1fr 1fr}}
 
+
+details.betGroup{padding:0;overflow:hidden}
+details.betGroup>summary{list-style:none;cursor:pointer;padding:13px;display:flex;justify-content:space-between;gap:10px;align-items:center;user-select:none}
+details.betGroup>summary::-webkit-details-marker{display:none}
+details.betGroup>summary::after{content:"＋";font-size:1.15rem;font-weight:800;color:var(--muted);margin-left:5px}
+details.betGroup[open]>summary::after{content:"−"}
+details.betGroup[open]>summary{border-bottom:1px solid var(--border)}
+.betGroupContent{padding:0 12px 12px}
+.summaryMain{min-width:0;flex:1}.summaryMain strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.summaryMeta{font-size:.72rem;color:var(--muted);margin-top:3px}
+.returnGross{color:var(--blue)}.resultPositive{color:var(--green)}.resultNegative{color:var(--red)}
+.balanceAdjustmentNote{margin-top:8px;padding:8px;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;font-size:.75rem}
+body.dark .balanceAdjustmentNote{background:#0f1d35;border-color:#294c7a}
 </style>
 </head>
 <body>
@@ -165,7 +178,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v40</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v41</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -511,9 +524,15 @@ function entryPotentialReturn(e){
  let stake=Number(e.stake||0),odd=Number(e.odd||0);
  return e.type==="freebet"?stake*Math.max(0,odd-1):stake*odd
 }
-function entryProfitPotential(e){return entryPotentialReturn(e)-Number(e.stake||0)}
+function entryOwnResult(e){
+ let gross=entryPotentialReturn(e),stake=Number(e.stake||0);
+ return e.type==="freebet"?gross:gross-stake
+}
+function entryProfitPotential(e){return entryOwnResult(e)}
 function groupCashCost(b){return (b.entries||[]).filter(e=>e.type!=="freebet").reduce((s,e)=>s+Number(e.stake||0),0)}
-function scenarioNetResult(b,e){return entryPotentialReturn(e)-groupCashCost(b)}
+function groupFreebetCost(b){return (b.entries||[]).filter(e=>e.type==="freebet").reduce((s,e)=>s+Number(e.stake||0),0)}
+function scenarioGrossReturn(b,e){return entryPotentialReturn(e)}
+function scenarioNetResult(b,e){return scenarioGrossReturn(b,e)-groupCashCost(b)}
 function groupGuaranteedResult(b){
  let entries=b.entries||[];
  if(!entries.length)return 0;
@@ -536,10 +555,10 @@ function operationType(b){return (b.entries||[]).length>1?"Surebet protegida":"S
 function mainEntry(b){return (b.entries||[]).find(e=>e.role==="main")||(b.entries||[])[0]}
 function doubleGreenPairs(b){
  let main=mainEntry(b);if(!main)return[];
- return (b.entries||[]).filter(e=>e.id!==main.id&&e.doubleGreenCompatible).map(e=>({
-  main,protection:e,
-  net:entryPotentialReturn(main)+entryPotentialReturn(e)-groupCashCost(b)
- }))
+ return (b.entries||[]).filter(e=>e.id!==main.id&&e.doubleGreenCompatible).map(e=>{
+  let gross=entryPotentialReturn(main)+entryPotentialReturn(e);
+  return {main,protection:e,gross,net:gross-groupCashCost(b)}
+ })
 }
 function personOptions(selected=""){return S.people.map(p=>`<option value="${p.id}" ${p.id===selected?"selected":""}>${esc(p.name)}</option>`).join("")}
 function houseOptions(pid,selected=""){let p=pBy(pid);return (p?p.houses:[]).map(h=>`<option value="${h.id}" ${h.id===selected?"selected":""}>${esc(h.name)} — saldo ${money(h.balance)} • freebet ${money(h.freebet||0)}</option>`).join("")}
@@ -601,9 +620,9 @@ function updateBetPreview(){
  let cashCost=entries.filter(e=>e.type!=="freebet").reduce((s,e)=>s+Number(e.stake||0),0);
  let valid=entries.every(e=>e.stake>0&&e.odd>0);
  rows.forEach((row,index)=>{
-  let e=entries[index],potential=entryPotentialReturn(e),scenario=potential-cashCost;
-  row.querySelector(".entryPreview").textContent=e.stake>0&&e.odd>0
-   ?"Retorno potencial: "+money(potential)+" • Resultado da operação se só esta vencer: "+money(scenario)
+  let e=entries[index],gross=entryPotentialReturn(e),own=entryOwnResult(e),scenario=gross-cashCost;
+  row.querySelector(".entryPreview").innerHTML=e.stake>0&&e.odd>0
+   ?`Retorno bruto: <strong>${money(gross)}</strong> • Resultado individual: <strong>${money(own)}</strong> • Resultado da operação se só esta vencer: <strong>${money(scenario)}</strong>`
    :"Preencha o valor e a odd."
  });
  if(!valid){
@@ -612,17 +631,17 @@ function updateBetPreview(){
   return
  }
  let guaranteed=Math.min(...entries.map(e=>entryPotentialReturn(e)-cashCost));
- let main=entries[0],pairs=entries.slice(1).filter(e=>e.doubleGreenCompatible).map(e=>({
-  selection:e.selection||"Proteção",
-  net:entryPotentialReturn(main)+entryPotentialReturn(e)-cashCost
- }));
+ let main=entries[0],pairs=entries.slice(1).filter(e=>e.doubleGreenCompatible).map(e=>{
+  let gross=entryPotentialReturn(main)+entryPotentialReturn(e);
+  return {selection:e.selection||"Proteção",gross,net:gross-cashCost}
+ });
  $("betDoubleGreenPreview").textContent=entries.length>1
   ?"Resultado mínimo previsto: "+money(guaranteed)
   :"Superodd / entrada sem proteção";
  $("betSurebetPreview").innerHTML=`
   <div>Total comprometido em saldo: <strong>${money(cashCost)}</strong></div>
   <div>Tipo: <strong>${entries.length>1?"Surebet protegida":"Superodd / sem proteção"}</strong></div>
-  ${pairs.length?`<div class="surebetScenarios">${pairs.map(p=>`<div class="surebetScenario doubleGreenPossible"><span>Possível duplo green com ${esc(p.selection)}</span><strong>${money(p.net)}</strong></div>`).join("")}</div>`:"<div>Nenhuma proteção marcada como possível duplo green.</div>"}
+  ${pairs.length?`<div class="surebetScenarios">${pairs.map(p=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green com ${esc(p.selection)}<br><small>Retorno bruto para proteção ao vivo</small></span><strong>${money(p.gross)}<br><small>Resultado líquido ${money(p.net)}</small></strong></div>`).join("")}</div>`:"<div>Nenhuma proteção marcada como possível duplo green.</div>"}
  `
 }
 $("addBetEntry").onclick=()=>addBetEntryRow();
@@ -634,26 +653,60 @@ window.openBetFor=(pid,hid)=>{
  $("betForm").reset();$("betEntries").innerHTML="";addBetEntryRow(pid,hid);refreshEntryRoles();$("betDialog").showModal()
 };
 $("betForm").onsubmit=e=>{
- e.preventDefault();let event=$("betEvent").value.trim(),eventDate=$("betEventDate").value,note=$("betNote").value.trim(),rows=[...$("betEntries").children],entries=[];
+ e.preventDefault();
+ let event=$("betEvent").value.trim(),eventDate=$("betEventDate").value,note=$("betNote").value.trim();
+ let rows=[...$("betEntries").children],entries=[],adjustments=[];
+ let projectedCash=new Map(),projectedFreebet=new Map();
  if(!event)return alert("Informe o jogo/evento.");
+
  for(let row of rows){
   let x=readEntryRow(row),h=hBy(x.pid,x.houseId);
   if(!h||!(x.stake>0)||!(x.odd>0))return alert("Preencha casa, valor e odd de todas as entradas.");
-  if(x.type==="cash"&&x.stake>h.balance)return alert("Saldo insuficiente em "+h.name+".");
   if(h.maxStake&&x.stake>h.maxStake)return alert("A entrada excede o limite por aposta de "+h.name+" ("+money(h.maxStake)+").");
   if(h.dailyLimit){
-   let today=new Date().toISOString().slice(0,10),used=S.bets.flatMap(b=>b.entries||[]).filter(e=>e.houseId===h.id&&(e.created||b?.created||"").slice?.(0,10)===today).reduce((s,e)=>s+Number(e.stake||0),0);
+   let today=new Date().toISOString().slice(0,10);
+   let used=S.bets.flatMap(b=>b.entries||[]).filter(existing=>existing.houseId===h.id&&(existing.created||"").slice(0,10)===today).reduce((s,existing)=>s+Number(existing.stake||0),0);
    if(used+x.stake>h.dailyLimit)return alert("A entrada excede o limite diário de "+h.name+".");
   }
-  if(x.type==="freebet"&&x.stake>Number(h.freebet||0))return alert("Freebet insuficiente em "+h.name+".");
+  let key=x.pid+"::"+x.houseId;
+  if(x.type==="cash"){
+   let available=projectedCash.has(key)?projectedCash.get(key):Number(h.balance||0);
+   if(x.stake>available){
+    let shortage=x.stake-available;
+    let raw=prompt("Saldo registrado em "+h.name+": "+money(available)+".\nAposta: "+money(x.stake)+".\n\nDigite quanto deseja adicionar ao saldo agora.\nMínimo necessário: "+money(shortage),shortage.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}));
+    if(raw===null)return;
+    let added=n(raw);
+    if(!(added>=shortage))return alert("Adicione pelo menos "+money(shortage)+". O formulário foi mantido.");
+    available+=added;adjustments.push({kind:"cash",pid:x.pid,hid:x.houseId,value:added,houseName:h.name})
+   }
+   projectedCash.set(key,available-x.stake)
+  }else{
+   let available=projectedFreebet.has(key)?projectedFreebet.get(key):Number(h.freebet||0);
+   if(x.stake>available){
+    let shortage=x.stake-available;
+    let raw=prompt("Freebet registrada em "+h.name+": "+money(available)+".\nUso: "+money(x.stake)+".\n\nDigite quanto deseja adicionar agora.\nMínimo necessário: "+money(shortage),shortage.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}));
+    if(raw===null)return;
+    let added=n(raw);
+    if(!(added>=shortage))return alert("Adicione pelo menos "+money(shortage)+". O formulário foi mantido.");
+    available+=added;adjustments.push({kind:"freebet",pid:x.pid,hid:x.houseId,value:added,houseName:h.name})
+   }
+   projectedFreebet.set(key,available-x.stake)
+  }
   entries.push({...x,role:entries.length===0?"main":"protection",doubleGreenCompatible:entries.length===0?false:Boolean(x.doubleGreenCompatible),id:uid(),created:new Date().toISOString(),status:"open",returned:0,settled:null})
  }
+
+ adjustments.forEach(a=>{
+  let h=hBy(a.pid,a.hid);if(!h)return;
+  if(a.kind==="cash"){h.balance=Number(h.balance||0)+a.value;h.deposits=Number(h.deposits||0)+a.value;move("deposit",a.value,a.pid,a.hid,"Saldo atualizado durante o registro",event,a.value,0,0)}
+  else{h.freebet=Number(h.freebet||0)+a.value;move("freebet_adjustment",a.value,a.pid,a.hid,"Freebet atualizada durante o registro",event,0,0,0)}
+ });
+
  entries.forEach(x=>{
   let h=hBy(x.pid,x.houseId);
   if(x.type==="cash"){h.balance-=x.stake;h.inPlay+=x.stake;move("bet",x.stake,x.pid,x.houseId,"Nova entrada: "+event,note,-x.stake,x.stake,0)}
   else{h.freebet=Number(h.freebet||0)-x.stake;move("freebet_bet",x.stake,x.pid,x.houseId,"Entrada com freebet: "+event,note,0,0,0)}
  });
- S.bets.unshift({id:uid(),event,eventDate,note,created:new Date().toISOString(),entries});
+ S.bets.unshift({id:uid(),event,eventDate,note,created:new Date().toISOString(),entries,balanceAdjustments:adjustments.map(a=>({...a,date:new Date().toISOString()}))});
  save();$("betDialog").close()
 };
 
@@ -707,43 +760,33 @@ function renderBets(){
  });
  $("betsList").innerHTML=bs.length?bs.map(b=>{
   let entriesList=b.entries||[],open=entriesList.filter(e=>e.status==="open").length,totalStake=entriesList.reduce((s,e)=>s+Number(e.stake||0),0);
-  let guaranteed=groupGuaranteedResult(b),actual=groupActualResult(b),outcome=groupOutcomeLabel(b),pairs=doubleGreenPairs(b);
+  let guaranteed=groupGuaranteedResult(b),actual=groupActualResult(b),outcome=groupOutcomeLabel(b),pairs=doubleGreenPairs(b),totalActualReturn=entriesList.reduce((s,e)=>s+Number(e.returned||0),0);
   let entries=entriesList.map((e,index)=>{
    let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status;
-   let role=index===0?"Entrada principal":"Proteção "+index;
-   return `<div class="betEntry"><div class="betTop"><div>
-    <span class="entryRoleBadge ${index===0?"main":"protection"}">${role}</span>
-    <strong style="display:block">${esc((p?p.name:"")+" • "+(h?h.name:""))}</strong>
-    <div class="muted">${esc(e.selection||"Resultado não informado")} • ${e.type==="freebet"?"Freebet":"Saldo"} • ${txt}${e.doubleGreenCompatible?" • Pode gerar duplo green":""}</div>
-   </div><span class="status ${e.status}">${txt}</span></div>
+   let role=index===0?"Entrada principal":"Proteção "+index,own=entryOwnResult(e),scenario=scenarioNetResult(b,e);
+   return `<div class="betEntry"><div class="betTop"><div><span class="entryRoleBadge ${index===0?"main":"protection"}">${role}</span><strong style="display:block">${esc((p?p.name:"")+" • "+(h?h.name:""))}</strong><div class="muted">${esc(e.selection||"Resultado não informado")} • ${e.type==="freebet"?"Freebet":"Saldo"} • ${txt}${e.doubleGreenCompatible?" • Chance de duplo green":""}</div></div><span class="status ${e.status}">${txt}</span></div>
    <div class="stats" style="padding:9px 0 0">
-    <div class="stat"><span>Entrada</span><b>${money(e.stake)}</b></div>
-    <div class="stat"><span>Odd</span><b>${e.odd||"-"}</b></div>
-    <div class="stat"><span>Retorno potencial</span><b>${money(entryPotentialReturn(e))}</b></div>
-    <div class="stat"><span>Se só esta vencer</span><b>${money(scenarioNetResult(b,e))}</b></div>
-    <div class="stat"><span>Retorno real</span><b>${money(e.returned||0)}</b></div>
+    <div class="stat"><span>Valor usado</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd||"-"}</b></div>
+    <div class="stat"><span>Retorno bruto potencial</span><b class="returnGross">${money(entryPotentialReturn(e))}</b></div>
+    <div class="stat"><span>Resultado individual potencial</span><b class="${own>=0?"resultPositive":"resultNegative"}">${money(own)}</b></div>
+    <div class="stat"><span>Resultado da operação se só esta vencer</span><b class="${scenario>=0?"resultPositive":"resultNegative"}">${money(scenario)}</b></div>
+    <div class="stat"><span>Retorno bruto recebido</span><b>${money(e.returned||0)}</b></div>
    </div>
-   <div class="entryActionRow">${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""}
-   <button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button>
-   <button class="secondary" onclick="duplicateBetEntry('${b.id}','${e.id}')">Duplicar</button>
-   <button class="secondary" onclick="moveBetEntry('${b.id}','${e.id}')">Mover</button>
-   <button class="danger" onclick="deleteBetEntry('${b.id}','${e.id}')">Excluir</button></div></div>`
+   <div class="entryActionRow">${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""}<button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button><button class="secondary" onclick="duplicateBetEntry('${b.id}','${e.id}')">Duplicar</button><button class="secondary" onclick="moveBetEntry('${b.id}','${e.id}')">Mover</button><button class="danger" onclick="deleteBetEntry('${b.id}','${e.id}')">Excluir</button></div></div>`
   }).join("");
-  return `<div class="betGroup">
-   <div class="betTop"><div><strong>${esc(b.event||"Aposta")}</strong>
-    <div class="muted">${operationType(b)} • ${entriesList.length} aposta(s) • ${open} aberta(s) • Total lançado ${money(totalStake)}</div>
-   </div><span class="status ${open?"open":groupWins(b)>=1?"win":"loss"}">${outcome}</span></div>
-   <div class="stats" style="padding:10px 0 0">
-    <div class="stat"><span>Total em saldo comprometido</span><b>${money(groupCashCost(b))}</b></div>
+  return `<details class="betGroup"><summary><div class="summaryMain"><strong>${esc(b.event||"Aposta")}</strong><div class="summaryMeta">${operationType(b)} • ${entriesList.length} aposta(s) • Total lançado ${money(totalStake)}</div></div><span class="status ${open?"open":groupWins(b)>=1?"win":"loss"}">${outcome}</span></summary>
+   <div class="betGroupContent"><div class="stats" style="padding:10px 0 0">
+    <div class="stat"><span>Total comprometido em saldo</span><b>${money(groupCashCost(b))}</b></div>
+    <div class="stat"><span>Total usado em freebet</span><b>${money(groupFreebetCost(b))}</b></div>
     <div class="stat"><span>Resultado mínimo previsto</span><b>${entriesList.length>1?money(guaranteed):"Sem proteção"}</b></div>
-    <div class="stat"><span>Resultado realizado</span><b>${open?"Em andamento":money(actual)}</b></div>
+    <div class="stat"><span>Retorno bruto recebido</span><b class="returnGross">${open?"Em andamento":money(totalActualReturn)}</b></div>
+    <div class="stat"><span>Lucro/prejuízo realizado</span><b class="${actual>=0?"resultPositive":"resultNegative"}">${open?"Em andamento":money(actual)}</b></div>
     <div class="stat"><span>Greens confirmados</span><b>${groupWins(b)}</b></div>
    </div>
-   ${pairs.length?`<div class="surebetScenarios">${pairs.map(pair=>`<div class="surebetScenario doubleGreenPossible"><span>Possível duplo green: Principal + ${esc(pair.protection.selection||"proteção")}</span><strong>${money(pair.net)}</strong></div>`).join("")}</div>`:""}
-   ${!open&&groupWins(b)>=2?`<div class="doubleGreen doubleGreenPossible"><span>Duplo green confirmado</span><strong>${groupWins(b)} entradas ficaram green</strong></div>`:""}
-   <div class="entryActionRow"><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogo</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir jogo</button></div>
-   ${entries}
-  </div>`
+   ${pairs.length?`<div class="surebetScenarios">${pairs.map(pair=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green: Principal + ${esc(pair.protection.selection||"proteção")}<br><small>Retorno bruto para cálculo de proteção ao vivo</small></span><strong>${money(pair.gross)}<br><small>Lucro/prejuízo líquido ${money(pair.net)}</small></strong></div>`).join("")}</div>`:""}
+   ${!open&&groupWins(b)>=2?`<div class="doubleGreen doubleGreenPossible"><span>Duplo green confirmado</span><strong>${groupWins(b)} apostas ficaram green</strong></div>`:""}
+   ${(b.balanceAdjustments||[]).length?`<div class="balanceAdjustmentNote">Atualização durante o cadastro: ${(b.balanceAdjustments||[]).map(a=>`${esc(a.houseName)} +${money(a.value)}`).join(" • ")}</div>`:""}
+   <div class="entryActionRow"><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogo</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir jogo</button></div>${entries}</div></details>`
  }).join(""):'<div class="card empty">Nenhuma operação cadastrada.</div>'
 }
 $("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;

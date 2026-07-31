@@ -1,16 +1,5 @@
-BETMANAGER — VERSÃO 40
-
-NOVA LÓGICA DE APOSTAS
-- A primeira aposta é a Entrada principal.
-- As demais são Proteções.
-- Uma única aposta é classificada como Superodd / sem proteção.
-- Duas ou mais apostas formam uma Surebet protegida.
-- Cada entrada possui campo de resultado/mercado protegido.
-- Cada proteção pode ser marcada como compatível com a principal.
-- Compatibilidade indica possibilidade real de duplo green.
-- Duplo green só é confirmado quando duas ou mais entradas terminam green.
-- O antigo cálculo que somava todos os retornos foi removido.
-- O aplicativo mostra o resultado líquido se apenas cada entrada vencer.
-- Mostra o resultado mínimo previsto da operação.
-- Mostra cada cenário possível de duplo green.
-- Finalização continua sendo feita individualmente em cada aposta.
+BETMANAGER V41
+- Permite atualizar saldo/freebet durante o cadastro sem perder o formulário.
+- Jogos aparecem recolhidos e abrem ao toque.
+- Retorno bruto separado de lucro/prejuízo.
+- Chance de Duplo Green destaca o retorno bruto para proteção ao vivo.

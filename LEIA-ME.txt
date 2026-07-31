@@ -34,3 +34,10 @@ Esta versão aceita backups:
 - da versão anterior no formato {version, data};
 - das versões antigas que exportavam apenas uma lista de pessoas.
 Os nomes, casas e saldos são convertidos automaticamente.
+
+
+VERSÃO V3:
+- Cache renovado para impedir que o celular continue abrindo o importador antigo.
+- Migração automática dos dados locais da V2.
+- Compatibilidade com o backup enviado pelo usuário.
+- O arquivo backup_convertido_controle_casas.json já está pronto para importação.

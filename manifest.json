@@ -1,7 +1,7 @@
 {
-  "name": "Controle de Casas Profissional",
-  "short_name": "Casas Pro",
-  "start_url": "./?v=2",
+  "name": "Controle de Casas Profissional v3",
+  "short_name": "Casas Pro v3",
+  "start_url": "./?v=3",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",

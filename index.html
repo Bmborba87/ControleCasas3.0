@@ -27,7 +27,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 </style>
 </head>
 <body>
-<header><div class="head"><div><h1>Controle de Casas</h1><p>Saldos, apostas, transferências e rentabilidade.</p></div><button id="installBtn" class="secondary hidden">Instalar</button></div></header>
+<header><div class="head"><div><h1>Controle de Casas <small style="font-size:.65rem;color:#93c5fd">v3</small></h1><p>Saldos, apostas, transferências e rentabilidade.</p></div><button id="installBtn" class="secondary hidden">Instalar</button></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -123,13 +123,21 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <script>
 (()=>{"use strict";
-const KEY="controleCasasProfV2";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleCasasProfV3";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
 function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes(","))x=x.replace(/\./g,"").replace(",",".");let z=Number(x);return Number.isFinite(z)?z:NaN}
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
-function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.people))S=x}catch(e){}}
+function load(){try{
+let raw=localStorage.getItem(KEY);
+if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
+let x=raw?JSON.parse(raw):null;
+if(x&&Array.isArray(x.people)){
+S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[]};
+localStorage.setItem(KEY,JSON.stringify(S))
+}}catch(e){console.error(e)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(S));render()}
 function pBy(id){return S.people.find(p=>p.id===id)} function hBy(pid,hid){let p=pBy(pid);return p&&p.houses.find(h=>h.id===hid)}
 function allH(){return S.people.flatMap(p=>p.houses.map(h=>({...h,pid:p.id,pname:p.name})))}

@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
-<title>Controle de Casas</title>
+<title>Controle de Apostas</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#6b7280;--border:#e5e7eb;--blue:#2563eb;--green:#15803d;--red:#dc2626;--orange:#b45309;--dark:#111827}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -64,7 +64,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
   </div>
 </div>
 
-<header><div class="head"><div><h1>Controle de Casas <small style="font-size:.65rem;color:#93c5fd">v6</small></h1><p>Saldos, apostas, transferências e rentabilidade.</p></div><div class="userMenu"><span id="userEmail" class="userEmail"></span><button id="installBtn" class="secondary hidden">Instalar</button><button id="logoutBtn" class="secondary">Sair</button></div></div></header>
+<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v8</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><span id="userEmail" class="userEmail"></span><button id="installBtn" class="secondary">Instalar</button><button id="logoutBtn" class="secondary">Sair</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -123,7 +123,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 <dialog id="houseDialog"><form id="houseForm">
 <div class="dhead"><div><h2 id="houseTitle">Adicionar casa</h2><div id="housePerson" class="muted"></div></div><button type="button" class="secondary" onclick="closeD('houseDialog')">X</button></div>
 <input id="housePid" type="hidden"><input id="houseHid" type="hidden">
-<label>Casa<input id="houseName"></label><label>Login/identificação<input id="houseLogin"></label><label>Saldo inicial<input id="houseBalance" inputmode="decimal" placeholder="0,00"></label><label>Observação<textarea id="houseNote" rows="2"></textarea></label>
+<label>Casa<input id="houseName"></label><label>Login/identificação<input id="houseLogin"></label><label>Link da casa<input id="houseUrl" type="url" inputmode="url" placeholder="https://www.exemplo.com"></label><label>Saldo<input id="houseBalance" inputmode="decimal" placeholder="0,00"></label><label>Bônus disponível<input id="houseBonus" inputmode="decimal" placeholder="0,00"></label><label>Rollover restante<input id="houseRollover" inputmode="decimal" placeholder="0,00"></label><label>Validade da freebet/bônus<input id="houseExpiry" type="date"></label><label>Tags<input id="houseTags" placeholder="VIP, exchange, limitada"></label><label>Observação<textarea id="houseNote" rows="2"></textarea></label>
 <div class="dactions"><button type="button" class="secondary" onclick="closeD('houseDialog')">Cancelar</button><button class="primary">Salvar</button></div>
 </form></dialog>
 
@@ -223,7 +223,7 @@ document.getElementById("logoutBtn").addEventListener("click",function(){
  showLogin()
 });
 
-const KEY="controleCasasProfV6";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV8";let S={people:[],bets:[],moves:[]},openPid=null,$=id=>document.getElementById(id);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+"%";
@@ -231,7 +231,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -241,22 +241,57 @@ localStorage.setItem(KEY,JSON.stringify(S))
 function save(){localStorage.setItem(KEY,JSON.stringify(S));render()}
 function pBy(id){return S.people.find(p=>p.id===id)} function hBy(pid,hid){let p=pBy(pid);return p&&p.houses.find(h=>h.id===hid)}
 function allH(){return S.people.flatMap(p=>p.houses.map(h=>({...h,freebet:Number(h.freebet||0),pid:p.id,pname:p.name})))}
-function move(type,value,pid,hid,label,note,deltaBalance=0,deltaInPlay=0,deltaProfit=0){S.moves.unshift({id:uid(),date:new Date().toISOString(),type,value,pid,hid,label,note:note||"",deltaBalance,deltaInPlay,deltaProfit})}
-function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs.reduce((s,h)=>s+h.inPlay,0),profit=hs.reduce((s,h)=>s+h.profit,0),deposits=hs.reduce((s,h)=>s+h.deposits,0);return{balance,inPlay,capital:balance+inPlay,profit,deposits,roi:deposits?profit/deposits*100:0,houses:hs.length,people:S.people.length,open:S.bets.filter(b=>(b.entries||[]).some(e=>e.status==="open")).length}}
+function move(type,value,pid,hid,label,note,deltaBalance=0,deltaInPlay=0,deltaProfit=0){S.moves.unshift({id:uid(),date:new Date().toISOString(),type,value,pid,hid,label,note:note||"",deltaBalance,deltaInPlay,deltaProfit});let h=hBy(pid,hid);if(h)h.lastMovement=new Date().toISOString()}
+function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs.reduce((s,h)=>s+h.inPlay,0),profit=hs.reduce((s,h)=>s+h.profit,0),deposits=hs.reduce((s,h)=>s+h.deposits,0),freebet=hs.reduce((s,h)=>s+Number(h.freebet||0),0),bonus=hs.reduce((s,h)=>s+Number(h.bonus||0),0);return{balance,inPlay,capital:balance+inPlay,profit,deposits,freebet,bonus,roi:deposits?profit/deposits*100:0,houses:hs.length,people:S.people.length,open:S.bets.filter(b=>(b.entries||[]).some(e=>e.status==="open")).length}}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
 function render(){renderDash();renderPeople();renderBets();renderHistory();renderSnapshot();fillTransfers()}
-function renderDash(){let t=total();$("dCapital").textContent=money(t.capital);$("dBalance").textContent=money(t.balance);$("dInPlay").textContent=money(t.inPlay);$("dRoi").textContent=pct(t.roi);$("dProfit").textContent=money(t.profit);$("dPeople").textContent=t.people;$("dHouses").textContent=t.houses;$("dOpen").textContent=t.open;
-let rows=[...S.people].map(p=>{let b=p.houses.reduce((s,h)=>s+h.balance,0),i=p.houses.reduce((s,h)=>s+h.inPlay,0),pr=p.houses.reduce((s,h)=>s+h.profit,0);return{name:p.name,cap:b+i,pr}}).sort((a,b)=>b.cap-a.cap);$("dashPeople").innerHTML=rows.length?rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>${money(r.cap)}</span><strong class="${r.pr>=0?"positive":"negative"}">${money(r.pr)}</strong></div>`).join(""):'<div class="empty">Nenhum dado cadastrado.</div>'}
-function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
+function renderDash(){
+ let t=total();$("dCapital").textContent=money(t.capital);$("dBalance").textContent=money(t.balance);$("dInPlay").textContent=money(t.inPlay);$("dRoi").textContent=pct(t.roi);$("dProfit").textContent=money(t.profit);$("dPeople").textContent=t.people;$("dHouses").textContent=t.houses;$("dOpen").textContent=t.open;$("dFreebet").textContent=money(t.freebet);$("dBonus").textContent=money(t.bonus);
+ let today=new Date().toISOString().slice(0,10),month=today.slice(0,7),profitToday=S.moves.filter(m=>m.date&&m.date.slice(0,10)===today).reduce((s,m)=>s+Number(m.deltaProfit||0),0),profitMonth=S.moves.filter(m=>m.date&&m.date.slice(0,7)===month).reduce((s,m)=>s+Number(m.deltaProfit||0),0);$("dToday").textContent=money(profitToday);$("dMonth").textContent=money(profitMonth);
+ let rows=[...S.people].map(p=>{let b=p.houses.reduce((s,h)=>s+h.balance,0),i=p.houses.reduce((s,h)=>s+h.inPlay,0),pr=p.houses.reduce((s,h)=>s+h.profit,0);return{name:p.name,cap:b+i,pr}}).sort((a,b)=>b.cap-a.cap);$("dashPeople").innerHTML=rows.length?rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>${money(r.cap)}</span><strong class="${r.pr>=0?"positive":"negative"}">${money(r.pr)}</strong></div>`).join(""):'<div class="empty">Nenhum dado cadastrado.</div>';
+ let entries=S.bets.flatMap(b=>b.entries||[]),greens=entries.filter(e=>e.status==="win").length,reds=entries.filter(e=>e.status==="loss").length,voids=entries.filter(e=>e.status==="void").length,rate=greens+reds?greens/(greens+reds)*100:0;
+ $("dashStats").innerHTML=`<div class="row"><span>Greens</span><strong>${greens}</strong></div><div class="row"><span>Reds</span><strong>${reds}</strong></div><div class="row"><span>Anuladas</span><strong>${voids}</strong></div><div class="row"><span>Taxa de green</span><strong>${pct(rate)}</strong></div>`;
+ let hs=allH(),expiring=hs.filter(h=>h.expiry&&((new Date(h.expiry+"T23:59:59")-new Date())/86400000)>=0&&((new Date(h.expiry+"T23:59:59")-new Date())/86400000)<=7),inactive=hs.filter(h=>h.balance>0&&h.lastMovement&&((new Date()-new Date(h.lastMovement))/86400000)>30);
+ $("dashAlerts").innerHTML=(expiring.length?expiring.map(h=>`<div class="row"><span>⏰ ${esc(h.name)}</span><strong>${Math.ceil((new Date(h.expiry+"T23:59:59")-new Date())/86400000)} dia(s)</strong></div>`).join(""):"")+(inactive.length?inactive.map(h=>`<div class="row"><span>💤 ${esc(h.name)}</span><strong>+30 dias</strong></div>`).join(""):"")||'<div class="empty">Nenhum alerta.</div>';
+ let best=[...hs].sort((a,b)=>b.profit-a.profit)[0],worst=[...hs].sort((a,b)=>a.profit-b.profit)[0];
+ $("dashHighlights").innerHTML=`<div class="row"><span>Mais lucrativa</span><strong>${best?esc(best.name)+" • "+money(best.profit):"—"}</strong></div><div class="row"><span>Menos lucrativa</span><strong>${worst?esc(worst.name)+" • "+money(worst.profit):"—"}</strong></div>`
+}
+function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login+" "+(h.url||"")+" "+(h.tags||[]).join(" ")).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
 function renderPeople(){let ps=[...S.people].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
-let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div><div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button><button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
+let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Bônus</span><b>${money(h.bonus||0)}</b></div><div class="stat"><span>Rollover</span><b>${money(h.rollover||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div>${(h.tags||[]).length?`<div class="muted" style="margin-top:6px">🏷️ ${(h.tags||[]).map(esc).join(" • ")}</div>`:""}${h.expiry?`<div class="muted" style="margin-top:4px">⏰ Validade: ${new Date(h.expiry+"T12:00:00").toLocaleDateString("pt-BR")}</div>`:""}<div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
 return`<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`}).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'}
 window.togglePerson=id=>{openPid=openPid===id?null:id;render()};window.toggleFav=(pid,hid)=>{let h=hBy(pid,hid);h.favorite=!h.favorite;save()}
 $("personForm").onsubmit=e=>{e.preventDefault();let name=$("personName").value.trim();if(!name)return;if(S.people.some(p=>p.name.toLowerCase()===name.toLowerCase()))return alert("Nome já cadastrado.");let p={id:uid(),name,houses:[]};S.people.push(p);openPid=p.id;$("personForm").reset();save()}
 ["search","fBalance","fOpen","fResult"].forEach(id=>$(id).oninput=renderPeople)
+
+function normalizeUrl(value){
+ let u=(value||"").trim();
+ if(!u)return "";
+ if(!/^https?:\/\//i.test(u))u="https://"+u;
+ try{return new URL(u).href}catch(e){return null}
+}
+window.openHouseSite=(pid,hid)=>{
+ let h=hBy(pid,hid),url=normalizeUrl(h&&h.url);
+ if(!url)return alert("Esta casa não possui um link válido.");
+ window.open(url,"_blank","noopener,noreferrer")
+};
 window.addHouse=pid=>{$("houseForm").reset();$("housePid").value=pid;$("houseHid").value="";$("houseTitle").textContent="Adicionar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
-window.editHouse=(pid,hid)=>{let h=hBy(pid,hid);$("housePid").value=pid;$("houseHid").value=hid;$("houseName").value=h.name;$("houseLogin").value=h.login;$("houseBalance").value=h.balance.toLocaleString("pt-BR",{minimumFractionDigits:2});$("houseNote").value=h.note;$("houseTitle").textContent="Editar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
-$("houseForm").onsubmit=e=>{e.preventDefault();let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value,name=$("houseName").value.trim(),bal=n($("houseBalance").value);if(!name||isNaN(bal))return alert("Preencha nome e saldo.");if(hid){let h=hBy(pid,hid),diff=bal-h.balance;h.name=name;h.login=$("houseLogin").value.trim();h.note=$("houseNote").value.trim();if(diff!==0){h.balance=bal;if(diff>0)h.deposits+=diff;move("adjust",Math.abs(diff),pid,hid,"Ajuste de saldo","",diff,0,0)}}else{let h={id:uid(),name,login:$("houseLogin").value.trim(),note:$("houseNote").value.trim(),balance:bal,inPlay:0,profit:0,deposits:bal,freebet:0,favorite:false};p.houses.push(h);if(bal)move("deposit",bal,pid,h.id,"Saldo inicial","",bal,0,0)}save();$("houseDialog").close()}
+window.editHouse=(pid,hid)=>{let h=hBy(pid,hid);$("housePid").value=pid;$("houseHid").value=hid;$("houseName").value=h.name;$("houseLogin").value=h.login;$("houseUrl").value=h.url||"";$("houseBonus").value=h.bonus||0;$("houseRollover").value=h.rollover||0;$("houseExpiry").value=h.expiry||"";$("houseTags").value=(h.tags||[]).join(", ");$("houseBalance").value=h.balance.toLocaleString("pt-BR",{minimumFractionDigits:2});$("houseNote").value=h.note;$("houseTitle").textContent="Editar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
+$("houseForm").onsubmit=e=>{
+ e.preventDefault();
+ let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value,name=$("houseName").value.trim(),bal=n($("houseBalance").value),url=normalizeUrl($("houseUrl").value),bonus=n($("houseBonus").value)||0,rollover=n($("houseRollover").value)||0,expiry=$("houseExpiry").value,tags=$("houseTags").value.split(",").map(x=>x.trim()).filter(Boolean);
+ if(!name||isNaN(bal))return alert("Preencha nome e saldo.");
+ if($("houseUrl").value.trim()&&!url)return alert("Informe um link válido.");
+ if(hid){
+  let h=hBy(pid,hid),diff=bal-h.balance;
+  h.name=name;h.login=$("houseLogin").value.trim();h.url=url||"";h.note=$("houseNote").value.trim();h.bonus=bonus;h.rollover=rollover;h.expiry=expiry;h.tags=tags;h.lastMovement=new Date().toISOString();
+  if(diff!==0){h.balance=bal;if(diff>0)h.deposits+=diff;move("adjust",Math.abs(diff),pid,hid,"Ajuste de saldo","",diff,0,0)}
+ }else{
+  let h={id:uid(),name,login:$("houseLogin").value.trim(),url:url||"",note:$("houseNote").value.trim(),balance:bal,inPlay:0,profit:0,deposits:bal,freebet:0,bonus,rollover,expiry,tags,lastMovement:new Date().toISOString(),favorite:false};
+  p.houses.push(h);if(bal)move("deposit",bal,pid,h.id,"Saldo inicial","",bal,0,0)
+ }
+ save();$("houseDialog").close()
+}
 window.openMove=(pid,hid,type)=>{let h=hBy(pid,hid);$("moveForm").reset();$("movePid").value=pid;$("moveHid").value=hid;$("moveType").value=type;$("moveTitle").textContent=type==="deposit"?"Adicionar valor":"Remover valor";$("moveSub").textContent=pBy(pid).name+" • "+h.name;$("moveDialog").showModal()}
 $("moveForm").onsubmit=e=>{e.preventDefault();let pid=$("movePid").value,hid=$("moveHid").value,h=hBy(pid,hid),type=$("moveType").value,v=n($("moveValue").value),note=$("moveNote").value.trim();if(!(v>0))return alert("Valor inválido.");if(type==="deposit"){h.balance+=v;h.deposits+=v;move(type,v,pid,hid,"Valor adicionado",note,v,0,0)}else{if(v>h.balance)return alert("Saldo insuficiente.");h.balance-=v;move(type,v,pid,hid,"Valor removido",note,-v,0,0)}save();$("moveDialog").close()}
 window.editPerson=id=>{let p=pBy(id),x=prompt("Novo nome:",p.name);if(x&&x.trim()){p.name=x.trim();save()}};window.delPerson=id=>{if(confirm("Excluir pessoa e todas as casas?")){S.people=S.people.filter(p=>p.id!==id);save()}};window.delHouse=(pid,hid)=>{if(confirm("Excluir esta casa?")){pBy(pid).houses=pBy(pid).houses.filter(h=>h.id!==hid);save()}}
@@ -272,7 +307,7 @@ function fillTransfers(){let opts=allH().map(h=>`<option value="${h.pid}|${h.id}
 window.openTransfer=()=>{$("transferForm").reset();fillTransfers();$("transferDialog").showModal()}
 $("transferForm").onsubmit=e=>{e.preventDefault();let [fp,fh]=$("transferFrom").value.split("|"),[tp,th]=$("transferTo").value.split("|"),v=n($("transferValue").value),note=$("transferNote").value.trim();if(fp===tp&&fh===th)return alert("Escolha casas diferentes.");let from=hBy(fp,fh),to=hBy(tp,th);if(!(v>0)||v>from.balance)return alert("Valor inválido ou saldo insuficiente.");from.balance-=v;to.balance+=v;move("transfer_out",v,fp,fh,"Transferência enviada",note,-v,0,0);move("transfer_in",v,tp,th,"Transferência recebida",note,v,0,0);save();$("transferDialog").close()}
 window.openDup=pid=>{let p=pBy(pid);$("dupPid").value=pid;$("dupSource").textContent="Origem: "+p.name;$("dupTarget").innerHTML=S.people.filter(x=>x.id!==pid).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");$("dupList").innerHTML=p.houses.map(h=>`<label class="check"><input type="checkbox" value="${h.id}">${esc(h.name)}</label>`).join("")||'<div class="empty">Sem casas.</div>';$("duplicateDialog").showModal()}
-$("duplicateForm").onsubmit=e=>{e.preventDefault();let src=pBy($("dupPid").value),dst=pBy($("dupTarget").value),ids=[...$("dupList").querySelectorAll("input:checked")].map(x=>x.value);if(!dst||!ids.length)return alert("Selecione destino e casas.");ids.forEach(id=>{let h=src.houses.find(x=>x.id===id);if(!dst.houses.some(x=>x.name.toLowerCase()===h.name.toLowerCase()))dst.houses.push({id:uid(),name:h.name,login:"",note:h.note,balance:0,inPlay:0,profit:0,deposits:0,freebet:0,favorite:false})});openPid=dst.id;save();$("duplicateDialog").close()}
+$("duplicateForm").onsubmit=e=>{e.preventDefault();let src=pBy($("dupPid").value),dst=pBy($("dupTarget").value),ids=[...$("dupList").querySelectorAll("input:checked")].map(x=>x.value);if(!dst||!ids.length)return alert("Selecione destino e casas.");ids.forEach(id=>{let h=src.houses.find(x=>x.id===id);if(!dst.houses.some(x=>x.name.toLowerCase()===h.name.toLowerCase()))dst.houses.push({id:uid(),name:h.name,login:"",url:h.url||"",note:h.note,balance:0,inPlay:0,profit:0,deposits:0,freebet:0,bonus:0,rollover:0,expiry:"",tags:[...(h.tags||[])],lastMovement:new Date().toISOString(),favorite:false})});openPid=dst.id;save();$("duplicateDialog").close()}
 
 function normalizeBets(){
  S.bets=(S.bets||[]).map(b=>{
@@ -375,6 +410,7 @@ function normalizeOldHouse(h){
   id:h.id||uid(),
   name:h.name||h.house||"Casa",
   login:h.login||"",
+  url:h.url||h.website||h.link||"",
   note:h.note||"",
   balance:Number(h.balance||0),
   inPlay:Number(h.inPlay||0),
@@ -432,9 +468,35 @@ $("importFile").onchange=function(){
  r.readAsText(f)
 }
 window.closeD=id=>$(id).close();
-let dp=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;$("installBtn").classList.remove("hidden")});$("installBtn").onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$("installBtn").classList.add("hidden")};
+let dp=null;
+window.addEventListener("beforeinstallprompt",e=>{
+ e.preventDefault();dp=e;$("installBtn").textContent="Instalar"
+});
+window.addEventListener("appinstalled",()=>{
+ dp=null;$("installBtn").textContent="Instalado";$("installBtn").disabled=true
+});
+function installInstructions(){
+ const ua=navigator.userAgent||"",ios=/iphone|ipad|ipod/i.test(ua),android=/android/i.test(ua);
+ if(window.matchMedia("(display-mode: standalone)").matches||navigator.standalone){
+  alert("O aplicativo já está instalado neste aparelho.");return
+ }
+ if(ios){
+  alert("No iPhone/iPad: toque no botão Compartilhar do Safari e depois em “Adicionar à Tela de Início”.")
+ }else if(android){
+  alert("No Android: abra o menu do navegador (⋮) e escolha “Instalar aplicativo” ou “Adicionar à tela inicial”.")
+ }else{
+  alert("No computador: abra o menu do navegador e escolha “Instalar aplicativo”. No Chrome, o ícone de instalação também pode aparecer na barra de endereço.")
+ }
+}
+$("installBtn").onclick=async()=>{
+ if(dp){
+  dp.prompt();
+  await dp.userChoice;
+  dp=null
+ }else installInstructions()
+};
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();normalizeBets();S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0}));render();initAuth();
+load();normalizeBets();S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();initAuth();
 })();
 </script>
 </body>

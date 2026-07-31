@@ -1,33 +1,23 @@
-CONTROLE DE CASAS PROFISSIONAL — VERSÃO 6
+CONTROLE DE APOSTAS — VERSÃO 8
 
 NOVIDADES
-- Um mesmo jogo pode conter várias entradas em pessoas e casas diferentes.
-- Cada entrada aparece separadamente dentro do jogo.
-- Cada entrada pode ser finalizada separadamente.
-- O jogo mostra o potencial total de duplo green.
-- O campo “esporte” foi removido.
-- Cada casa mostra seu saldo de freebet.
-- O botão “Freebet” permite informar ou corrigir o valor disponível.
+- Nome alterado para Controle de Apostas.
+- Dashboard com patrimônio, saldo, valor em jogo, freebets, bônus, lucro diário, lucro mensal, ROI e apostas abertas.
+- Estatísticas de greens, reds, anuladas e taxa de green.
+- Casa mais lucrativa e menos lucrativa.
+- Cadastro de bônus, rollover, validade e tags.
+- Alertas de freebet/bônus vencendo em até 7 dias.
+- Alertas de saldo parado por mais de 30 dias.
+- Casas favoritas continuam aparecendo primeiro.
+- Busca também encontra tags.
+- Todas as funções anteriores foram mantidas.
 
-CÁLCULO DO DUPLO GREEN
-- Entrada com saldo: lucro possível = valor × (odd - 1).
-- Entrada com freebet: lucro possível = valor × (odd - 1).
-- O potencial total do jogo é a soma do lucro possível de todas as entradas.
+ATUALIZAÇÃO
+1. Extraia o ZIP.
+2. Substitua todos os arquivos no GitHub.
+3. Faça Commit changes.
+4. Abra com ?v=8 no final do endereço.
+5. Caso apareça a versão antiga, remova o app instalado e instale novamente.
 
-FREEBET
-- Ao registrar uma entrada como freebet, o valor é retirado do saldo de freebet da casa.
-- O retorno sugerido é valor × (odd - 1), porque normalmente a freebet não retorna junto com o prêmio.
-- O retorno recebido entra no saldo disponível da casa.
-
-ATUALIZAÇÃO NO GITHUB
-1. Extraia este ZIP.
-2. Apague ou substitua os arquivos antigos do repositório.
-3. Envie todos os arquivos desta pasta.
-4. Faça Commit changes.
-5. Abra o endereço acrescentando ?v=6 ao final.
-6. Caso o celular continue mostrando a versão anterior, remova o aplicativo instalado e instale novamente.
-
-COMPATIBILIDADE
-- Pessoas, casas e saldos anteriores são preservados pelo armazenamento do navegador.
-- Apostas antigas são convertidas automaticamente para jogos com uma única entrada.
-- Os backups antigos continuam podendo ser importados.
+DADOS ANTIGOS
+A versão 8 procura automaticamente os dados das versões 7, 6 e anteriores no navegador.

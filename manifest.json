@@ -1,7 +1,7 @@
 {
-  "name": "Controle de Casas Profissional v6",
-  "short_name": "Casas Pro v6",
-  "start_url": "./?v=6",
+  "name": "Controle de Apostas",
+  "short_name": "Apostas",
+  "start_url": "./?v=8",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -16,5 +16,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "id": "./controle-de-apostas-v8"
 }

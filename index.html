@@ -168,7 +168,76 @@ function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
 $("snapshotDate").value=new Date().toISOString().slice(0,10);$("snapshotDate").onchange=renderSnapshot;
-$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-casas.json";a.click();URL.revokeObjectURL(url)};$("importBtn").onclick=()=>$("importFile").click();$("importFile").onchange=function(){let f=this.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.people||!x.bets||!x.moves)throw 0;S=x;save();alert("Backup importado.")}catch(e){alert("Arquivo inválido.")}};r.readAsText(f)}
+function normalizeOldHouse(h){
+ return {
+  id:h.id||uid(),
+  name:h.name||h.house||"Casa",
+  login:h.login||"",
+  note:h.note||"",
+  balance:Number(h.balance||0),
+  inPlay:Number(h.inPlay||0),
+  profit:Number(h.profit||0),
+  deposits:Number(h.deposits!=null?h.deposits:(h.balance||0)),
+  favorite:Boolean(h.favorite)
+ }
+}
+function migrateBackup(x){
+ let people,bets=[],moves=[];
+ if(Array.isArray(x)){people=x}
+ else if(x&&Array.isArray(x.data)){people=x.data}
+ else if(x&&Array.isArray(x.people)){people=x.people;bets=Array.isArray(x.bets)?x.bets:[];moves=Array.isArray(x.moves)?x.moves:[]}
+ else throw new Error("Formato não reconhecido");
+ people=people.map(p=>({
+  id:p.id||uid(),
+  name:p.name||"Sem nome",
+  houses:Array.isArray(p.houses)?p.houses.map(normalizeOldHouse):[]
+ }));
+ bets=bets.map(b=>({
+  id:b.id||uid(),
+  pid:b.pid||b.personId||"",
+  houseId:b.houseId||"",
+  sport:b.sport||"",
+  event:b.event||"",
+  stake:Number(b.stake||0),
+  odd:Number(b.odd||0),
+  note:b.note||"",
+  status:b.status||"open",
+  created:b.created||new Date().toISOString(),
+  settled:b.settled||null,
+  returned:Number(b.returned||0)
+ }));
+ moves=moves.map(m=>({
+  id:m.id||uid(),
+  date:m.date||new Date().toISOString(),
+  type:m.type||"imported",
+  value:Number(m.value||0),
+  pid:m.pid||m.personId||"",
+  hid:m.hid||m.houseId||"",
+  label:m.label||"Movimentação importada",
+  note:m.note||"",
+  deltaBalance:Number(m.deltaBalance||0),
+  deltaInPlay:Number(m.deltaInPlay||0),
+  deltaProfit:Number(m.deltaProfit||0)
+ }));
+ return {people,bets,moves}
+}
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-casas.json";a.click();URL.revokeObjectURL(url)};
+$("importBtn").onclick=()=>$("importFile").click();
+$("importFile").onchange=function(){
+ let f=this.files[0];if(!f)return;
+ let r=new FileReader();
+ r.onload=()=>{
+  try{
+   let x=JSON.parse(r.result);
+   S=migrateBackup(x);
+   save();
+   alert("Backup importado e convertido com sucesso.");
+  }catch(e){
+   alert("Arquivo inválido ou incompatível.");
+  }
+ };
+ r.readAsText(f)
+}
 window.closeD=id=>$(id).close();
 let dp=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;$("installBtn").classList.remove("hidden")});$("installBtn").onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$("installBtn").classList.add("hidden")};
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));

@@ -26,3 +26,11 @@ ATUALIZAÇÃO:
 IMPORTANTE:
 A consulta por data funciona com as movimentações registradas nesta nova versão.
 Movimentos feitos antes da instalação desta versão não podem ser reconstruídos automaticamente.
+
+
+CORREÇÃO DE COMPATIBILIDADE:
+Esta versão aceita backups:
+- da versão profissional;
+- da versão anterior no formato {version, data};
+- das versões antigas que exportavam apenas uma lista de pessoas.
+Os nomes, casas e saldos são convertidos automaticamente.

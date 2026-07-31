@@ -259,10 +259,51 @@ body.dark .personSummaryCard{background:#18243a}
 .bottomNav button{cursor:pointer;touch-action:manipulation;position:relative;z-index:1}
 .bottomNav button:active{transform:scale(.96)}
 
+
+.bottomNav{z-index:99999!important;pointer-events:auto!important}
+.bottomNav button{pointer-events:auto!important;user-select:none;-webkit-tap-highlight-color:transparent}
+
 </style>
 </head>
 <body>
-<div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header>
+ <div class="head">
+  <div class="headerBrand">
+   <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
+   <div>
+    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v27</small></h1>
+    <p>Gestão de apostas, casas, freebets, bônus e resultados.</p>
+   </div>
+  </div>
+  <div class="headerTools">
+   <button id="settingsBtn" class="secondary" type="button">⚙️</button>
+   <button id="themeBtn" class="secondary" type="button">🌙</button>
+   <button id="installBtn" class="secondary" type="button">Instalar</button>
+  </div>
+ </div>
+</header>
+
+<script>
+window.goToSection=function(id){
+  try{
+    document.querySelectorAll(".panel").forEach(function(panel){
+      panel.classList.toggle("active",panel.id===id);
+    });
+    document.querySelectorAll("[data-bottom]").forEach(function(button){
+      var bottomId=["dashboard","people","bets","weekly365","more"].indexOf(id)>=0?id:"more";
+      button.classList.toggle("active",button.getAttribute("data-bottom")===bottomId);
+    });
+    document.querySelectorAll(".tab").forEach(function(button){
+      button.classList.toggle("active",button.getAttribute("data-tab")===id);
+    });
+    window.scrollTo(0,0);
+    return false;
+  }catch(error){
+    console.error("Erro de navegação:",error);
+    return false;
+  }
+};
+</script>
 
 <div id="startupError" style="display:none;margin:12px;padding:12px;border:1px solid #ef4444;border-radius:10px;background:#fef2f2;color:#991b1b">
  <strong>O aplicativo encontrou um erro ao iniciar.</strong>
@@ -272,13 +313,13 @@ body.dark .personSummaryCard{background:#18243a}
 
 <main>
 <nav class="tabs">
-<button class="tab active" data-tab="dashboard">Painel</button>
-<button class="tab importantTab" data-tab="people">Pessoas</button>
-<button class="tab importantTab" data-tab="weekly365">Semanal Bet365</button>
-<button class="tab" data-tab="bets">Apostas</button>
-<button class="tab" data-tab="calendar">Calendário</button>
-<button class="tab" data-tab="operations">Operando agora</button>
-<button class="tab" data-tab="more">Mais</button>
+<button type="button" class="tab active" data-tab="dashboard" onclick="return goToSection('dashboard')">Painel</button>
+<button type="button" class="tab importantTab" data-tab="people" onclick="return goToSection('people')">Pessoas</button>
+<button type="button" class="tab importantTab" data-tab="weekly365" onclick="return goToSection('weekly365')">Semanal Bet365</button>
+<button type="button" class="tab" data-tab="bets" onclick="return goToSection('bets')">Apostas</button>
+<button type="button" class="tab" data-tab="calendar" onclick="return goToSection('calendar')">Calendário</button>
+<button type="button" class="tab" data-tab="operations" onclick="return goToSection('operations')">Operando agora</button>
+<button type="button" class="tab" data-tab="more" onclick="return goToSection('more')">Mais</button>
 </nav>
 
 <section id="dashboard" class="panel active">
@@ -497,11 +538,11 @@ body.dark .personSummaryCard{background:#18243a}
  <div class="card">
   <h3>Outras opções</h3>
   <div class="grid" style="grid-template-columns:repeat(2,1fr)">
-   <button class="secondary" onclick="openPanel('history')">Histórico</button>
-   <button class="secondary" onclick="openPanel('audit')">Alterações</button>
-   <button class="secondary" onclick="openPanel('trash')">Lixeira</button>
-   <button class="secondary" onclick="openPanel('snapshot')">Por data</button>
-   <button class="secondary" onclick="openPanel('reports')">Relatórios</button><button class="secondary" onclick="openPanel('freebets')">Freebets</button><button class="secondary" onclick="openPanel('dailyclose')">Fechamento diário</button><button class="secondary" onclick="openPanel('comparisons')">Comparativos</button><button class="secondary" onclick="openPanel('calendar')">Calendário</button><button class="secondary" onclick="openPanel('operations')">Operando agora</button><button class="secondary" onclick="openPanel('appearance')">Configurações</button>
+   <button class="secondary" onclick="return goToSection('history')">Histórico</button>
+   <button class="secondary" onclick="return goToSection('audit')">Alterações</button>
+   <button class="secondary" onclick="return goToSection('trash')">Lixeira</button>
+   <button class="secondary" onclick="return goToSection('snapshot')">Por data</button>
+   <button class="secondary" onclick="return goToSection('reports')">Relatórios</button><button class="secondary" onclick="return goToSection('freebets')">Freebets</button><button class="secondary" onclick="return goToSection('dailyclose')">Fechamento diário</button><button class="secondary" onclick="return goToSection('comparisons')">Comparativos</button><button class="secondary" onclick="return goToSection('calendar')">Calendário</button><button class="secondary" onclick="return goToSection('operations')">Operando agora</button><button class="secondary" onclick="return goToSection('appearance')">Configurações</button>
   </div>
  </div>
 </section>
@@ -569,7 +610,7 @@ body.dark .personSummaryCard{background:#18243a}
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV26";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV27";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -578,7 +619,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV25")}if(!raw){raw=localStorage.getItem("controleApostasV24")}if(!raw){raw=localStorage.getItem("controleApostasV23")}if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV26")}if(!raw){raw=localStorage.getItem("controleApostasV25")}if(!raw){raw=localStorage.getItem("controleApostasV24")}if(!raw){raw=localStorage.getItem("controleApostasV23")}if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -604,12 +645,8 @@ function move(type,value,pid,hid,label,note,deltaBalance=0,deltaInPlay=0,deltaPr
 function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs.reduce((s,h)=>s+h.inPlay,0),profit=hs.reduce((s,h)=>s+h.profit,0),deposits=hs.reduce((s,h)=>s+h.deposits,0),freebet=hs.reduce((s,h)=>s+Number(h.freebet||0),0),bonus=hs.reduce((s,h)=>s+Number(h.bonus||0),0);return{balance,inPlay,capital:balance+inPlay,profit,deposits,freebet,bonus,roi:deposits?profit/deposits*100:0,houses:hs.length,people:S.people.length,open:S.bets.filter(b=>(b.entries||[]).some(e=>e.status==="open")).length}}
 
 window.openPanel=id=>{
- document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));
- document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===id));
- if(id==="appearance"&&typeof renderAppearance==="function")renderAppearance();
- let bottomId=["dashboard","people","bets","weekly365","more"].includes(id)?id:"more";
- document.querySelectorAll("[data-bottom]").forEach(b=>b.classList.toggle("active",b.dataset.bottom===bottomId));
- window.scrollTo({top:0,behavior:"smooth"})
+ window.goToSection(id);
+ if(id==="appearance"&&typeof renderAppearance==="function")renderAppearance()
 };
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
 window.openPanel=id=>{
@@ -1252,8 +1289,8 @@ function applyAppearanceToPage(){
  if(title&&title.childNodes.length)title.childNodes[0].nodeValue="Controle de Apostas "
 }
 
-$("settingsBtn").onclick=()=>openPanel("appearance");
-$("dashboardSettingsBtn").onclick=()=>openPanel("appearance");
+$("settingsBtn").onclick=()=>goToSection("appearance");
+$("dashboardSettingsBtn").onclick=()=>goToSection("appearance");
 function renderAppearance(){
  let a=appearanceSettings();$("teamTheme").value=a.theme||"neutral";$("themeStyle").value=a.style||"subtle";$("customPrimary").value=a.primary||"#2563eb";$("customSecondary").value=a.secondary||"#172033";
  $("themeImageStatus").textContent=a.headerImage?"Imagem personalizada adicionada.":"Nenhuma imagem personalizada.";$("crestImageStatus").textContent=a.crestImage?"Escudo personalizado adicionado.":((a.officialCrests||{})[a.theme]?"Escudo oficial salvo neste aparelho.":(TEAM_WIKI_TITLES[a.theme]?"O escudo oficial será carregado automaticamente.":"Nenhum escudo selecionado."));applyAppearanceToPage()
@@ -1311,13 +1348,7 @@ $("resetAppearance").onclick=()=>{
 };
 
 
-document.querySelectorAll("[data-bottom]").forEach(button=>{
- button.addEventListener("click",event=>{
-  event.preventDefault();
-  let target=button.dataset.bottom;
-  if(target)window.openPanel(target)
- })
-});
+
 $("fabBtn").onclick=()=>$("quickMenu").classList.toggle("open");
 window.closeQuickMenu=()=>$("quickMenu").classList.remove("open");
 document.addEventListener("click",e=>{
@@ -1577,11 +1608,11 @@ try{
  <button class="secondary" onclick="openPanel('more');closeQuickMenu()">Mais ações</button>
 </div>
 <nav class="bottomNav">
- <button data-bottom="dashboard" class="active"><span>⌂</span>Painel</button>
- <button data-bottom="people"><span>👥</span>Pessoas</button>
- <button data-bottom="bets"><span>🎯</span>Apostas</button>
- <button data-bottom="weekly365"><span>📈</span>Semanal</button>
- <button data-bottom="more"><span>⋯</span>Mais</button>
+ <button type="button" data-bottom="dashboard" class="active" onclick="return goToSection('dashboard')"><span>⌂</span>Painel</button>
+ <button type="button" data-bottom="people" onclick="return goToSection('people')"><span>👥</span>Pessoas</button>
+ <button type="button" data-bottom="bets" onclick="return goToSection('bets')"><span>🎯</span>Apostas</button>
+ <button type="button" data-bottom="weekly365" onclick="return goToSection('weekly365')"><span>📈</span>Semanal</button>
+ <button type="button" data-bottom="more" onclick="return goToSection('more')"><span>⋯</span>Mais</button>
 </nav>
 
 </body>

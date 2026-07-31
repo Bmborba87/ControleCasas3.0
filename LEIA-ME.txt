@@ -1,22 +1,18 @@
-CONTROLE DE APOSTAS — VERSÃO 26
+CONTROLE DE APOSTAS — VERSÃO 27
 
-CORREÇÕES
-- Barra de pesquisa removida completamente.
-- Código antigo da pesquisa também foi removido.
-- A pesquisa estava causando uma interrupção no JavaScript.
-- Barra inferior refeita com eventos diretos em cada botão.
-- Painel abre a tela inicial.
-- Pessoas abre a lista de pessoas.
-- Apostas abre os jogos e entradas.
-- Semanal abre o Semanal Bet365.
-- Mais abre as opções adicionais.
-- A opção ativa fica destacada.
-- Botões possuem melhor resposta ao toque no celular.
+CORREÇÃO DA NAVEGAÇÃO
+- Corrigida uma estrutura quebrada no início do HTML.
+- O cabeçalho foi reconstruído corretamente.
+- Cada botão da barra inferior agora possui sua ação diretamente no HTML.
+- A navegação não depende mais do restante do JavaScript terminar de carregar.
+- Mesmo que outra função apresente erro, Painel, Pessoas, Apostas, Semanal e Mais continuam funcionando.
+- A barra inferior foi elevada acima dos demais elementos e recebe toques diretamente.
+- Os botões ocultos da navegação antiga também usam o mesmo sistema confiável.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=26.
-5. Use Ctrl+Shift+R no computador.
-6. No celular, remova e reinstale o aplicativo se a versão antiga continuar em cache.
+4. Abra com ?v=27.
+5. Pressione Ctrl+Shift+R no computador.
+6. No celular, remova e reinstale o aplicativo para limpar o service worker antigo.

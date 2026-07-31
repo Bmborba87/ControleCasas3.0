@@ -1,20 +1,26 @@
-CONTROLE DE APOSTAS — VERSÃO 19
+CONTROLE DE APOSTAS — VERSÃO 20
 
-ESCUDOS
-- Cada time pré-definido possui um escudo estilizado com suas cores e iniciais.
-- O escudo aparece no cabeçalho e no dashboard.
-- Ao trocar de time, o escudo é atualizado automaticamente.
-- É possível enviar uma imagem própria do escudo, com até 1,2 MB.
-- O botão “Usar escudo estilizado” remove a imagem enviada e volta ao modelo automático.
+ESCUDOS OFICIAIS AUTOMÁTICOS
+- Ao selecionar um time, o aplicativo consulta a imagem principal do artigo do clube na Wikipédia.
+- O escudo é exibido no cabeçalho, dashboard e tela de aparência.
+- O aplicativo tenta baixar e salvar uma cópia local do escudo.
+- Depois de salvo, o escudo pode continuar aparecendo sem internet.
+- Caso o download local não seja possível, a URL segura da imagem é salva.
+- Caso a imagem não carregue, aparece automaticamente o emblema estilizado anterior.
+- É possível enviar uma imagem própria para substituir o escudo automático.
+- O botão “Usar escudo oficial automático” restaura e baixa novamente o escudo.
 
 NOME DO APLICATIVO
-- O nome permanece sempre “Controle de Apostas”.
-- Escolher um time não altera mais o nome do aplicativo.
-- O nome do time aparece apenas como identificação visual do tema no dashboard.
+- O nome permanece sempre Controle de Apostas.
+- O time selecionado altera somente cores, escudo e identificação discreta do tema.
+
+FONTE DAS IMAGENS
+- Imagem principal do artigo de cada clube na Wikipédia em português.
+- O carregamento usa a API pública MediaWiki com suporte a CORS.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=19.
-5. Remova e reinstale o aplicativo se o cache antigo persistir.
+4. Abra com ?v=20.
+5. Na primeira seleção de cada time, mantenha a internet ativa para baixar o escudo.

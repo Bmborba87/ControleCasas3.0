@@ -214,7 +214,7 @@ body.dark .teamCrest::before{border-color:rgba(255,255,255,.95)}
 </head>
 <body>
 
-<header><div class="head"><div class="headerBrand"><div id="headerTeamCrest" class="teamCrest headerCrest"><span>CA</span></div><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v19</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div></div><div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div class="headerBrand"><div id="headerTeamCrest" class="teamCrest headerCrest"><span>CA</span></div><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v20</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div></div><div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -416,11 +416,11 @@ body.dark .teamCrest::before{border-color:rgba(255,255,255,.95)}
   <label style="margin-top:9px">Escudo personalizado
    <input id="crestImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
   </label>
-  <div id="crestImageStatus" class="imageStatus">Usando escudo estilizado do time.</div>
-  <button id="removeCrestImage" class="secondary" style="margin-top:7px">Usar escudo estilizado</button>
+  <div id="crestImageStatus" class="imageStatus">O escudo oficial será carregado automaticamente.</div>
+  <button id="removeCrestImage" class="secondary" style="margin-top:7px">Usar escudo oficial automático</button>
   <div class="crestPreviewWrap">
    <div id="appearanceCrestPreview" class="teamCrest"><span>CA</span></div>
-   <div><strong>Prévia do escudo</strong><div class="muted">O nome do aplicativo permanece Controle de Apostas.</div></div>
+   <div><strong>Prévia do escudo</strong><div class="muted">O nome do aplicativo permanece Controle de Apostas.</div><div class="muted" style="margin-top:3px">Fonte automática: imagem principal do artigo do clube na Wikipédia.</div></div>
   </div>
   <label style="margin-top:9px">Imagem opcional do cabeçalho
    <input id="themeImageInput" type="file" accept="image/png,image/jpeg,image/webp">
@@ -503,7 +503,7 @@ body.dark .teamCrest::before{border-color:rgba(255,255,255,.95)}
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV19";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV20";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -512,7 +512,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -1052,20 +1052,112 @@ const TEAM_THEMES={
  vitoria:{primary:"#dc2626",secondary:"#111111",accent:"#ffffff",name:"Vitória",short:"ECV"},
  custom:{primary:"#2563eb",secondary:"#172033",accent:"#ffffff",name:"Tema personalizado",short:"★"}
 };
+
+const TEAM_WIKI_TITLES={
+ abc:"ABC Futebol Clube",
+ america_rn:"América Futebol Clube (Rio Grande do Norte)",
+ america_mg:"América Futebol Clube (Minas Gerais)",
+ athletico_pr:"Club Athletico Paranaense",
+ atletico_mg:"Clube Atlético Mineiro",
+ bahia:"Esporte Clube Bahia",
+ botafogo:"Botafogo de Futebol e Regatas",
+ ceara:"Ceará Sporting Club",
+ corinthians:"Sport Club Corinthians Paulista",
+ cruzeiro:"Cruzeiro Esporte Clube",
+ flamengo:"Clube de Regatas do Flamengo",
+ fluminense:"Fluminense Football Club",
+ fortaleza:"Fortaleza Esporte Clube",
+ gremio:"Grêmio Foot-Ball Porto Alegrense",
+ internacional:"Sport Club Internacional",
+ palmeiras:"Sociedade Esportiva Palmeiras",
+ santos:"Santos Futebol Clube",
+ sao_paulo:"São Paulo Futebol Clube",
+ sport:"Sport Club do Recife",
+ vasco:"Club de Regatas Vasco da Gama",
+ vitoria:"Esporte Clube Vitória"
+};
+
 function appearanceSettings(){
- S.settings=S.settings||{};S.settings.appearance=S.settings.appearance||{theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:"",crestImage:""};
+ S.settings=S.settings||{};S.settings.appearance=S.settings.appearance||{theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:"",crestImage:"",officialCrests:{}};
  return S.settings.appearance
 }
 
+function blobToDataUrl(blob){
+ return new Promise((resolve,reject)=>{
+  let reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob)
+ })
+}
+async function wikiPageImage(title){
+ let params=new URLSearchParams({
+  action:"query",format:"json",origin:"*",prop:"pageimages",
+  piprop:"thumbnail|original",pithumbsize:"512",redirects:"1",titles:title
+ });
+ let response=await fetch("https://pt.wikipedia.org/w/api.php?"+params.toString());
+ if(!response.ok)throw new Error("Falha ao consultar a Wikipédia");
+ let json=await response.json(),pages=Object.values(json.query?.pages||{}),page=pages[0];
+ let source=page?.thumbnail?.source||page?.original?.source;
+ if(source)return source;
+ let searchParams=new URLSearchParams({
+  action:"query",format:"json",origin:"*",generator:"search",gsrsearch:title,
+  gsrlimit:"1",prop:"pageimages",piprop:"thumbnail|original",pithumbsize:"512"
+ });
+ let searchResponse=await fetch("https://pt.wikipedia.org/w/api.php?"+searchParams.toString());
+ if(!searchResponse.ok)throw new Error("Escudo não encontrado");
+ let searchJson=await searchResponse.json(),searchPages=Object.values(searchJson.query?.pages||{}),searchPage=searchPages[0];
+ source=searchPage?.thumbnail?.source||searchPage?.original?.source;
+ if(!source)throw new Error("Escudo não encontrado");
+ return source
+}
+async function cacheOfficialCrest(theme,force=false){
+ if(!TEAM_WIKI_TITLES[theme])return "";
+ let a=appearanceSettings();a.officialCrests=a.officialCrests||{};
+ if(a.officialCrests[theme]&&!force)return a.officialCrests[theme];
+ setCrestStatus("Baixando escudo oficial...");
+ try{
+  let source=await wikiPageImage(TEAM_WIKI_TITLES[theme]),stored=source;
+  try{
+   let imageResponse=await fetch(source,{mode:"cors"});
+   if(imageResponse.ok){
+    let blob=await imageResponse.blob();
+    if(blob.size<=1300000)stored=await blobToDataUrl(blob)
+   }
+  }catch(imageError){console.warn("Escudo será usado pela URL:",imageError)}
+  a.officialCrests[theme]=stored;
+  localStorage.setItem(KEY,JSON.stringify(S));
+  renderAllCrests(theme);
+  setCrestStatus("Escudo oficial carregado e salvo neste aparelho.");
+  return stored
+ }catch(error){
+  console.error("Falha ao carregar escudo oficial:",error);
+  setCrestStatus("Não foi possível baixar o escudo. Usando o emblema estilizado.");
+  renderAllCrests(theme);
+  return ""
+ }
+}
+function setCrestStatus(text){
+ let el=$("crestImageStatus");if(el)el.textContent=text
+}
+function currentCrestSource(theme){
+ let a=appearanceSettings();
+ if(a.crestImage)return a.crestImage;
+ return (a.officialCrests||{})[theme]||""
+}
 function renderCrest(elId,theme){
  let el=$(elId);if(!el)return;
- let a=appearanceSettings(),preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral;
+ let preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral,source=currentCrestSource(theme);
  el.innerHTML="";
- if(a.crestImage){
-  let img=document.createElement("img");img.src=a.crestImage;img.alt="Escudo do time";el.appendChild(img)
+ if(source){
+  let img=document.createElement("img");img.src=source;img.alt="Escudo oficial de "+preset.name;
+  img.onerror=()=>{el.innerHTML="";let span=document.createElement("span");span.textContent=preset.short||"CA";el.appendChild(span)};
+  el.appendChild(img)
  }else{
   let span=document.createElement("span");span.textContent=preset.short||"CA";el.appendChild(span)
  }
+}
+function renderAllCrests(theme){
+ renderCrest("headerTeamCrest",theme);
+ renderCrest("dashboardTeamCrest",theme);
+ renderCrest("appearanceCrestPreview",theme)
 }
 function applyAppearanceToPage(){
  let a=appearanceSettings(),preset=TEAM_THEMES[a.theme]||TEAM_THEMES.neutral,primary=a.theme==="custom"?(a.primary||preset.primary):preset.primary,secondary=a.theme==="custom"?(a.secondary||preset.secondary):preset.secondary;
@@ -1073,28 +1165,30 @@ function applyAppearanceToPage(){
  document.documentElement.style.setProperty("--header-image",a.headerImage?`url("${a.headerImage}")`:"none");
  document.body.classList.toggle("fan-style",a.style==="fan");document.body.classList.toggle("subtle-style",a.style!=="fan");
  setText("heroThemeName",a.theme==="neutral"?"Controle de Apostas":preset.name);$("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;
- $("previewThemeName").textContent=preset.name;renderCrest("headerTeamCrest",a.theme);renderCrest("dashboardTeamCrest",a.theme);renderCrest("appearanceCrestPreview",a.theme);$("appHeaderTitle").childNodes[0].nodeValue="Controle de Apostas "
+ $("previewThemeName").textContent=preset.name;renderAllCrests(a.theme);if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage&&!(a.officialCrests||{})[a.theme])cacheOfficialCrest(a.theme);$("appHeaderTitle").childNodes[0].nodeValue="Controle de Apostas "
 }
 
 $("settingsBtn").onclick=()=>openPanel("appearance");
 $("dashboardSettingsBtn").onclick=()=>openPanel("appearance");
 function renderAppearance(){
  let a=appearanceSettings();$("teamTheme").value=a.theme||"neutral";$("themeStyle").value=a.style||"subtle";$("customPrimary").value=a.primary||"#2563eb";$("customSecondary").value=a.secondary||"#172033";$("themeDisplayName").value=a.displayName||"";
- $("themeImageStatus").textContent=a.headerImage?"Imagem personalizada adicionada.":"Nenhuma imagem personalizada.";$("crestImageStatus").textContent=a.crestImage?"Escudo personalizado adicionado.":"Usando escudo estilizado do time.";applyAppearanceToPage()
+ $("themeImageStatus").textContent=a.headerImage?"Imagem personalizada adicionada.":"Nenhuma imagem personalizada.";$("crestImageStatus").textContent=a.crestImage?"Escudo personalizado adicionado.":((a.officialCrests||{})[a.theme]?"Escudo oficial salvo neste aparelho.":(TEAM_WIKI_TITLES[a.theme]?"O escudo oficial será carregado automaticamente.":"Usando emblema padrão."));applyAppearanceToPage()
 }
 function previewAppearance(){
  let theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral,primary=theme==="custom"?$("customPrimary").value:preset.primary,secondary=theme==="custom"?$("customSecondary").value:preset.secondary;
  $("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;$("previewThemeName").textContent=$("themeDisplayName").value.trim()||preset.name
 }
 
-$("teamTheme").addEventListener("change",()=>{appearanceSettings().crestImage="";
+$("teamTheme").addEventListener("change",async()=>{
+ let a=appearanceSettings();a.crestImage="";
  let theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral;
  if(theme!=="custom"){
   $("customPrimary").value=preset.primary;
   $("customSecondary").value=preset.secondary;
   $("themeDisplayName").value=preset.name
  }
- previewAppearance()
+ renderAllCrests(theme);previewAppearance();
+ if(TEAM_WIKI_TITLES[theme]&&!(a.officialCrests||{})[theme])await cacheOfficialCrest(theme)
 });
 ["teamTheme","themeStyle","customPrimary","customSecondary","themeDisplayName"].forEach(id=>$(id).addEventListener("input",previewAppearance));
 
@@ -1104,16 +1198,17 @@ $("crestImageInput").onchange=function(){
  let reader=new FileReader();
  reader.onload=()=>{
   appearanceSettings().crestImage=reader.result;
-  $("crestImageStatus").textContent="Escudo personalizado pronto para aplicar.";
+  $("crestImageStatus").textContent="Escudo personalizado pronto para aplicar. Ele substituirá o escudo oficial.";
   renderCrest("appearanceCrestPreview",$("teamTheme").value)
  };
  reader.readAsDataURL(file)
 };
-$("removeCrestImage").onclick=()=>{
- appearanceSettings().crestImage="";
+$("removeCrestImage").onclick=async()=>{
+ let a=appearanceSettings();a.crestImage="";
  $("crestImageInput").value="";
- save();
- renderAppearance()
+ localStorage.setItem(KEY,JSON.stringify(S));
+ renderAppearance();
+ if(TEAM_WIKI_TITLES[a.theme])await cacheOfficialCrest(a.theme,true)
 };
 $("themeImageInput").onchange=function(){
  let file=this.files[0];if(!file)return;if(file.size>1500000)return alert("Use uma imagem menor que 1,5 MB.");
@@ -1122,10 +1217,14 @@ $("themeImageInput").onchange=function(){
 $("applyAppearance").onclick=()=>{
  let a=appearanceSettings(),theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral;
  a.theme=theme;a.style=$("themeStyle").value;a.primary=$("customPrimary").value;a.secondary=$("customSecondary").value;a.displayName=$("themeDisplayName").value.trim()||preset.name;
- save();applyAppearanceToPage();alert("Tema aplicado.")
+ save();applyAppearanceToPage();if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage)cacheOfficialCrest(a.theme);alert("Tema aplicado.")
 };
 $("removeThemeImage").onclick=()=>{appearanceSettings().headerImage="";$("themeImageInput").value="";save();renderAppearance()};
-$("resetAppearance").onclick=()=>{S.settings.appearance={theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:"",crestImage:""};save();renderAppearance()};
+$("resetAppearance").onclick=()=>{
+ let cache=(appearanceSettings().officialCrests||{});
+ S.settings.appearance={theme:"neutral",style:"subtle",primary:"#2563eb",secondary:"#172033",displayName:"Controle de Apostas",headerImage:"",crestImage:"",officialCrests:cache};
+ save();renderAppearance()
+};
 
 function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}

@@ -1,7 +1,7 @@
 {
   "name": "Controle de Apostas",
   "short_name": "Apostas",
-  "start_url": "./?v=14",
+  "start_url": "./?v=15",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v14",
-  "description": "Gestão completa de apostas, operações, arbitragem, metas e patrimônio."
+  "id": "./controle-de-apostas-v15",
+  "description": "Gestão de apostas com edição, lixeira, auditoria e controle financeiro."
 }

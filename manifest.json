@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=42",
+  "start_url": "./?v=43",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v42",
-  "description": "Gestão de surebets com Chance de Duplo Green em destaque."
+  "id": "./betmanager-v43",
+  "description": "Gestão de surebets e apostas múltiplas com vários jogos."
 }

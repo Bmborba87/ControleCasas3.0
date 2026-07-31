@@ -160,6 +160,12 @@ body.dark .chanceDoubleGreen{background:linear-gradient(135deg,#052e16,#064e3b);
 body.dark .chanceDoubleGreen span{color:#bbf7d0!important}
 body.dark .chanceDoubleGreen b,body.dark .chanceDoubleGreen strong{color:#dcfce7!important}
 
+
+.gameBuilder{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--card);margin-top:8px}
+.gameGrid{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px;align-items:end}
+.multiGameList{display:grid;gap:4px;margin-top:5px}
+.multiGameItem{font-size:.73rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){.gameGrid{grid-template-columns:1fr}.gameGrid button{width:100%}}
 </style>
 </head>
 <body>
@@ -189,7 +195,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v42</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v43</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -362,7 +368,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 
 <dialog id="betDialog"><form id="betForm">
 <div class="dhead"><div><h2>Nova aposta</h2><div class="muted">Cadastre todas as entradas do mesmo jogo juntas.</div></div><button type="button" class="secondary" onclick="closeD('betDialog')">X</button></div>
-<label>Jogo/evento<input id="betEvent" required placeholder="Ex.: Time A x Time B"></label><label>Data e hora do jogo<input id="betEventDate" type="datetime-local"></label>
+<div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong>Jogos da aposta</strong><button type="button" id="addBetGameRow" class="secondary">+ Adicionar jogo</button></div><div id="betGames"></div></div>
 <label>Observação<textarea id="betNote" rows="2"></textarea></label>
 <div>
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -527,8 +533,8 @@ $("duplicateForm").onsubmit=e=>{e.preventDefault();let src=pBy($("dupPid").value
 
 function normalizeBets(){
  S.bets=(S.bets||[]).map(b=>{
-  if(Array.isArray(b.entries))return {...b,event:b.event||"Aposta",eventDate:b.eventDate||b.date||"",note:b.note||"",entries:b.entries.map((e,index)=>({...e,id:e.id||uid(),type:e.type||"cash",role:index===0?"main":"protection",selection:e.selection||"",doubleGreenCompatible:index===0?false:Boolean(e.doubleGreenCompatible),freebetUsed:Number(e.freebetUsed||0),status:e.status||"open",returned:Number(e.returned||0)}))};
-  return {id:b.id||uid(),event:b.event||b.sport||"Aposta",eventDate:b.eventDate||b.date||"",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid,houseId:b.houseId,stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",role:"main",selection:"",doubleGreenCompatible:false,freebetUsed:0,status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
+  if(Array.isArray(b.entries)){let games=normalizeGames(b);return {...b,games,event:games.length===1?games[0].name:games.length+" jogos • "+games[0].name,eventDate:games.map(g=>g.date).filter(Boolean).sort()[0]||"",note:b.note||"",entries:b.entries.map((e,index)=>({...e,id:e.id||uid(),type:e.type||"cash",role:index===0?"main":"protection",selection:e.selection||"",doubleGreenCompatible:index===0?false:Boolean(e.doubleGreenCompatible),freebetUsed:Number(e.freebetUsed||0),status:e.status||"open",returned:Number(e.returned||0)}))};}
+  let games=normalizeGames(b);return {id:b.id||uid(),games,event:games[0].name,eventDate:games[0].date||"",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid,houseId:b.houseId,stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",role:"main",selection:"",doubleGreenCompatible:false,freebetUsed:0,status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
  })
 }
 function entryPotentialReturn(e){
@@ -652,23 +658,52 @@ function updateBetPreview(){
  $("betSurebetPreview").innerHTML=`
   <div>Total comprometido em saldo: <strong>${money(cashCost)}</strong></div>
   <div>Tipo: <strong>${entries.length>1?"Surebet protegida":"Superodd / sem proteção"}</strong></div>
-  ${pairs.length?`<div class="surebetScenarios">${pairs.map(p=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green com ${esc(p.selection)}<br><small>Valor adicional em destaque para possível duplo green e proteção ao vivo</small></span><strong>${money(p.gross)}<br><small>Resultado líquido ${money(p.net)}</small></strong></div>`).join("")}</div>`:"<div>Nenhuma proteção marcada como possível duplo green.</div>"}
+  
  `
 }
+
+function normalizeGames(b){
+ if(Array.isArray(b.games)&&b.games.length){
+  return b.games.map(g=>({id:g.id||uid(),name:g.name||g.event||g.jogo||"Jogo",date:g.date||g.eventDate||g.data||""}))
+ }
+ return [{id:uid(),name:b.event||"Aposta",date:b.eventDate||""}]
+}
+function addBetGameRow(data={}){
+ let row=document.createElement("div");row.className="gameBuilder";row.dataset.id=data.id||uid();
+ row.innerHTML=`<div class="gameGrid"><label>Jogo/evento<input class="gameName" required placeholder="Ex.: Time A x Time B"></label><label>Data e hora<input class="gameDate" type="datetime-local"></label><button type="button" class="danger removeGame">Remover</button></div>`;
+ row.querySelector(".gameName").value=data.name||data.event||"";
+ row.querySelector(".gameDate").value=data.date||data.eventDate||"";
+ row.querySelector(".removeGame").onclick=()=>{if($("betGames").children.length>1)row.remove()};
+ $("betGames").appendChild(row)
+}
+function readGameRows(){
+ return [...$("betGames").children].map(row=>({id:row.dataset.id||uid(),name:row.querySelector(".gameName").value.trim(),date:row.querySelector(".gameDate").value}))
+}
+function operationTitle(b){
+ let games=normalizeGames(b);
+ return games.length===1?(games[0].name||"Aposta"):games.length+" jogos • "+(games[0].name||"Múltipla")
+}
+function operationGamesHtml(b){
+ return normalizeGames(b).map((g,index)=>`<div class="multiGameItem">${index+1}. ${esc(g.name)}${g.date?" • "+new Date(g.date).toLocaleString("pt-BR"):""}</div>`).join("")
+}
+$("addBetGameRow").onclick=()=>addBetGameRow();
+
 $("addBetEntry").onclick=()=>addBetEntryRow();
 $("newBet").onclick=()=>{
  if(!allH().length)return alert("Cadastre ao menos uma casa.");
- $("betForm").reset();$("betEntries").innerHTML="";addBetEntryRow();refreshEntryRoles();$("betDialog").showModal()
+ $("betForm").reset();$("betGames").innerHTML="";addBetGameRow();$("betEntries").innerHTML="";addBetEntryRow();refreshEntryRoles();$("betDialog").showModal()
 };
 window.openBetFor=(pid,hid)=>{
- $("betForm").reset();$("betEntries").innerHTML="";addBetEntryRow(pid,hid);refreshEntryRoles();$("betDialog").showModal()
+ $("betForm").reset();$("betGames").innerHTML="";addBetGameRow();$("betEntries").innerHTML="";addBetEntryRow(pid,hid);refreshEntryRoles();$("betDialog").showModal()
 };
 $("betForm").onsubmit=e=>{
  e.preventDefault();
- let event=$("betEvent").value.trim(),eventDate=$("betEventDate").value,note=$("betNote").value.trim();
+ let games=readGameRows(),note=$("betNote").value.trim();
+ let event=games.length===1?games[0].name:games.length+" jogos • "+(games[0]?.name||"Múltipla");
+ let eventDate=games.map(g=>g.date).filter(Boolean).sort()[0]||"";
  let rows=[...$("betEntries").children],entries=[],adjustments=[];
  let projectedCash=new Map(),projectedFreebet=new Map();
- if(!event)return alert("Informe o jogo/evento.");
+ if(!games.length||games.some(g=>!g.name))return alert("Informe todos os jogos da aposta.");
 
  for(let row of rows){
   let x=readEntryRow(row),h=hBy(x.pid,x.houseId);
@@ -717,7 +752,7 @@ $("betForm").onsubmit=e=>{
   if(x.type==="cash"){h.balance-=x.stake;h.inPlay+=x.stake;move("bet",x.stake,x.pid,x.houseId,"Nova entrada: "+event,note,-x.stake,x.stake,0)}
   else{h.freebet=Number(h.freebet||0)-x.stake;move("freebet_bet",x.stake,x.pid,x.houseId,"Entrada com freebet: "+event,note,0,0,0)}
  });
- S.bets.unshift({id:uid(),event,eventDate,note,created:new Date().toISOString(),entries,balanceAdjustments:adjustments.map(a=>({...a,date:new Date().toISOString()}))});
+ S.bets.unshift({id:uid(),event,eventDate,games,note,created:new Date().toISOString(),entries,balanceAdjustments:adjustments.map(a=>({...a,date:new Date().toISOString()}))});
  save();$("betDialog").close()
 };
 
@@ -766,7 +801,7 @@ function cleanTrash(){
 function renderBets(){
  let q=$("betSearch").value.toLowerCase(),st=$("betStatus").value;
  let bs=S.bets.filter(b=>st==="all"||groupStatus(b)===st).filter(b=>{
-  let text=[b.event,b.note,...(b.entries||[]).flatMap(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId);return [p?p.name:"",h?h.name:"",e.selection||""]})].join(" ").toLowerCase();
+  let text=[b.event,b.note,...normalizeGames(b).map(g=>g.name),...(b.entries||[]).flatMap(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId);return [p?p.name:"",h?h.name:"",e.selection||""]})].join(" ").toLowerCase();
   return text.includes(q)
  });
  $("betsList").innerHTML=bs.length?bs.map(b=>{
@@ -785,7 +820,7 @@ function renderBets(){
    </div>
    <div class="entryActionRow">${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""}<button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button><button class="secondary" onclick="duplicateBetEntry('${b.id}','${e.id}')">Duplicar</button><button class="secondary" onclick="moveBetEntry('${b.id}','${e.id}')">Mover</button><button class="danger" onclick="deleteBetEntry('${b.id}','${e.id}')">Excluir</button></div></div>`
   }).join("");
-  return `<details class="betGroup"><summary><div class="summaryMain"><strong>${esc(b.event||"Aposta")}</strong><div class="summaryMeta">${operationType(b)} • ${entriesList.length} aposta(s) • Total lançado ${money(totalStake)}</div></div><span class="status ${open?"open":groupWins(b)>=1?"win":"loss"}">${outcome}</span></summary>
+  return `<details class="betGroup"><summary><div class="summaryMain"><strong>${esc(operationTitle(b))}</strong><div class="multiGameList">${operationGamesHtml(b)}</div><div class="summaryMeta">${operationType(b)} • ${entriesList.length} aposta(s) • Total lançado ${money(totalStake)}</div></div><span class="status ${open?"open":groupWins(b)>=1?"win":"loss"}">${outcome}</span></summary>
    <div class="betGroupContent"><div class="stats" style="padding:10px 0 0">
     <div class="stat"><span>Total comprometido em saldo</span><b>${money(groupCashCost(b))}</b></div>
     <div class="stat"><span>Total usado em freebet</span><b>${money(groupFreebetCost(b))}</b></div>
@@ -794,7 +829,7 @@ function renderBets(){
     <div class="stat"><span>Lucro/prejuízo realizado</span><b class="${actual>=0?"resultPositive":"resultNegative"}">${open?"Em andamento":money(actual)}</b></div>
     <div class="stat"><span>Greens confirmados</span><b>${groupWins(b)}</b></div>
    </div>
-   ${pairs.length?`<div class="surebetScenarios">${pairs.map(pair=>`<div class="surebetScenario doubleGreenPossible"><span>Chance de Duplo Green: Principal + ${esc(pair.protection.selection||"proteção")}<br><small>Valor adicional em destaque para possível duplo green e proteção ao vivo</small></span><strong>${money(pair.gross)}<br><small>Lucro/prejuízo líquido ${money(pair.net)}</small></strong></div>`).join("")}</div>`:""}
+   
    ${!open&&groupWins(b)>=2?`<div class="doubleGreen doubleGreenPossible"><span>Duplo green confirmado</span><strong>${groupWins(b)} apostas ficaram green</strong></div>`:""}
    ${(b.balanceAdjustments||[]).length?`<div class="balanceAdjustmentNote">Atualização durante o cadastro: ${(b.balanceAdjustments||[]).map(a=>`${esc(a.houseName)} +${money(a.value)}`).join(" • ")}</div>`:""}
    <div class="entryActionRow"><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogo</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir jogo</button></div>${entries}</div></details>`
@@ -925,7 +960,7 @@ function renderOperations(){
  $("operationsList").innerHTML=todayGames.length?todayGames.map(b=>{
   let entries=b.entries||[],open=entries.filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0),potential=groupGuaranteedResult(b);
   let houses=[...new Map(open.map(e=>{let h=hBy(e.pid,e.houseId);return [e.houseId,h]})).values()].filter(Boolean);
-  return `<section class="operationalGame"><div class="operationalHead"><div><strong>${esc(b.event)}</strong><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleString("pt-BR"):"Horário não informado"} • ${open.length} entrada(s)</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="positive">${entries.length>1?"Mínimo previsto "+money(potential):"Sem proteção"}</div></div></div><div class="operationalBody">${houses.map(h=>`<button class="primary" style="margin:3px" onclick="openHouseSite('${h.pid}','${h.id}')">${esc(h.name)}</button>`).join("")}<button class="secondary" style="margin:3px" onclick="switchToBet('${b.id}')">Ver apostas</button></div></section>`
+  return `<section class="operationalGame"><div class="operationalHead"><div><strong>${esc(operationTitle(b))}</strong><div class="multiGameList">${operationGamesHtml(b)}</div><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleString("pt-BR"):"Horário não informado"} • ${open.length} entrada(s)</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="positive">${entries.length>1?"Mínimo previsto "+money(potential):"Sem proteção"}</div></div></div><div class="operationalBody">${houses.map(h=>`<button class="primary" style="margin:3px" onclick="openHouseSite('${h.pid}','${h.id}')">${esc(h.name)}</button>`).join("")}<button class="secondary" style="margin:3px" onclick="switchToBet('${b.id}')">Ver apostas</button></div></section>`
  }).join(""):'<div class="card empty">Nenhum jogo com aposta aberta para hoje.</div>'
 }
 window.switchToBet=id=>{document.querySelector('[data-tab="bets"]').click();$("betSearch").value=(S.bets.find(b=>b.id===id)||{}).event||"";renderBets()}

@@ -9,7 +9,7 @@ window.__EMPTY_APP_STATE__={
 };
 window.__APP_BOOTSTRAP__=(function(){
  var keys=[
-  "controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3","controleApostasV35",
+  "controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3","controleApostasV36",
   "controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27",
   "controleApostasV26","controleApostasV25","controleApostasV24","controleApostasV23",
   "controleApostasV22","controleApostasV21","controleApostasV20","controleApostasV19",
@@ -305,7 +305,7 @@ body.dark .personSummaryCard{background:#18243a}
   <div class="headerBrand">
    <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
    <div>
-    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v35</small></h1>
+    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v36</small></h1>
     
    </div>
   </div>
@@ -614,8 +614,8 @@ window.goToSection=function(id){
         }
         var serialized=JSON.stringify(migrated);
         localStorage.setItem(BACKUP_KEY,serialized);
-        localStorage.setItem("controleApostasRecovery",serialized);localStorage.setItem("betmanagerRecovery",serialized);
-        localStorage.setItem("controleApostasV35",serialized);
+        localStorage.setItem("controleApostasRecovery",serialized);localStorage.setItem("betmanagerRecovery",serialized);writeIndexedState(migrated);
+        localStorage.setItem("controleApostasV36",serialized);
         COMPATIBLE_KEYS.forEach(function(key){
           try{localStorage.setItem(key,serialized)}catch(error){console.warn("Falha na chave "+key,error)}
         });
@@ -654,7 +654,7 @@ window.goToSection=function(id){
   
   window.addEventListener("pagehide",function(){
     try{
-      if(typeof window.persistState==="function")window.persistState()
+      if(APP_READY&&typeof window.persistState==="function")window.persistState()
     }catch(error){console.warn("Falha no salvamento ao sair:",error)}
   });
 
@@ -894,7 +894,7 @@ window.goToSection=function(id){
 
 <section id="more" class="panel">
  <div class="card">
-  <h3>Outras opções</h3><div id="saveStatus" class="muted" style="margin-bottom:10px">Dados salvos automaticamente neste aparelho.</div>
+  <h3>Outras opções</h3><div class="muted" style="margin-bottom:6px">Proteção ativa: armazenamento local + banco interno do navegador.</div><div id="saveStatus" class="muted" style="margin-bottom:10px">Dados salvos automaticamente neste aparelho.</div>
   <div class="grid" style="grid-template-columns:repeat(2,1fr)">
    <button class="secondary" onclick="return goToSection('history')">Histórico</button>
    <button class="secondary" onclick="return goToSection('audit')">Alterações</button>
@@ -969,6 +969,63 @@ window.goToSection=function(id){
 <script>
 (()=>{"use strict";
 const KEY="controleApostasData";var S=window.S=window.__APP_BOOTSTRAP__||JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__)),openPid=null,$=id=>document.getElementById(id);
+
+var APP_READY=false;
+var DB_NAME="BetManagerDB";
+var DB_STORE="state";
+var DB_KEY="main";
+
+function openBetManagerDB(){
+ return new Promise((resolve,reject)=>{
+  if(!("indexedDB" in window))return reject(new Error("IndexedDB indisponível"));
+  let request=indexedDB.open(DB_NAME,1);
+  request.onupgradeneeded=()=>{
+   let db=request.result;
+   if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE)
+  };
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error||new Error("Falha ao abrir IndexedDB"))
+ })
+}
+async function readIndexedState(){
+ try{
+  let db=await openBetManagerDB();
+  return await new Promise((resolve,reject)=>{
+   let tx=db.transaction(DB_STORE,"readonly");
+   let req=tx.objectStore(DB_STORE).get(DB_KEY);
+   req.onsuccess=()=>resolve(req.result||null);
+   req.onerror=()=>reject(req.error)
+  })
+ }catch(error){
+  console.warn("IndexedDB não pôde ser lido:",error);
+  return null
+ }
+}
+async function writeIndexedState(state){
+ try{
+  let db=await openBetManagerDB();
+  await new Promise((resolve,reject)=>{
+   let tx=db.transaction(DB_STORE,"readwrite");
+   tx.objectStore(DB_STORE).put(state,DB_KEY);
+   tx.oncomplete=()=>resolve();
+   tx.onerror=()=>reject(tx.error)
+  });
+  return true
+ }catch(error){
+  console.warn("IndexedDB não pôde ser salvo:",error);
+  return false
+ }
+}
+function stateScore(state){
+ let c=stateCounts(state);
+ let settings=state&&state.settings&&Object.keys(state.settings).length?1:0;
+ let snapshots=state&&Array.isArray(state.snapshots)?state.snapshots.length:0;
+ return c.total*100000+settings*1000+snapshots
+}
+function chooseBestState(states){
+ return states.filter(Boolean).sort((a,b)=>stateScore(b)-stateScore(a))[0]||null
+}
+
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -1038,6 +1095,10 @@ function rotateSafetyCopies(serialized){
 }
 
 window.persistState=function persistState(options={}){
+ if(!APP_READY&&!options.force){
+  console.warn("Salvamento ignorado durante a inicialização.");
+  return false
+ }
  window.S=S;
  let safe=storageSafeState(S);
  let newCounts=stateCounts(safe);
@@ -1057,6 +1118,7 @@ window.persistState=function persistState(options={}){
   localStorage.setItem("controleApostasRecovery",serialized);
   localStorage.setItem("controleApostasLastSave",new Date().toISOString());
   localStorage.setItem("betmanagerLastCounts",JSON.stringify(newCounts));
+  writeIndexedState(safe);
   return true
  }catch(error){
   console.error("Falha ao salvar dados:",error);
@@ -1070,6 +1132,7 @@ window.persistState=function persistState(options={}){
    localStorage.setItem(KEY,serialized);
    localStorage.setItem("controleApostasRecovery",serialized);
    localStorage.setItem("controleApostasLastSave",new Date().toISOString());
+   writeIndexedState(safe);
    return true
   }catch(secondError){
    console.error("Segunda tentativa de salvamento falhou:",secondError);
@@ -1117,9 +1180,10 @@ window.normalizeCurrentState=function normalizeCurrentState(state){
 };
 window.applyImportedState=function applyImportedState(imported){
  S=window.S=normalizeCurrentState(imported);
+ APP_READY=true;
  try{normalizeBets()}catch(error){console.error("Falha ao normalizar apostas:",error)}
  try{S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal)}catch(error){console.error("Falha ao normalizar metas:",error)}
- if(typeof persistState==="function"&&!persistState({allowEmpty:false})){
+ if(typeof persistState==="function"&&!persistState({allowEmpty:false,force:true})){
   throw new Error("Não foi possível salvar o backup no armazenamento do aparelho.")
  }
  if(typeof render==="function")render();
@@ -1137,7 +1201,6 @@ function load(){
     (Array.isArray(S.moves)&&S.moves.length>0);
    if(hasBootstrap){
     window.S=S;
-    persistState();
     return
    }
   }
@@ -1191,7 +1254,7 @@ window.recoverLatestData=function(){
  if(!candidates.length)return alert("Nenhuma cópia com dados foi encontrada.");
  let best=candidates[0];
  S=window.S=normalizeCurrentState(best.state);
- persistState({allowEmpty:false});
+ APP_READY=true;persistState({allowEmpty:false,force:true});
  render();
  goToSection("people");
  alert("Dados recuperados.\n\nPessoas: "+best.counts.people+"\nCasas: "+best.counts.houses)
@@ -2072,24 +2135,38 @@ $("installBtn").onclick=async()=>{
 };
 updateInstallVisibility();
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-try{
- load();
- appearanceSettings();
- try{applyAppearanceToPage()}catch(themeError){console.error("Erro ao aplicar aparência:",themeError)}
- S=window.S=normalizeCurrentState(S);
- try{cleanTrash()}catch(e){console.error(e)}
- try{applyTheme()}catch(e){console.error(e)}
- try{createDailySnapshot()}catch(e){console.error(e)}
- try{normalizeBets()}catch(e){console.error(e)}
- S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal);
- render();
-}catch(initError){
- console.error("Erro de inicialização:",initError);
- let box=$("startupError"),text=$("startupErrorText");
- if(box)box.style.display="block";
- if(text)text.textContent=initError&&initError.message?initError.message:"Erro desconhecido";
- try{render()}catch(renderError){console.error("Erro de renderização:",renderError)}
+async function startBetManager(){
+ try{
+  APP_READY=false;
+  load();
+  let indexed=await readIndexedState();
+  let local=window.S;
+  let recovery=readStoredState("controleApostasRecovery");
+  let safety=readStoredState("betmanagerRecovery");
+  let best=chooseBestState([local,indexed,recovery,safety]);
+  S=window.S=normalizeCurrentState(best||window.__EMPTY_APP_STATE__);
+
+  appearanceSettings();
+  try{applyAppearanceToPage()}catch(themeError){console.error("Erro ao aplicar aparência:",themeError)}
+  try{cleanTrash()}catch(e){console.error(e)}
+  try{applyTheme()}catch(e){console.error(e)}
+  try{createDailySnapshot()}catch(e){console.error(e)}
+  try{normalizeBets()}catch(e){console.error(e)}
+  S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal);
+
+  APP_READY=true;
+  persistState({force:true});
+  render()
+ }catch(initError){
+  APP_READY=true;
+  console.error("Erro de inicialização:",initError);
+  let box=$("startupError"),text=$("startupErrorText");
+  if(box)box.style.display="block";
+  if(text)text.textContent=initError&&initError.message?initError.message:"Erro desconhecido";
+  try{render()}catch(renderError){console.error("Erro de renderização:",renderError)}
+ }
 }
+startBetManager()
 })();
 setTimeout(function(){
  try{

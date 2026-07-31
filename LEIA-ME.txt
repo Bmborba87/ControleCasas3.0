@@ -1,16 +1,22 @@
-BETMANAGER — VERSÃO 35
+BETMANAGER — VERSÃO 36
 
-PERSISTÊNCIA BLINDADA
-- Estado vazio não substitui dados existentes.
-- Cópia de segurança criada já no primeiro salvamento.
-- Três cópias rotativas e duas cópias de recuperação.
-- Salvamento ao atualizar, fechar ou colocar o app em segundo plano.
-- Tema e escudo usam o mesmo salvamento protegido.
-- Botão “Recuperar dados” restaura automaticamente a melhor cópia.
-- Status mostra último salvamento e total de pessoas/casas.
+CORREÇÃO DO RECARREGAMENTO
+- O aplicativo não pode salvar enquanto ainda está iniciando.
+- Os dados são mantidos em dois locais:
+  1. localStorage
+  2. IndexedDB
+- Ao abrir ou recarregar, o BetManager lê as cópias e escolhe a que possui mais dados.
+- Somente depois dessa recuperação o salvamento é liberado.
+- Aparência e cadastros são restaurados juntos.
+- Um estado vazio não pode substituir um estado com conteúdo.
+- Importações são gravadas simultaneamente nos dois armazenamentos.
+- O botão Recuperar dados continua disponível.
 
-TESTE REAL
-- 5 pessoas e 69 casas salvas.
-- Tentativa de salvar tudo vazio foi bloqueada.
-- Reabertura recuperou 5 pessoas e 69 casas.
-- Cópia de segurança confirmada.
+CAUSA DO ERRO ANTERIOR
+Durante o recarregamento, funções de aparência e snapshot podiam executar antes da recuperação terminar. Isso permitia que o estado inicial vazio fosse salvo por cima dos dados existentes.
+
+TESTES
+- JavaScript validado.
+- Seleção da cópia mais completa testada.
+- Estado com 5 pessoas e 69 casas vence um estado vazio.
+- Salvamento bloqueado durante a inicialização.

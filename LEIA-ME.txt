@@ -1,22 +1,11 @@
-BETMANAGER — VERSÃO 38
+BETMANAGER — VERSÃO 39 RECONSTRUÍDA
 
-CORREÇÕES
-- Removida a chamada inexistente writeIndexedState.
-- Importação aplica os dados imediatamente e abre Pessoas.
-- Modo escuro funciona por um script independente.
-- A preferência claro/escuro fica separada dos dados.
-- Carregamento escolhe a cópia local com mais conteúdo.
-- Nada é salvo durante a inicialização.
-- Alterações são salvas na chave principal e na recuperação.
-- Estado vazio não substitui cadastros existentes.
+Reconstruída sobre a última base estável.
 
-TESTES COM O JSON ENVIADO
-- Importação: 5 pessoas e 69 casas.
-- Alteração do saldo de uma casa.
-- Inclusão de uma nova casa.
-- Salvamento.
-- Simulação de recarregamento.
-- Saldo alterado e nova casa preservados.
-- Alternância claro/escuro e recarregamento.
-- Tema escuro preservado.
-- Tentativa de salvar estado vazio bloqueada.
+- Cadastro de pessoas e casas.
+- Painel atualizado imediatamente.
+- Backup antigo compatível.
+- Barra inferior.
+- Modo claro e escuro.
+- Salvamento permanente.
+- Estado vazio não apaga os dados.

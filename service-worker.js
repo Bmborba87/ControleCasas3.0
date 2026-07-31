@@ -1,4 +1,4 @@
-const CACHE="betmanager-v37";
+const CACHE="betmanager-v38";
 const ASSETS=["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));

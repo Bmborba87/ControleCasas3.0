@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=37",
+  "start_url": "./?v=38",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v37",
-  "description": "Gestão de apostas com modo claro e escuro e persistência local estável."
+  "id": "./betmanager-v38",
+  "description": "Gestão de apostas com importação, tema e persistência corrigidos."
 }

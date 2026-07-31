@@ -9,7 +9,7 @@ window.__EMPTY_APP_STATE__={
 };
 window.__APP_BOOTSTRAP__=(function(){
  var keys=[
-  "controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3","controleApostasV37",
+  "controleApostasData","controleApostasRecovery","betmanagerRecovery","betmanagerSafety1","betmanagerSafety2","betmanagerSafety3","controleApostasV38",
   "controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27",
   "controleApostasV26","controleApostasV25","controleApostasV24","controleApostasV23",
   "controleApostasV22","controleApostasV21","controleApostasV20","controleApostasV19",
@@ -305,13 +305,13 @@ body.dark .personSummaryCard{background:#18243a}
   <div class="headerBrand">
    
    <div>
-    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v37</small></h1>
+    <h1 id="appHeaderTitle">BetManager <small style="font-size:.65rem;color:#93c5fd">v38</small></h1>
     
    </div>
   </div>
   <div class="headerTools">
    
-   <button id="themeBtn" class="secondary" type="button">🌙</button>
+   <button id="themeBtn" class="secondary" type="button" onclick="return toggleBetManagerTheme()">🌙</button>
    <button id="installBtn" class="secondary" type="button">Instalar</button>
   </div>
  </div>
@@ -338,6 +338,23 @@ window.goToSection=function(id){
   }
 };
 </script>
+
+<script>
+window.applyBetManagerTheme=function(){
+  var theme=localStorage.getItem("betmanagerTheme")==="dark"?"dark":"light";
+  document.body.classList.toggle("dark",theme==="dark");
+  var button=document.getElementById("themeBtn");
+  if(button)button.textContent=theme==="dark"?"☀️":"🌙";
+};
+window.toggleBetManagerTheme=function(){
+  var current=localStorage.getItem("betmanagerTheme")==="dark"?"dark":"light";
+  localStorage.setItem("betmanagerTheme",current==="dark"?"light":"dark");
+  window.applyBetManagerTheme();
+  return false;
+};
+document.addEventListener("DOMContentLoaded",window.applyBetManagerTheme);
+</script>
+
 
 <script>
 (function(){
@@ -614,8 +631,9 @@ window.goToSection=function(id){
         }
         var serialized=JSON.stringify(migrated);
         localStorage.setItem(BACKUP_KEY,serialized);
-        localStorage.setItem("controleApostasRecovery",serialized);localStorage.setItem("betmanagerRecovery",serialized);writeIndexedState(migrated);
-        localStorage.setItem("controleApostasV37",serialized);
+        localStorage.setItem("controleApostasRecovery",serialized);
+        localStorage.setItem("betmanagerRecovery",serialized);
+        localStorage.setItem("controleApostasV38",serialized);
         COMPATIBLE_KEYS.forEach(function(key){
           try{localStorage.setItem(key,serialized)}catch(error){console.warn("Falha na chave "+key,error)}
         });
@@ -969,10 +987,9 @@ window.persistState=function persistState(options={}){
  window.S=S;
  let safe=storageSafeState(S);
  let current=readStoredState(KEY);
- let newCounts=stateCounts(safe);
- let currentCounts=stateCounts(current);
+ let newCounts=stateCounts(safe),currentCounts=stateCounts(current);
  if(newCounts.total===0&&currentCounts.total>0&&!options.allowEmpty){
-  console.error("Estado vazio bloqueado.");
+  console.error("Estado vazio bloqueado; dados existentes preservados.");
   S=window.S=normalizeCurrentState(current);
   return false
  }
@@ -981,6 +998,7 @@ window.persistState=function persistState(options={}){
   if(currentCounts.total>0)localStorage.setItem("betmanagerRecovery",JSON.stringify(current));
   localStorage.setItem(KEY,serialized);
   localStorage.setItem("controleApostasRecovery",serialized);
+  localStorage.setItem("controleApostasV38",serialized);
   localStorage.setItem("controleApostasLastSave",new Date().toISOString());
   return true
  }catch(error){
@@ -1027,35 +1045,47 @@ window.normalizeCurrentState=function normalizeCurrentState(state){
  return state
 };
 window.applyImportedState=function applyImportedState(imported){
- S=window.S=normalizeCurrentState(imported);
  APP_READY=true;
+ S=window.S=normalizeCurrentState(imported);
  try{normalizeBets()}catch(error){console.error("Falha ao normalizar apostas:",error)}
  try{S.weeklyGoals=S.weeklyGoals.map(weeklyNormalizeGoal)}catch(error){console.error("Falha ao normalizar metas:",error)}
- if(typeof persistState==="function"&&!persistState({allowEmpty:false,force:true})){
-  throw new Error("Não foi possível salvar o backup no armazenamento do aparelho.")
- }
+ let serialized=JSON.stringify(storageSafeState(S));
+ localStorage.setItem(KEY,serialized);
+ localStorage.setItem("controleApostasRecovery",serialized);
+ localStorage.setItem("betmanagerRecovery",serialized);
  if(typeof render==="function")render();
  if(typeof goToSection==="function")goToSection("people");
  let people=S.people.length;
- let houses=S.people.reduce((sum,p)=>sum+p.houses.length,0);
+ let houses=S.people.reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0);
+ if(people===0&&houses===0)throw new Error("O arquivo foi lido, mas nenhum cadastro foi aplicado.");
  return {people,houses}
 };
 
 function load(){
  try{
-  if(S&&Array.isArray(S.people)){
-   let hasBootstrap=S.people.length>0||
-    (Array.isArray(S.bets)&&S.bets.length>0)||
-    (Array.isArray(S.moves)&&S.moves.length>0);
-   if(hasBootstrap){
-    window.S=S;
-    return
+  let keys=[
+   KEY,"controleApostasRecovery","betmanagerRecovery",
+   "betmanagerSafety1","betmanagerSafety2","betmanagerSafety3",
+   "controleApostasV38","controleApostasV37","controleApostasV36",
+   "controleApostasV35","controleApostasV34","controleApostasV33",
+   "controleApostasV32","controleApostasV31","controleApostasV30",
+   "controleApostasV29","controleApostasV28"
+  ];
+  let candidates=[];
+  keys.forEach(key=>{
+   let state=readStoredState(key);
+   if(state&&Array.isArray(state.people)){
+    let counts=stateCounts(state);
+    candidates.push({key,state,counts})
    }
-  }
-  S=window.S=window.__APP_BOOTSTRAP__||JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__))
+  });
+  candidates.sort((a,b)=>b.counts.total-a.counts.total);
+  let best=candidates.find(x=>x.counts.total>0)||candidates[0];
+  if(best)S=window.S=normalizeCurrentState(best.state);
+  else S=window.S=normalizeCurrentState(window.__APP_BOOTSTRAP__||window.__EMPTY_APP_STATE__)
  }catch(error){
-  console.error("Erro ao carregar estado inicial:",error);
-  S=window.S=JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__))
+  console.error("Erro ao carregar dados:",error);
+  S=window.S=normalizeCurrentState(window.__EMPTY_APP_STATE__)
  }
 }
 function save(){
@@ -1748,16 +1778,7 @@ function migrateBackup(x){
 }
 
 window.closeD=id=>$(id).close();
-function applyTheme(){
- let theme=localStorage.getItem("betmanagerTheme")||"light";
- document.body.classList.toggle("dark",theme==="dark");
- $("themeBtn").textContent=theme==="dark"?"☀️":"🌙"
-}
-$("themeBtn").onclick=()=>{
- let next=document.body.classList.contains("dark")?"light":"dark";
- localStorage.setItem("betmanagerTheme",next);
- applyTheme()
-};
+function applyTheme(){window.applyBetManagerTheme()}
 let dp=null;
 function isInstalled(){
  return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true

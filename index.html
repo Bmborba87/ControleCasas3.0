@@ -195,7 +195,7 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
  width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--team-primary);
  border-radius:50%;animation:crestSpin .8s linear infinite
 }
-@keyframes crestSpin{to{transform:rotate(360deg)}}
+}
 @media(max-width:620px){
  .headerCrest{width:72px;height:80px}
 }
@@ -215,15 +215,11 @@ header .head{position:relative;justify-content:center;min-height:135px}
 }
 
 
-.appSplash{
- position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,var(--team-secondary),var(--team-primary));
- display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;
- transition:opacity .35s ease,visibility .35s ease
-}
-.appSplash.hiddenSplash{opacity:0;visibility:hidden}
-.splashCrest{width:120px;height:132px;margin-bottom:14px}
-.appSplash h2{margin:0;font-size:1.45rem}
-.appSplash p{margin:6px 0 0;opacity:.78;font-size:.8rem}
+
+
+
+
+
 
 
 body{padding-bottom:78px}
@@ -258,19 +254,20 @@ body.dark .personSummaryCard{background:#18243a}
 @media(max-width:760px){.personSummaryGrid{grid-template-columns:repeat(2,1fr)}}
 
 
-.appSplash{animation:splashSafetyHide .01s linear 4s forwards}
-@keyframes splashSafetyHide{to{opacity:0;visibility:hidden;pointer-events:none}}
+
+}
 
 </style>
 </head>
 <body>
-<div id="appSplash" class="appSplash">
- <div id="splashTeamCrest" class="teamCrest splashCrest"></div>
- <h2>Controle de Apostas</h2>
- <p>Organizando suas operações</p><button id="skipSplashBtn" class="secondary" style="margin-top:18px">Entrar agora</button>
+<div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+
+<div id="startupError" style="display:none;margin:12px;padding:12px;border:1px solid #ef4444;border-radius:10px;background:#fef2f2;color:#991b1b">
+ <strong>O aplicativo encontrou um erro ao iniciar.</strong>
+ <div id="startupErrorText" style="margin-top:5px"></div>
+ <button onclick="location.reload()" style="margin-top:8px">Tentar novamente</button>
 </div>
 
-<header><div class="head"><div class="headerBrand"><div id="headerTeamCrest" class="teamCrest headerCrest"></div><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v24</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div></div><div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -573,7 +570,7 @@ body.dark .personSummaryCard{background:#18243a}
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV24";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV25";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -582,7 +579,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV23")}if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV24")}if(!raw){raw=localStorage.getItem("controleApostasV23")}if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -1249,7 +1246,7 @@ function applyAppearanceToPage(){
  if(pp)pp.style.background=primary;
  if(ps)ps.style.background=secondary;
  renderAllCrests(a.theme);
- if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage&&!(a.officialCrests||{})[a.theme])cacheOfficialCrest(a.theme);
+ if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage&&!(a.officialCrests||{})[a.theme])setTimeout(()=>cacheOfficialCrest(a.theme),100);
  let title=$("appHeaderTitle");
  if(title&&title.childNodes.length)title.childNodes[0].nodeValue="Controle de Apostas "
 }
@@ -1546,16 +1543,6 @@ $("installBtn").onclick=async()=>{
 };
 updateInstallVisibility();
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-const closeSplash=()=>{
- let splash=$("appSplash");
- if(splash){splash.classList.add("hiddenSplash");splash.style.pointerEvents="none"}
-};
-setTimeout(closeSplash,1200);
-setTimeout(closeSplash,4000);
-$("skipSplashBtn")?.addEventListener("click",closeSplash);
-window.addEventListener("error",()=>setTimeout(closeSplash,50));
-window.addEventListener("unhandledrejection",()=>setTimeout(closeSplash,50));
-
 try{
  load();
  appearanceSettings();
@@ -1589,9 +1576,10 @@ try{
  render()
 }catch(initError){
  console.error("Erro de inicialização:",initError);
+ let box=$("startupError"),text=$("startupErrorText");
+ if(box)box.style.display="block";
+ if(text)text.textContent=initError&&initError.message?initError.message:"Erro desconhecido";
  try{render()}catch(renderError){console.error("Erro de renderização:",renderError)}
-}finally{
- setTimeout(closeSplash,300)
 }
 })();
 </script>

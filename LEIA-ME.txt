@@ -1,17 +1,17 @@
-CONTROLE DE APOSTAS — VERSÃO 24
+CONTROLE DE APOSTAS — VERSÃO 25
 
-CORREÇÃO DA TELA INICIAL
-- A tela de abertura agora fecha antes de qualquer carregamento potencialmente problemático.
-- Se o tema ou escudo apresentar erro, o aplicativo continua abrindo normalmente.
-- Saída automática de emergência após alguns segundos.
-- Botão “Entrar agora” disponível durante a abertura.
-- Erros de tema, escudo ou dados não bloqueiam mais toda a interface.
-- Inicialização e migração de dados foram protegidas por etapas independentes.
-- Dados das versões anteriores continuam sendo procurados automaticamente.
+CORREÇÃO DEFINITIVA DA ABERTURA
+- A tela de carregamento foi removida completamente.
+- O aplicativo abre diretamente no painel.
+- Nenhum JavaScript precisa mais esconder ou fechar a tela inicial.
+- Problemas no carregamento do escudo não bloqueiam a interface.
+- Se ocorrer um erro real de inicialização, aparece uma mensagem dentro do aplicativo.
+- Dados locais das versões 24, 23 e anteriores continuam sendo procurados.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=24.
-5. Remova e reinstale o aplicativo caso a versão antiga continue em cache.
+4. Abra usando ?v=25 no final.
+5. Como a versão anterior ficou presa no cache, remova o aplicativo instalado antes de instalar novamente.
+6. No computador, use Ctrl+Shift+R para forçar a atualização.

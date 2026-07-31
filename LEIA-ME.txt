@@ -1,32 +1,20 @@
-CONTROLE DE APOSTAS — VERSÃO 18
+CONTROLE DE APOSTAS — VERSÃO 19
 
-NOVOS TIMES
-- ABC
-- América-RN
+ESCUDOS
+- Cada time pré-definido possui um escudo estilizado com suas cores e iniciais.
+- O escudo aparece no cabeçalho e no dashboard.
+- Ao trocar de time, o escudo é atualizado automaticamente.
+- É possível enviar uma imagem própria do escudo, com até 1,2 MB.
+- O botão “Usar escudo estilizado” remove a imagem enviada e volta ao modelo automático.
 
-NAVEGAÇÃO
-- Abas principais em destaque:
-  Pessoas
-  Semanal Bet365
-- Mantidas na barra:
-  Painel
-  Apostas
-  Calendário
-  Operando agora
-  Mais
-- Histórico, Alterações, Lixeira, Por data e Relatórios foram agrupados em “Mais”.
-- Arbitragem removida.
-- Aparência removida da barra principal.
-- Aparência agora abre pelo botão de configurações no topo ou pelo botão “Aparência” do dashboard.
-
-INSTALAÇÃO
-- O botão Instalar aparece somente quando o aplicativo ainda não está instalado.
-- Depois da instalação, o botão desaparece automaticamente.
-- Ao abrir em modo aplicativo, o botão permanece oculto.
+NOME DO APLICATIVO
+- O nome permanece sempre “Controle de Apostas”.
+- Escolher um time não altera mais o nome do aplicativo.
+- O nome do time aparece apenas como identificação visual do tema no dashboard.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=18.
-5. Se necessário, remova e reinstale o aplicativo para renovar o cache.
+4. Abra com ?v=19.
+5. Remova e reinstale o aplicativo se o cache antigo persistir.

@@ -1,7 +1,7 @@
 {
   "name": "Controle de Apostas",
   "short_name": "Apostas",
-  "start_url": "./?v=18",
+  "start_url": "./?v=19",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./controle-de-apostas-v18",
-  "description": "Controle de apostas com navegação enxuta, temas de times, calendário e metas."
+  "id": "./controle-de-apostas-v19",
+  "description": "Controle de apostas com temas e escudos estilizados por time."
 }

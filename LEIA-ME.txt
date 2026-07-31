@@ -1,18 +1,18 @@
-CONTROLE DE APOSTAS — VERSÃO 21
+CONTROLE DE APOSTAS — VERSÃO 22
 
-CORREÇÃO VISUAL DO ESCUDO
-- Removido completamente o formato de escudo criado por CSS.
-- Agora aparece somente a imagem oficial do clube.
-- Não há mais emblema, moldura ou iniciais atrás do escudo.
-- Enquanto a imagem carrega, aparece apenas um indicador discreto.
-- Caso o escudo não carregue, o espaço fica neutro.
-- O nome do aplicativo permanece Controle de Apostas.
-- O escudo continua aparecendo no cabeçalho, dashboard e prévia da aparência.
+AJUSTES VISUAIS
+- O escudo oficial aparece somente no topo do aplicativo.
+- O escudo foi centralizado acima de Controle de Apostas.
+- O escudo foi removido completamente da área do patrimônio.
+- O nome do time não aparece mais no dashboard.
+- O nome do aplicativo permanece sempre Controle de Apostas.
+- Removido o campo de legenda/nome personalizado do tema.
+- Adicionada uma tela de abertura discreta com o escudo e o nome do aplicativo.
+- O dashboard ficou novamente focado somente nas informações financeiras.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
 2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=21.
-5. Na primeira abertura, mantenha a internet ativa para carregar o escudo.
-6. Se o visual antigo continuar, remova e reinstale o aplicativo.
+4. Abra com ?v=22.
+5. Se o layout antigo persistir, remova e reinstale o aplicativo.

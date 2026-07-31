@@ -153,7 +153,7 @@ body.subtle-style .tab.active,body.subtle-style .primary{background:var(--team-p
 .todayGameTop{display:flex;justify-content:space-between;gap:10px}
 .dashboardHero{background:linear-gradient(135deg,var(--team-secondary),var(--team-primary));color:#fff;border:0}
 .dashboardHero .muted{color:rgba(255,255,255,.78)}
-.dashboardHeroGrid{display:grid;grid-template-columns:auto 2fr repeat(3,1fr);gap:10px;align-items:center}
+.dashboardHeroGrid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:10px;align-items:center}
 .heroMain strong{font-size:1.7rem;display:block;margin-top:4px}
 .heroStat{background:rgba(255,255,255,.12);border-radius:10px;padding:10px}
 .heroStat span{font-size:.68rem;opacity:.82;display:block}.heroStat b{font-size:1rem}
@@ -161,7 +161,7 @@ body.subtle-style .tab.active,body.subtle-style .primary{background:var(--team-p
 @media(max-width:760px){
  .appearanceGrid,.colorRow{grid-template-columns:1fr}
  .calendarGrid{gap:3px}.calendarDay{min-height:68px;padding:5px}.calendarInfo{font-size:.58rem}
- .dashboardHeroGrid{grid-template-columns:1fr 1fr}.dashboardCrest{grid-column:1}.heroMain{grid-column:2/-1}
+ .dashboardHeroGrid{grid-template-columns:1fr 1fr}.heroMain{grid-column:1/-1}
 }
 
 
@@ -187,9 +187,9 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
  width:100%;height:100%;object-fit:contain;display:block;
  filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))
 }
-.headerBrand{display:flex;align-items:center;gap:12px}
-.headerCrest{width:48px;height:56px}
-.dashboardCrest{width:88px;height:100px}
+.headerBrand{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;flex:1}
+.headerCrest{width:88px;height:96px}
+
 .crestPreviewWrap{display:flex;align-items:center;gap:14px;margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:12px}
 .crestLoading{
  width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--team-primary);
@@ -197,17 +197,44 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
 }
 @keyframes crestSpin{to{transform:rotate(360deg)}}
 @media(max-width:620px){
- .headerCrest{width:42px;height:49px}.dashboardCrest{width:68px;height:78px}
+ .headerCrest{width:72px;height:80px}
 }
-.dashboardCrest{width:68px;height:78px}
+
  .teamCrest span{font-size:.78rem}
 }
+
+
+header .head{position:relative;justify-content:center;min-height:135px}
+.headerTools{position:absolute;right:0;top:0}
+.headerBrand h1{margin:0}
+.headerBrand p{margin-top:3px}
+@media(max-width:620px){
+ header .head{min-height:120px}
+ .headerTools{right:0;top:0}
+ .headerTools button{padding:6px 7px}
+}
+
+
+.appSplash{
+ position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,var(--team-secondary),var(--team-primary));
+ display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;
+ transition:opacity .35s ease,visibility .35s ease
+}
+.appSplash.hiddenSplash{opacity:0;visibility:hidden}
+.splashCrest{width:120px;height:132px;margin-bottom:14px}
+.appSplash h2{margin:0;font-size:1.45rem}
+.appSplash p{margin:6px 0 0;opacity:.78;font-size:.8rem}
 
 </style>
 </head>
 <body>
+<div id="appSplash" class="appSplash">
+ <div id="splashTeamCrest" class="teamCrest splashCrest"></div>
+ <h2>Controle de Apostas</h2>
+ <p>Organizando suas operações</p>
+</div>
 
-<header><div class="head"><div class="headerBrand"><div id="headerTeamCrest" class="teamCrest headerCrest"></div><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v21</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div></div><div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div class="headerBrand"><div id="headerTeamCrest" class="teamCrest headerCrest"></div><div><h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v22</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div></div><div class="headerTools"><button id="settingsBtn" class="secondary">⚙️</button><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -223,7 +250,7 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
 <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button id="dashboardSettingsBtn" class="secondary">⚙️ Aparência</button></div>
 <div class="card dashboardHero">
  <div class="dashboardHeroGrid">
-  <div id="dashboardTeamCrest" class="teamCrest dashboardCrest"></div><div class="heroMain"><span>Patrimônio total</span><strong id="heroCapital">R$ 0,00</strong><div class="muted" id="heroThemeName">Controle de Apostas</div></div>
+  <div class="heroMain"><span>Patrimônio total</span><strong id="heroCapital">R$ 0,00</strong><div class="muted">Gestão completa das suas apostas</div></div>
   <div class="heroStat"><span>Jogos hoje</span><b id="heroGamesToday">0</b></div>
   <div class="heroStat"><span>Entradas hoje</span><b id="heroEntriesToday">0</b></div>
   <div class="heroStat"><span>Em jogo hoje</span><b id="heroInPlayToday">R$ 0,00</b></div>
@@ -403,9 +430,7 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
    <label>Cor principal<input id="customPrimary" class="colorInput" type="color" value="#2563eb"></label>
    <label>Cor secundária<input id="customSecondary" class="colorInput" type="color" value="#172033"></label>
   </div>
-  <label style="margin-top:9px">Legenda do tema
-   <input id="themeDisplayName" placeholder="Opcional">
-  </label>
+  
   <label style="margin-top:9px">Escudo personalizado
    <input id="crestImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
   </label>
@@ -425,7 +450,7 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
    <button id="resetAppearance" class="secondary">Restaurar padrão</button>
   </div>
   <div class="themePreview">
-   <div class="themePreviewHeader"><strong id="previewThemeName">Controle de Apostas</strong><div style="opacity:.8;font-size:.78rem">Prévia do cabeçalho</div></div>
+   <div class="themePreviewHeader"><strong>Controle de Apostas</strong><div style="opacity:.8;font-size:.78rem">Prévia do cabeçalho</div></div>
    <div class="themeSwatches"><div id="previewPrimary" class="swatch"></div><div id="previewSecondary" class="swatch"></div></div>
   </div>
  </div>
@@ -496,7 +521,7 @@ body.dark .importantTab[data-tab="weekly365"]{box-shadow:0 0 0 1px var(--green)}
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV21";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV22";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -505,7 +530,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -1155,7 +1180,7 @@ function renderCrest(elId,theme){
 }
 function renderAllCrests(theme){
  renderCrest("headerTeamCrest",theme);
- renderCrest("dashboardTeamCrest",theme);
+ 
  renderCrest("appearanceCrestPreview",theme)
 }
 function applyAppearanceToPage(){
@@ -1163,19 +1188,19 @@ function applyAppearanceToPage(){
  document.documentElement.style.setProperty("--team-primary",primary);document.documentElement.style.setProperty("--team-secondary",secondary);document.documentElement.style.setProperty("--team-accent",preset.accent||"#ffffff");
  document.documentElement.style.setProperty("--header-image",a.headerImage?`url("${a.headerImage}")`:"none");
  document.body.classList.toggle("fan-style",a.style==="fan");document.body.classList.toggle("subtle-style",a.style!=="fan");
- setText("heroThemeName",a.theme==="neutral"?"Controle de Apostas":preset.name);$("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;
- $("previewThemeName").textContent=preset.name;renderAllCrests(a.theme);if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage&&!(a.officialCrests||{})[a.theme])cacheOfficialCrest(a.theme);$("appHeaderTitle").childNodes[0].nodeValue="Controle de Apostas "
+ $("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;
+ renderAllCrests(a.theme);if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage&&!(a.officialCrests||{})[a.theme])cacheOfficialCrest(a.theme);$("appHeaderTitle").childNodes[0].nodeValue="Controle de Apostas "
 }
 
 $("settingsBtn").onclick=()=>openPanel("appearance");
 $("dashboardSettingsBtn").onclick=()=>openPanel("appearance");
 function renderAppearance(){
- let a=appearanceSettings();$("teamTheme").value=a.theme||"neutral";$("themeStyle").value=a.style||"subtle";$("customPrimary").value=a.primary||"#2563eb";$("customSecondary").value=a.secondary||"#172033";$("themeDisplayName").value=a.displayName||"";
+ let a=appearanceSettings();$("teamTheme").value=a.theme||"neutral";$("themeStyle").value=a.style||"subtle";$("customPrimary").value=a.primary||"#2563eb";$("customSecondary").value=a.secondary||"#172033";
  $("themeImageStatus").textContent=a.headerImage?"Imagem personalizada adicionada.":"Nenhuma imagem personalizada.";$("crestImageStatus").textContent=a.crestImage?"Escudo personalizado adicionado.":((a.officialCrests||{})[a.theme]?"Escudo oficial salvo neste aparelho.":(TEAM_WIKI_TITLES[a.theme]?"O escudo oficial será carregado automaticamente.":"Nenhum escudo selecionado."));applyAppearanceToPage()
 }
 function previewAppearance(){
  let theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral,primary=theme==="custom"?$("customPrimary").value:preset.primary,secondary=theme==="custom"?$("customSecondary").value:preset.secondary;
- $("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;$("previewThemeName").textContent=$("themeDisplayName").value.trim()||preset.name
+ $("previewPrimary").style.background=primary;$("previewSecondary").style.background=secondary;$("previewThemeName").textContent=preset.name
 }
 
 $("teamTheme").addEventListener("change",async()=>{
@@ -1184,12 +1209,12 @@ $("teamTheme").addEventListener("change",async()=>{
  if(theme!=="custom"){
   $("customPrimary").value=preset.primary;
   $("customSecondary").value=preset.secondary;
-  $("themeDisplayName").value=preset.name
+  
  }
  renderAllCrests(theme);previewAppearance();
  if(TEAM_WIKI_TITLES[theme]&&!(a.officialCrests||{})[theme])await cacheOfficialCrest(theme)
 });
-["teamTheme","themeStyle","customPrimary","customSecondary","themeDisplayName"].forEach(id=>$(id).addEventListener("input",previewAppearance));
+["teamTheme","themeStyle","customPrimary","customSecondary"].forEach(id=>$(id).addEventListener("input",previewAppearance));
 
 $("crestImageInput").onchange=function(){
  let file=this.files[0];if(!file)return;
@@ -1215,7 +1240,7 @@ $("themeImageInput").onchange=function(){
 };
 $("applyAppearance").onclick=()=>{
  let a=appearanceSettings(),theme=$("teamTheme").value,preset=TEAM_THEMES[theme]||TEAM_THEMES.neutral;
- a.theme=theme;a.style=$("themeStyle").value;a.primary=$("customPrimary").value;a.secondary=$("customSecondary").value;a.displayName=$("themeDisplayName").value.trim()||preset.name;
+ a.theme=theme;a.style=$("themeStyle").value;a.primary=$("customPrimary").value;a.secondary=$("customSecondary").value;a.displayName=preset.name;
  save();applyAppearanceToPage();if(TEAM_WIKI_TITLES[a.theme]&&!a.crestImage)cacheOfficialCrest(a.theme);alert("Tema aplicado.")
 };
 $("removeThemeImage").onclick=()=>{appearanceSettings().headerImage="";$("themeImageInput").value="";save();renderAppearance()};
@@ -1400,7 +1425,7 @@ $("installBtn").onclick=async()=>{
 };
 updateInstallVisibility();
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();appearanceSettings();applyAppearanceToPage();S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
+load();appearanceSettings();applyAppearanceToPage();setTimeout(()=>{$("appSplash")?.classList.add("hiddenSplash")},900);S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
 })();
 </script>
 </body>

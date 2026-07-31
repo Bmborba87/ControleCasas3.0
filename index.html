@@ -234,13 +234,10 @@ body{padding-bottom:78px}
 .bottomNav button span{font-size:1.12rem}
 .bottomNav button.active{color:var(--team-primary);font-weight:bold}
 .tabs{display:none!important}
-.globalSearchWrap{position:relative;margin:10px 0}
-.globalSearchResults{
- position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:1000;background:var(--card);
- border:1px solid var(--border);border-radius:10px;max-height:360px;overflow:auto;box-shadow:0 12px 30px rgba(0,0,0,.18)
-}
-.globalResult{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
-.globalResult:last-child{border-bottom:0}.globalResult:hover{background:color-mix(in srgb,var(--team-primary) 10%,var(--card))}
+
+
+
+.globalResult:hover{background:color-mix(in srgb,var(--team-primary) 10%,var(--card))}
 .fab{position:fixed;right:18px;bottom:88px;width:56px;height:56px;border-radius:50%;z-index:1600;font-size:1.55rem;box-shadow:0 8px 20px rgba(0,0,0,.28)}
 .quickMenu{position:fixed;right:18px;bottom:152px;z-index:1600;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px;display:none;min-width:210px;box-shadow:0 12px 30px rgba(0,0,0,.24)}
 .quickMenu.open{display:grid;gap:6px}
@@ -256,6 +253,11 @@ body.dark .personSummaryCard{background:#18243a}
 
 
 }
+
+
+.bottomNav{pointer-events:auto}
+.bottomNav button{cursor:pointer;touch-action:manipulation;position:relative;z-index:1}
+.bottomNav button:active{transform:scale(.96)}
 
 </style>
 </head>
@@ -280,10 +282,7 @@ body.dark .personSummaryCard{background:#18243a}
 </nav>
 
 <section id="dashboard" class="panel active">
-<div class="globalSearchWrap">
- <input id="globalSearch" placeholder="Pesquisar pessoa, casa, jogo, movimentação ou meta">
- <div id="globalSearchResults" class="globalSearchResults hidden"></div>
-</div>
+
 <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button id="dashboardSettingsBtn" class="secondary">⚙️ Aparência</button></div>
 <div class="card dashboardHero">
  <div class="dashboardHeroGrid">
@@ -570,7 +569,7 @@ body.dark .personSummaryCard{background:#18243a}
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV25";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV26";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -579,7 +578,7 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV24")}if(!raw){raw=localStorage.getItem("controleApostasV23")}if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV25")}if(!raw){raw=localStorage.getItem("controleApostasV24")}if(!raw){raw=localStorage.getItem("controleApostasV23")}if(!raw){raw=localStorage.getItem("controleApostasV22")}if(!raw){raw=localStorage.getItem("controleApostasV21")}if(!raw){raw=localStorage.getItem("controleApostasV20")}if(!raw){raw=localStorage.getItem("controleApostasV19")}if(!raw){raw=localStorage.getItem("controleApostasV18")}if(!raw){raw=localStorage.getItem("controleApostasV17")}if(!raw){raw=localStorage.getItem("controleApostasV16")}if(!raw){raw=localStorage.getItem("controleApostasV15")}if(!raw){raw=localStorage.getItem("controleApostasV14")}if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
@@ -607,7 +606,9 @@ function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs
 window.openPanel=id=>{
  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));
  document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===id));
- if(id==="appearance")renderAppearance();
+ if(id==="appearance"&&typeof renderAppearance==="function")renderAppearance();
+ let bottomId=["dashboard","people","bets","weekly365","more"].includes(id)?id:"more";
+ document.querySelectorAll("[data-bottom]").forEach(b=>b.classList.toggle("active",b.dataset.bottom===bottomId));
  window.scrollTo({top:0,behavior:"smooth"})
 };
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
@@ -1310,35 +1311,18 @@ $("resetAppearance").onclick=()=>{
 };
 
 
-function updateBottomNav(id){
- document.querySelectorAll("[data-bottom]").forEach(b=>b.classList.toggle("active",b.dataset.bottom===id))
-}
-document.querySelectorAll("[data-bottom]").forEach(b=>b.onclick=()=>{openPanel(b.dataset.bottom);updateBottomNav(b.dataset.bottom)});
-const oldOpenPanel=window.openPanel;
-window.openPanel=id=>{oldOpenPanel(id);updateBottomNav(["dashboard","people","bets","weekly365","more"].includes(id)?id:"more")};
+document.querySelectorAll("[data-bottom]").forEach(button=>{
+ button.addEventListener("click",event=>{
+  event.preventDefault();
+  let target=button.dataset.bottom;
+  if(target)window.openPanel(target)
+ })
+});
 $("fabBtn").onclick=()=>$("quickMenu").classList.toggle("open");
 window.closeQuickMenu=()=>$("quickMenu").classList.remove("open");
-document.addEventListener("click",e=>{if(!e.target.closest("#quickMenu")&&!e.target.closest("#fabBtn"))closeQuickMenu()});
-
-function globalResults(q){
- q=q.trim().toLowerCase();if(!q)return[];
- let out=[];
- S.people.forEach(p=>{
-  if((p.name||"").toLowerCase().includes(q))out.push({type:"Pessoa",title:p.name,panel:"people",action:()=>{openPid=p.id}});
-  (p.houses||[]).forEach(h=>{if([h.name,h.login,h.url,...(h.tags||[])].join(" ").toLowerCase().includes(q))out.push({type:"Casa",title:p.name+" • "+h.name,panel:"people",action:()=>{openPid=p.id}})})
- });
- S.bets.forEach(b=>{if([b.event,b.note].join(" ").toLowerCase().includes(q))out.push({type:"Jogo",title:b.event,panel:"bets",action:()=>{$("betSearch").value=b.event}})});
- S.moves.forEach(m=>{if([m.label,m.note].join(" ").toLowerCase().includes(q))out.push({type:"Movimentação",title:m.label,panel:"history"})});
- (S.weeklyGoals||[]).forEach(g=>{if((g.accountName||"").toLowerCase().includes(q))out.push({type:"Meta",title:g.accountName,panel:"weekly365"})});
- return out.slice(0,30)
-}
-$("globalSearch").oninput=()=>{
- let r=globalResults($("globalSearch").value),box=$("globalSearchResults");
- box.classList.toggle("hidden",!r.length);
- box.innerHTML=r.map((x,i)=>`<div class="globalResult" onclick="openGlobalResult(${i})"><strong>${esc(x.title)}</strong><div class="muted">${x.type}</div></div>`).join("");
- window._globalResults=r
-};
-window.openGlobalResult=i=>{let x=(window._globalResults||[])[i];if(!x)return;if(x.action)x.action();openPanel(x.panel);render();$("globalSearchResults").classList.add("hidden")};
+document.addEventListener("click",e=>{
+ if(!e.target.closest("#quickMenu")&&!e.target.closest("#fabBtn"))closeQuickMenu()
+});
 
 window.archivePerson=id=>{let p=pBy(id);if(!p)return;if(confirm("Arquivar esta pessoa?")){p.archived=true;audit("Pessoa arquivada",p.name);save()}};
 window.archiveHouse=(pid,hid)=>{let h=hBy(pid,hid);if(!h)return;if(confirm("Arquivar esta casa?")){h.archived=true;audit("Casa arquivada",h.name);save()}};

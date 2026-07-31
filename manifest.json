@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=39",
+  "start_url": "./?v=40",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
@@ -17,6 +17,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v39",
-  "description": "Gestão de apostas, pessoas, casas, saldos e resultados."
+  "id": "./betmanager-v40",
+  "description": "Gestão de operações surebet com entrada principal, proteções e duplo green."
 }

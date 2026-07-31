@@ -1,6 +1,40 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+
+<script>
+window.__EMPTY_APP_STATE__={
+ people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},
+ audit:[],trash:[],undoStack:[],dailyCloses:[]
+};
+window.__APP_BOOTSTRAP__=(function(){
+ var keys=[
+  "controleApostasData","controleApostasRecovery","controleApostasV33",
+  "controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27",
+  "controleApostasV26","controleApostasV25","controleApostasV24","controleApostasV23",
+  "controleApostasV22","controleApostasV21","controleApostasV20","controleApostasV19",
+  "controleApostasV18","controleApostasV17","controleApostasV16","controleApostasV15",
+  "controleApostasV14","controleApostasV13","controleApostasV12","controleApostasV11",
+  "controleApostasV10","controleApostasV9","controleApostasV8"
+ ];
+ var fallback=null;
+ for(var i=0;i<keys.length;i++){
+  try{
+   var raw=localStorage.getItem(keys[i]);
+   if(!raw)continue;
+   var parsed=JSON.parse(raw);
+   if(!parsed||!Array.isArray(parsed.people))continue;
+   if(!fallback)fallback=parsed;
+   var hasData=parsed.people.length>0||
+    (Array.isArray(parsed.bets)&&parsed.bets.length>0)||
+    (Array.isArray(parsed.moves)&&parsed.moves.length>0);
+   if(hasData)return parsed
+  }catch(error){console.warn("Chave ignorada:",keys[i],error)}
+ }
+ return fallback||JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__))
+})();
+</script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111827">
@@ -271,7 +305,7 @@ body.dark .personSummaryCard{background:#18243a}
   <div class="headerBrand">
    <div id="headerTeamCrest" class="teamCrest headerCrest"></div>
    <div>
-    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v30</small></h1>
+    <h1 id="appHeaderTitle">Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v33</small></h1>
     <p>Gestão de apostas, casas, freebets, bônus e resultados.</p>
    </div>
   </div>
@@ -581,22 +615,11 @@ window.goToSection=function(id){
         var serialized=JSON.stringify(migrated);
         localStorage.setItem(BACKUP_KEY,serialized);
         localStorage.setItem("controleApostasRecovery",serialized);
+        localStorage.setItem("controleApostasV33",serialized);
         COMPATIBLE_KEYS.forEach(function(key){
           try{localStorage.setItem(key,serialized)}catch(error){console.warn("Falha na chave "+key,error)}
         });
-
-        var applied=false;
-        try{
-          if(typeof S!=="undefined"){
-            S=migrated;
-            if(typeof persistState==="function")persistState();
-            if(typeof render==="function")render();
-            if(typeof goToSection==="function")goToSection("people");
-            applied=true
-          }
-        }catch(applyError){
-          console.error("Dados salvos, mas não aplicados imediatamente:",applyError)
-        }
+        localStorage.setItem("controleApostasImportPending","1");
 
         alert(
           "Backup importado com sucesso.\n\n"+
@@ -604,14 +627,9 @@ window.goToSection=function(id){
           "Casas: "+houses+"\n"+
           "Jogos/apostas: "+migrated.bets.length+"\n"+
           "Metas semanais: "+migrated.weeklyGoals.length+
-          (applied?"\n\nOs dados já foram carregados na tela de Pessoas.":"\n\nOs dados foram salvos. Toque em Pessoas para visualizá-los.")
+          "\n\nO aplicativo será reaberto com os dados carregados."
         );
-
-        if(!applied){
-          setTimeout(function(){
-            try{location.href=location.pathname+"?v=30#people"}catch(error){location.reload()}
-          },300)
-        }
+        location.replace(location.pathname+"?v=33#importado")
       }catch(error){
         console.error("Erro ao importar:",error);
         alert("Não foi possível importar este backup.\n\nDetalhe: "+(error.message||error)+"\n\nO arquivo original não foi alterado.")
@@ -700,7 +718,7 @@ window.goToSection=function(id){
 <select id="fOpen"><option value="all">Todas</option><option value="open">Com aposta aberta</option><option value="none">Sem aposta aberta</option></select>
 <select id="fResult"><option value="all">Qualquer resultado</option><option value="profit">Com lucro</option><option value="loss">Com prejuízo</option></select>
 </div>
-<div class="card" style="display:flex;gap:7px;flex-wrap:wrap"><button id="showImportedBtn" type="button" class="primary" onclick="goToSection('people');render();return false">Ver dados importados</button><button id="exportBtn" type="button" class="secondary" onclick="return independentBackupExport()">Exportar backup</button><button id="importBtn" type="button" class="secondary" onclick="return independentBackupChoose()">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden onchange="return independentBackupImport(this)"></div>
+<div class="card" style="display:flex;gap:7px;flex-wrap:wrap"><strong id="dataDiagnostic" style="align-self:center"></strong><button id="showImportedBtn" type="button" class="primary" onclick="goToSection('people');render();return false">Ver dados importados</button><button id="exportBtn" type="button" class="secondary" onclick="return independentBackupExport()">Exportar backup</button><button id="importBtn" type="button" class="secondary" onclick="return independentBackupChoose()">Importar backup</button><input id="importFile" type="file" accept=".json,application/json" hidden onchange="return independentBackupImport(this)"></div>
 <div id="peopleList"></div>
 </section>
 
@@ -946,7 +964,7 @@ window.goToSection=function(id){
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasData";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[],dailyCloses:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasData";var S=window.S=window.__APP_BOOTSTRAP__||JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__)),openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -1007,49 +1025,20 @@ window.persistState=function persistState(){
 }
 function load(){
  try{
-  const keys=[
-   KEY,"controleApostasRecovery","controleApostasV30","controleApostasV29","controleApostasV28","controleApostasV27","controleApostasV26","controleApostasV25",
-   "controleApostasV24","controleApostasV23","controleApostasV22","controleApostasV21",
-   "controleApostasV20","controleApostasV19","controleApostasV18","controleApostasV17",
-   "controleApostasV16","controleApostasV15","controleApostasV14","controleApostasV13",
-   "controleApostasV12","controleApostasV11","controleApostasV10","controleApostasV9",
-   "controleApostasV8","controleCasasProfV7","controleCasasProfV6","controleCasasProfV2",
-   "controleCasasProfissional_v1"
-  ];
-  let raw=null,sourceKey="";
-  for(const key of keys){
-   let candidate=localStorage.getItem(key);
-   if(!candidate)continue;
-   try{
-    let parsedCandidate=JSON.parse(candidate);
-    let hasContent=Array.isArray(parsedCandidate.people)&&(
-      parsedCandidate.people.length>0||
-      (Array.isArray(parsedCandidate.bets)&&parsedCandidate.bets.length>0)||
-      (Array.isArray(parsedCandidate.moves)&&parsedCandidate.moves.length>0)
-    );
-    if(hasContent){raw=candidate;sourceKey=key;break}
-    if(!raw){raw=candidate;sourceKey=key}
-   }catch(error){console.warn("Chave inválida ignorada:",key)}
+  if(S&&Array.isArray(S.people)){
+   let hasBootstrap=S.people.length>0||
+    (Array.isArray(S.bets)&&S.bets.length>0)||
+    (Array.isArray(S.moves)&&S.moves.length>0);
+   if(hasBootstrap){
+    window.S=S;
+    persistState();
+    return
+   }
   }
-  if(!raw)return;
-  let x=JSON.parse(raw);
-  if(x&&Array.isArray(x.people)){
-   S={
-    people:x.people,
-    bets:Array.isArray(x.bets)?x.bets:[],
-    moves:Array.isArray(x.moves)?x.moves:[],
-    weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],
-    snapshots:Array.isArray(x.snapshots)?x.snapshots:[],
-    settings:x.settings||{},
-    audit:Array.isArray(x.audit)?x.audit:[],
-    trash:Array.isArray(x.trash)?x.trash:[],
-    undoStack:Array.isArray(x.undoStack)?x.undoStack:[],
-    dailyCloses:Array.isArray(x.dailyCloses)?x.dailyCloses:[]
-   };
-   if(sourceKey!==KEY)persistState()
-  }
+  S=window.S=window.__APP_BOOTSTRAP__||JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__))
  }catch(error){
-  console.error("Erro ao carregar dados:",error)
+  console.error("Erro ao carregar estado inicial:",error);
+  S=window.S=JSON.parse(JSON.stringify(window.__EMPTY_APP_STATE__))
  }
 }
 function save(){
@@ -1097,7 +1086,7 @@ function render(){
  ];
  const errors=[];
  tasks.forEach(([name,fn])=>{try{fn()}catch(e){console.error("Erro ao renderizar "+name,e);errors.push(name+": "+e.message)}});
- if(errors.length)console.warn("Renderização parcial:",errors);renderSaveStatus()
+ if(errors.length)console.warn("Renderização parcial:",errors);renderSaveStatus();updateDataDiagnostic()
 }
 function renderDash(){
  let t=total();setText("dCapital",money(t.capital));setText("dBalance",money(t.balance));setText("dInPlay",money(t.inPlay));setText("dRoi",pct(t.roi));setText("dProfit",money(t.profit));setText("dPeople",t.people);setText("dHouses",t.houses);setText("dOpen",t.open);setText("dFreebet",money(t.freebet));setText("dBonus",money(t.bonus));
@@ -1118,6 +1107,11 @@ function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance"
 function renderPeople(){let ps=[...S.people].filter(p=>!p.archived).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].filter(h=>!h.archived).sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
 let pf=p.houses.reduce((s,h)=>s+Number(h.freebet||0),0),pbns=p.houses.reduce((s,h)=>s+Number(h.bonus||0),0),openEntries=S.bets.flatMap(b=>b.entries||[]).filter(e=>e.pid===p.id&&e.status==="open").length;let summary=`<div class="personSummaryGrid"><div class="personSummaryCard"><span>Disponível</span><strong>${money(pb)}</strong></div><div class="personSummaryCard"><span>Em jogo</span><strong>${money(pi)}</strong></div><div class="personSummaryCard"><span>Freebets</span><strong>${money(pf)}</strong></div><div class="personSummaryCard"><span>Bônus</span><strong>${money(pbns)}</strong></div><div class="personSummaryCard"><span>Lucro</span><strong>${money(pp)}</strong></div><div class="personSummaryCard"><span>Apostas abertas</span><strong>${openEntries}</strong></div></div>`;let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Bônus</span><b>${money(h.bonus||0)}</b></div><div class="stat"><span>Rollover</span><b>${money(h.rollover||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div>${(h.tags||[]).length?`<div class="muted" style="margin-top:6px">🏷️ ${(h.tags||[]).map(esc).join(" • ")}</div>`:""}${h.expiry?`<div class="muted" style="margin-top:4px">⏰ Validade: ${new Date(h.expiry+"T12:00:00").toLocaleDateString("pt-BR")}</div>`:""}${h.maxStake?`<div class="muted">Limite/aposta: ${money(h.maxStake)}</div>`:""}${h.dailyLimit?`<div class="muted">Limite diário: ${money(h.dailyLimit)}</div>`:""}<div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="secondary" onclick="archiveHouse('${p.id}','${h.id}')">Arquivar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
 return`<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="secondary" onclick="event.stopPropagation();archivePerson('${p.id}')">Arquivar</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${summary}${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`}).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'}
+function updateDataDiagnostic(){
+ let el=$("dataDiagnostic");if(!el)return;
+ let houses=(S.people||[]).reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0);
+ el.textContent=(S.people||[]).length+" pessoa(s) • "+houses+" casa(s) carregadas"
+}
 window.togglePerson=id=>{openPid=openPid===id?null:id;render()};window.toggleFav=(pid,hid)=>{let h=hBy(pid,hid);h.favorite=!h.favorite;save()}
 $("personForm").onsubmit=e=>{e.preventDefault();let name=$("personName").value.trim();if(!name)return;if(S.people.some(p=>p.name.toLowerCase()===name.toLowerCase()))return alert("Nome já cadastrado.");let p={id:uid(),name,houses:[]};S.people.push(p);openPid=p.id;$("personForm").reset();save()}
 ["search","fBalance","fOpen","fResult"].forEach(id=>$(id).oninput=renderPeople)
@@ -1984,7 +1978,16 @@ try{
    if(!h.lastMovement)h.lastMovement=""
   })
  });
- render()
+ render();
+ if(localStorage.getItem("controleApostasImportPending")==="1"||location.hash==="#importado"){
+  localStorage.removeItem("controleApostasImportPending");
+  setTimeout(()=>{
+   let people=Array.isArray(S.people)?S.people.length:0;
+   let houses=(S.people||[]).reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0);
+   goToSection("people");
+   alert("Dados carregados no aplicativo.\n\nPessoas: "+people+"\nCasas: "+houses)
+  },100)
+ }
 }catch(initError){
  console.error("Erro de inicialização:",initError);
  let box=$("startupError"),text=$("startupErrorText");

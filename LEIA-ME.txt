@@ -1,25 +1,12 @@
-CONTROLE DE APOSTAS — VERSÃO 30
+CONTROLE DE APOSTAS — VERSÃO 33
 
-CORREÇÃO DA IMPORTAÇÃO
-- O backup é aplicado imediatamente na memória do aplicativo.
-- Não depende mais de recarregar a página para mostrar as pessoas.
-- Depois da importação, a tela Pessoas é aberta automaticamente.
-- Os dados são gravados na chave permanente e em chaves de compatibilidade.
-- Uma cópia de recuperação também é criada.
-- Ao iniciar, o aplicativo ignora estados vazios se encontrar uma cópia com dados.
-- Adicionado botão “Ver dados importados”.
-- Se a aplicação imediata falhar, a página abre novamente diretamente em Pessoas.
+- Os dados são carregados antes da interface ser criada.
+- A importação salva na chave permanente e em cópias de recuperação.
+- Após importar, o aplicativo reinicia já com os dados.
+- Estados vazios são ignorados quando existe uma cópia com conteúdo.
+- A tela Pessoas abre automaticamente e mostra o total carregado.
 
-TESTE COM O ARQUIVO ENVIADO
+TESTE COM O JSON ENVIADO
 - 5 pessoas.
 - 69 casas.
-- Pessoas: Bruno, Douglas, Luana, Lucas e Luíza.
-- Conversão e persistência confirmadas.
-
-ATUALIZAÇÃO
-1. Extraia o ZIP.
-2. Substitua todos os arquivos no GitHub.
-3. Faça Commit changes.
-4. Abra com ?v=30.
-5. Importe o JSON.
-6. O aplicativo deve abrir automaticamente a tela Pessoas com os dados.
+- Bruno, Douglas, Luana, Lucas e Luíza.

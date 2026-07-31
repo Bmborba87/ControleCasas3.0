@@ -1,18 +1,25 @@
-CONTROLE DE APOSTAS — VERSÃO 13
+CONTROLE DE APOSTAS — VERSÃO 14
 
-AJUSTES NA ABA SEMANAL BET365
-- Removido o campo “Nome da meta”.
-- Agora existe apenas o campo “Nome da conta”.
-- O nome pode ser qualquer texto e não precisa existir na lista de pessoas cadastradas.
-- A meta continua editável.
-- Toda nova meta abre com R$ 1.500 por padrão.
-- Depois de criar uma meta, o campo volta automaticamente para R$ 1.500.
-- Metas antigas são convertidas automaticamente, usando o nome anterior como nome da conta.
-- Todas as outras funções da aba foram mantidas.
+NOVOS MÓDULOS
+- Operando agora: jogos de hoje, entradas abertas, potencial e links rápidos.
+- Agenda: data e hora do evento no cadastro da aposta.
+- Liquidação em massa: todas Green, Red ou Anuladas.
+- Modo escuro.
+- Central de arbitragem para 2 ou 3 resultados.
+- Relatório mensal e exportação CSV.
+- Gráfico simples da evolução patrimonial.
+- Snapshot/backup local automático diário.
+- Limite por aposta e limite diário em cada casa.
+- Alertas e estatísticas já existentes preservados.
+- Semanal Bet365 preservado.
+- Compatibilidade com backups antigos preservada.
+
+IMPORTANTE
+A central de arbitragem é uma calculadora matemática. Confira odds, regras, comissões e mercados antes de registrar as apostas.
 
 ATUALIZAÇÃO
 1. Extraia o ZIP.
-2. Substitua todos os arquivos do GitHub.
+2. Substitua todos os arquivos no GitHub.
 3. Faça Commit changes.
-4. Abra com ?v=13 no final.
-5. Se o app antigo continuar instalado, remova e instale novamente.
+4. Abra com ?v=14.
+5. Se necessário, remova e reinstale o aplicativo.

@@ -64,11 +64,31 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
  .weeklyEntry .weeklyValue,.weeklyEntry button{grid-column:2}
 }
 
+
+body.dark{--bg:#0b1220;--card:#111827;--text:#e5e7eb;--muted:#9ca3af;--border:#263244;--blue:#3b82f6;--green:#22c55e;--red:#f87171;--orange:#fb923c;--dark:#030712}
+body.dark input,body.dark select,body.dark textarea{background:#172033;color:#e5e7eb}
+body.dark .stat,body.dark .entryBuilder,body.dark .betEntry{background:#172033}
+.headerTools{display:flex;gap:7px;align-items:center}
+.operationalGame{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.operationalHead{display:flex;justify-content:space-between;gap:10px;padding:13px;cursor:pointer}
+.operationalBody{padding:0 13px 13px}
+.alertItem{padding:9px;border-bottom:1px solid var(--border)}
+.alertItem:last-child{border-bottom:0}
+.chartBox{height:220px;display:flex;align-items:flex-end;gap:5px;padding:15px 5px 5px;border-bottom:1px solid var(--border)}
+.chartBar{flex:1;min-width:8px;background:linear-gradient(180deg,#3b82f6,#2563eb);border-radius:5px 5px 0 0;position:relative}
+.chartBar span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:.62rem;color:var(--muted);white-space:nowrap}
+.arbGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.arbResult{padding:12px;border:1px solid var(--border);border-radius:10px;margin-top:10px}
+.limitWarning{color:var(--red);font-size:.76rem;font-weight:bold;margin-top:4px}
+.reportGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.autoBackupItem{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+@media(max-width:760px){.arbGrid,.reportGrid{grid-template-columns:1fr}.headerTools{flex-wrap:wrap;justify-content:flex-end}.chartBox{height:180px}}
+
 </style>
 </head>
 <body>
 
-<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v13</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="userMenu"><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>Controle de Apostas <small style="font-size:.65rem;color:#93c5fd">v14</small></h1><p>Gestão de apostas, casas, freebets, bônus e resultados.</p></div><div class="headerTools"><button id="themeBtn" class="secondary">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -77,6 +97,8 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 <button class="tab" data-tab="history">Histórico</button>
 <button class="tab" data-tab="snapshot">Por data</button>
 <button class="tab" data-tab="weekly365">Semanal Bet365</button>
+<button class="tab" data-tab="arbitrage">Arbitragem</button>
+<button class="tab" data-tab="reports">Relatórios</button>
 </nav>
 
 <section id="dashboard" class="panel active">
@@ -160,12 +182,44 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
   <div id="weeklyGoalsList"></div>
 </section>
 
+
+<section id="operations" class="panel">
+ <div class="card"><h3>Operando agora</h3><p class="muted">Jogos de hoje e apostas abertas, com acesso rápido às casas envolvidas.</p></div>
+ <div id="operationsList"></div>
+</section>
+
+<section id="arbitrage" class="panel">
+ <div class="card">
+  <h3>Central de Arbitragem</h3>
+  <p class="muted">Informe de duas a três odds e o valor total que deseja distribuir.</p>
+  <div class="arbGrid">
+   <label>Odd 1<input id="arbOdd1" inputmode="decimal" placeholder="2,10"></label>
+   <label>Odd 2<input id="arbOdd2" inputmode="decimal" placeholder="2,05"></label>
+   <label>Odd 3 (opcional)<input id="arbOdd3" inputmode="decimal" placeholder="3,50"></label>
+  </div>
+  <label style="margin-top:8px">Valor total<input id="arbTotal" inputmode="decimal" value="1000,00"></label>
+  <button id="calcArbBtn" class="primary" style="margin-top:9px">Calcular distribuição</button>
+  <div id="arbResult" class="arbResult empty">Preencha as odds para calcular.</div>
+ </div>
+</section>
+
+<section id="reports" class="panel">
+ <div class="card">
+  <h3>Relatório mensal</h3>
+  <label>Mês<input id="reportMonth" type="month"></label>
+  <div id="reportSummary" class="reportGrid" style="margin-top:10px"></div>
+  <button id="exportCsvBtn" class="secondary" style="margin-top:10px">Exportar movimentações em CSV</button>
+ </div>
+ <div class="card"><h3>Evolução patrimonial</h3><div id="capitalChart" class="chartBox"></div></div>
+ <div class="card"><h3>Backups automáticos locais</h3><p class="muted">Um retrato é salvo automaticamente uma vez por dia neste aparelho.</p><div id="autoBackupsList"></div></div>
+</section>
+
 </main>
 
 <dialog id="houseDialog"><form id="houseForm">
 <div class="dhead"><div><h2 id="houseTitle">Adicionar casa</h2><div id="housePerson" class="muted"></div></div><button type="button" class="secondary" onclick="closeD('houseDialog')">X</button></div>
 <input id="housePid" type="hidden"><input id="houseHid" type="hidden">
-<label>Casa<input id="houseName"></label><label>Login/identificação<input id="houseLogin"></label><label>Link da casa<input id="houseUrl" type="url" inputmode="url" placeholder="https://www.exemplo.com"></label><label>Saldo<input id="houseBalance" inputmode="decimal" placeholder="0,00"></label><label>Bônus disponível<input id="houseBonus" inputmode="decimal" placeholder="0,00"></label><label>Rollover restante<input id="houseRollover" inputmode="decimal" placeholder="0,00"></label><label>Validade da freebet/bônus<input id="houseExpiry" type="date"></label><label>Tags<input id="houseTags" placeholder="VIP, exchange, limitada"></label><label>Observação<textarea id="houseNote" rows="2"></textarea></label>
+<label>Casa<input id="houseName"></label><label>Login/identificação<input id="houseLogin"></label><label>Link da casa<input id="houseUrl" type="url" inputmode="url" placeholder="https://www.exemplo.com"></label><label>Saldo<input id="houseBalance" inputmode="decimal" placeholder="0,00"></label><label>Bônus disponível<input id="houseBonus" inputmode="decimal" placeholder="0,00"></label><label>Rollover restante<input id="houseRollover" inputmode="decimal" placeholder="0,00"></label><label>Limite por aposta<input id="houseMaxStake" inputmode="decimal" placeholder="0,00 = sem limite"></label><label>Limite diário<input id="houseDailyLimit" inputmode="decimal" placeholder="0,00 = sem limite"></label><label>Validade da freebet/bônus<input id="houseExpiry" type="date"></label><label>Tags<input id="houseTags" placeholder="VIP, exchange, limitada"></label><label>Observação<textarea id="houseNote" rows="2"></textarea></label>
 <div class="dactions"><button type="button" class="secondary" onclick="closeD('houseDialog')">Cancelar</button><button class="primary">Salvar</button></div>
 </form></dialog>
 
@@ -190,7 +244,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <dialog id="betDialog"><form id="betForm">
 <div class="dhead"><div><h2>Nova aposta</h2><div class="muted">Cadastre todas as entradas do mesmo jogo juntas.</div></div><button type="button" class="secondary" onclick="closeD('betDialog')">X</button></div>
-<label>Jogo/evento<input id="betEvent" required placeholder="Ex.: Time A x Time B"></label>
+<label>Jogo/evento<input id="betEvent" required placeholder="Ex.: Time A x Time B"></label><label>Data e hora do jogo<input id="betEventDate" type="datetime-local"></label>
 <label>Observação<textarea id="betNote" rows="2"></textarea></label>
 <div>
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -211,7 +265,7 @@ dialog{width:min(560px,calc(100% - 18px));border:0;border-radius:12px;padding:0;
 
 <script>
 (()=>{"use strict";
-const KEY="controleApostasV13";let S={people:[],bets:[],moves:[],weeklyGoals:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="controleApostasV14";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{}},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -220,14 +274,26 @@ function n(v){let x=String(v||"").trim().replace(/[^\d,.-]/g,"");if(x.includes("
 function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]})}
 function load(){try{
 let raw=localStorage.getItem(KEY);
-if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
+if(!raw){raw=localStorage.getItem("controleApostasV13")}if(!raw){raw=localStorage.getItem("controleApostasV12")}if(!raw){raw=localStorage.getItem("controleApostasV11")}if(!raw){raw=localStorage.getItem("controleApostasV10")}if(!raw){raw=localStorage.getItem("controleApostasV9")}if(!raw){raw=localStorage.getItem("controleApostasV8")}if(!raw){raw=localStorage.getItem("controleCasasProfV7")}if(!raw){raw=localStorage.getItem("controleCasasProfV6")}if(!raw){raw=localStorage.getItem("controleCasasProfV2")}
 if(!raw){raw=localStorage.getItem("controleCasasProfissional_v1")}
 let x=raw?JSON.parse(raw):null;
 if(x&&Array.isArray(x.people)){
-S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[]};
+S={people:x.people,bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],snapshots:Array.isArray(x.snapshots)?x.snapshots:[],settings:x.settings||{}};
 localStorage.setItem(KEY,JSON.stringify(S))
 }}catch(e){console.error(e)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(S));render()}
+function save(){
+ createDailySnapshot();
+ localStorage.setItem(KEY,JSON.stringify(S));
+ render()
+}
+function createDailySnapshot(){
+ if(!Array.isArray(S.snapshots))S.snapshots=[];
+ let day=new Date().toISOString().slice(0,10);
+ if(S.snapshots.some(x=>x.date===day))return;
+ let hs=allH(),balance=hs.reduce((s,h)=>s+Number(h.balance||0),0),inPlay=hs.reduce((s,h)=>s+Number(h.inPlay||0),0),profit=hs.reduce((s,h)=>s+Number(h.profit||0),0);
+ S.snapshots.push({id:uid(),date:day,balance,inPlay,capital:balance+inPlay,profit});
+ S.snapshots=S.snapshots.slice(-365)
+}
 function pBy(id){return S.people.find(p=>p.id===id)} function hBy(pid,hid){let p=pBy(pid);return p&&p.houses.find(h=>h.id===hid)}
 function allH(){return S.people.flatMap(p=>p.houses.map(h=>({...h,freebet:Number(h.freebet||0),pid:p.id,pname:p.name})))}
 function move(type,value,pid,hid,label,note,deltaBalance=0,deltaInPlay=0,deltaProfit=0){S.moves.unshift({id:uid(),date:new Date().toISOString(),type,value,pid,hid,label,note:note||"",deltaBalance,deltaInPlay,deltaProfit});let h=hBy(pid,hid);if(h)h.lastMovement=new Date().toISOString()}
@@ -235,8 +301,8 @@ function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
 function render(){
  const tasks=[
-  ["painel",renderDash],["pessoas",renderPeople],["apostas",renderBets],
-  ["histórico",renderHistory],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["transferências",fillTransfers]
+  ["painel",renderDash],["operando",renderOperations],["pessoas",renderPeople],["apostas",renderBets],
+  ["histórico",renderHistory],["por data",renderSnapshot],["Semanal Bet365",renderWeeklyGoals],["arbitragem",renderArbitrage],["relatórios",renderReports],["transferências",fillTransfers]
  ];
  const errors=[];
  tasks.forEach(([name,fn])=>{try{fn()}catch(e){console.error("Erro ao renderizar "+name,e);errors.push(name+": "+e.message)}});
@@ -255,7 +321,7 @@ function renderDash(){
 }
 function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login+" "+(h.url||"")+" "+(h.tags||[]).join(" ")).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
 function renderPeople(){let ps=[...S.people].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
-let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Bônus</span><b>${money(h.bonus||0)}</b></div><div class="stat"><span>Rollover</span><b>${money(h.rollover||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div>${(h.tags||[]).length?`<div class="muted" style="margin-top:6px">🏷️ ${(h.tags||[]).map(esc).join(" • ")}</div>`:""}${h.expiry?`<div class="muted" style="margin-top:4px">⏰ Validade: ${new Date(h.expiry+"T12:00:00").toLocaleDateString("pt-BR")}</div>`:""}<div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
+let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Bônus</span><b>${money(h.bonus||0)}</b></div><div class="stat"><span>Rollover</span><b>${money(h.rollover||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div>${(h.tags||[]).length?`<div class="muted" style="margin-top:6px">🏷️ ${(h.tags||[]).map(esc).join(" • ")}</div>`:""}${h.expiry?`<div class="muted" style="margin-top:4px">⏰ Validade: ${new Date(h.expiry+"T12:00:00").toLocaleDateString("pt-BR")}</div>`:""}${h.maxStake?`<div class="muted">Limite/aposta: ${money(h.maxStake)}</div>`:""}${h.dailyLimit?`<div class="muted">Limite diário: ${money(h.dailyLimit)}</div>`:""}<div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
 return`<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`}).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'}
 window.togglePerson=id=>{openPid=openPid===id?null:id;render()};window.toggleFav=(pid,hid)=>{let h=hBy(pid,hid);h.favorite=!h.favorite;save()}
 $("personForm").onsubmit=e=>{e.preventDefault();let name=$("personName").value.trim();if(!name)return;if(S.people.some(p=>p.name.toLowerCase()===name.toLowerCase()))return alert("Nome já cadastrado.");let p={id:uid(),name,houses:[]};S.people.push(p);openPid=p.id;$("personForm").reset();save()}
@@ -273,18 +339,18 @@ window.openHouseSite=(pid,hid)=>{
  window.open(url,"_blank","noopener,noreferrer")
 };
 window.addHouse=pid=>{$("houseForm").reset();$("housePid").value=pid;$("houseHid").value="";$("houseTitle").textContent="Adicionar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
-window.editHouse=(pid,hid)=>{let h=hBy(pid,hid);$("housePid").value=pid;$("houseHid").value=hid;$("houseName").value=h.name;$("houseLogin").value=h.login;$("houseUrl").value=h.url||"";$("houseBonus").value=h.bonus||0;$("houseRollover").value=h.rollover||0;$("houseExpiry").value=h.expiry||"";$("houseTags").value=(h.tags||[]).join(", ");$("houseBalance").value=h.balance.toLocaleString("pt-BR",{minimumFractionDigits:2});$("houseNote").value=h.note;$("houseTitle").textContent="Editar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
+window.editHouse=(pid,hid)=>{let h=hBy(pid,hid);$("housePid").value=pid;$("houseHid").value=hid;$("houseName").value=h.name;$("houseLogin").value=h.login;$("houseUrl").value=h.url||"";$("houseBonus").value=h.bonus||0;$("houseRollover").value=h.rollover||0;$("houseMaxStake").value=h.maxStake||0;$("houseDailyLimit").value=h.dailyLimit||0;$("houseExpiry").value=h.expiry||"";$("houseTags").value=(h.tags||[]).join(", ");$("houseBalance").value=h.balance.toLocaleString("pt-BR",{minimumFractionDigits:2});$("houseNote").value=h.note;$("houseTitle").textContent="Editar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
 $("houseForm").onsubmit=e=>{
  e.preventDefault();
- let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value,name=$("houseName").value.trim(),bal=n($("houseBalance").value),url=normalizeUrl($("houseUrl").value),bonus=n($("houseBonus").value)||0,rollover=n($("houseRollover").value)||0,expiry=$("houseExpiry").value,tags=$("houseTags").value.split(",").map(x=>x.trim()).filter(Boolean);
+ let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value,name=$("houseName").value.trim(),bal=n($("houseBalance").value),url=normalizeUrl($("houseUrl").value),bonus=n($("houseBonus").value)||0,rollover=n($("houseRollover").value)||0,maxStake=n($("houseMaxStake").value)||0,dailyLimit=n($("houseDailyLimit").value)||0,expiry=$("houseExpiry").value,tags=$("houseTags").value.split(",").map(x=>x.trim()).filter(Boolean);
  if(!name||isNaN(bal))return alert("Preencha nome e saldo.");
  if($("houseUrl").value.trim()&&!url)return alert("Informe um link válido.");
  if(hid){
   let h=hBy(pid,hid),diff=bal-h.balance;
-  h.name=name;h.login=$("houseLogin").value.trim();h.url=url||"";h.note=$("houseNote").value.trim();h.bonus=bonus;h.rollover=rollover;h.expiry=expiry;h.tags=tags;h.lastMovement=new Date().toISOString();
+  h.name=name;h.login=$("houseLogin").value.trim();h.url=url||"";h.note=$("houseNote").value.trim();h.bonus=bonus;h.rollover=rollover;h.maxStake=maxStake;h.dailyLimit=dailyLimit;h.expiry=expiry;h.tags=tags;h.lastMovement=new Date().toISOString();
   if(diff!==0){h.balance=bal;if(diff>0)h.deposits+=diff;move("adjust",Math.abs(diff),pid,hid,"Ajuste de saldo","",diff,0,0)}
  }else{
-  let h={id:uid(),name,login:$("houseLogin").value.trim(),url:url||"",note:$("houseNote").value.trim(),balance:bal,inPlay:0,profit:0,deposits:bal,freebet:0,bonus,rollover,expiry,tags,lastMovement:new Date().toISOString(),favorite:false};
+  let h={id:uid(),name,login:$("houseLogin").value.trim(),url:url||"",note:$("houseNote").value.trim(),balance:bal,inPlay:0,profit:0,deposits:bal,freebet:0,bonus,rollover,maxStake,dailyLimit,expiry,tags,lastMovement:new Date().toISOString(),favorite:false};
   p.houses.push(h);if(bal)move("deposit",bal,pid,h.id,"Saldo inicial","",bal,0,0)
  }
  save();$("houseDialog").close()
@@ -308,8 +374,8 @@ $("duplicateForm").onsubmit=e=>{e.preventDefault();let src=pBy($("dupPid").value
 
 function normalizeBets(){
  S.bets=(S.bets||[]).map(b=>{
-  if(Array.isArray(b.entries))return {...b,event:b.event||"Aposta",note:b.note||"",entries:b.entries.map(e=>({...e,id:e.id||uid(),type:e.type||"cash",freebetUsed:Number(e.freebetUsed||0),status:e.status||"open",returned:Number(e.returned||0)}))};
-  return {id:b.id||uid(),event:b.event||b.sport||"Aposta",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid,houseId:b.houseId,stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",freebetUsed:0,status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
+  if(Array.isArray(b.entries))return {...b,event:b.event||"Aposta",eventDate:b.eventDate||b.date||"",note:b.note||"",entries:b.entries.map(e=>({...e,id:e.id||uid(),type:e.type||"cash",freebetUsed:Number(e.freebetUsed||0),status:e.status||"open",returned:Number(e.returned||0)}))};
+  return {id:b.id||uid(),event:b.event||b.sport||"Aposta",eventDate:b.eventDate||b.date||"",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid,houseId:b.houseId,stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",freebetUsed:0,status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
  })
 }
 function entryProfitPotential(e){return Number(e.stake||0)*Math.max(0,Number(e.odd||0)-1)}
@@ -349,21 +415,26 @@ window.openBetFor=(pid,hid)=>{
  $("betForm").reset();$("betEntries").innerHTML="";addBetEntryRow(pid,hid);$("betDialog").showModal()
 };
 $("betForm").onsubmit=e=>{
- e.preventDefault();let event=$("betEvent").value.trim(),note=$("betNote").value.trim(),rows=[...$("betEntries").children],entries=[];
+ e.preventDefault();let event=$("betEvent").value.trim(),eventDate=$("betEventDate").value,note=$("betNote").value.trim(),rows=[...$("betEntries").children],entries=[];
  if(!event)return alert("Informe o jogo/evento.");
  for(let row of rows){
   let x=readEntryRow(row),h=hBy(x.pid,x.houseId);
   if(!h||!(x.stake>0)||!(x.odd>0))return alert("Preencha casa, valor e odd de todas as entradas.");
   if(x.type==="cash"&&x.stake>h.balance)return alert("Saldo insuficiente em "+h.name+".");
+  if(h.maxStake&&x.stake>h.maxStake)return alert("A entrada excede o limite por aposta de "+h.name+" ("+money(h.maxStake)+").");
+  if(h.dailyLimit){
+   let today=new Date().toISOString().slice(0,10),used=S.bets.flatMap(b=>b.entries||[]).filter(e=>e.houseId===h.id&&(e.created||b?.created||"").slice?.(0,10)===today).reduce((s,e)=>s+Number(e.stake||0),0);
+   if(used+x.stake>h.dailyLimit)return alert("A entrada excede o limite diário de "+h.name+".");
+  }
   if(x.type==="freebet"&&x.stake>Number(h.freebet||0))return alert("Freebet insuficiente em "+h.name+".");
-  entries.push({...x,id:uid(),status:"open",returned:0,settled:null})
+  entries.push({...x,id:uid(),created:new Date().toISOString(),status:"open",returned:0,settled:null})
  }
  entries.forEach(x=>{
   let h=hBy(x.pid,x.houseId);
   if(x.type==="cash"){h.balance-=x.stake;h.inPlay+=x.stake;move("bet",x.stake,x.pid,x.houseId,"Nova entrada: "+event,note,-x.stake,x.stake,0)}
   else{h.freebet=Number(h.freebet||0)-x.stake;move("freebet_bet",x.stake,x.pid,x.houseId,"Entrada com freebet: "+event,note,0,0,0)}
  });
- S.bets.unshift({id:uid(),event,note,created:new Date().toISOString(),entries});
+ S.bets.unshift({id:uid(),event,eventDate,note,created:new Date().toISOString(),entries});
  save();$("betDialog").close()
 };
 function renderBets(){
@@ -377,7 +448,7 @@ function renderBets(){
   let entries=(b.entries||[]).map(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status;
    return `<div class="betEntry"><div class="betTop"><div><strong>${esc((p?p.name:"")+" • "+(h?h.name:""))}</strong><div class="muted">${e.type==="freebet"?"Freebet":"Saldo"} • ${txt}</div></div><span class="status ${e.status}">${txt}</span></div><div class="stats" style="padding:9px 0 0"><div class="stat"><span>Entrada</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd||"-"}</b></div><div class="stat"><span>Lucro possível</span><b>${money(entryProfitPotential(e))}</b></div><div class="stat"><span>Retorno real</span><b>${money(e.returned||0)}</b></div></div>${e.status==="open"?`<div class="actions" style="padding:7px 0 0;border:0"><button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar entrada</button></div>`:""}</div>`
   }).join("");
-  return `<div class="betGroup"><div class="betTop"><div><strong>${esc(b.event||"Aposta")}</strong><div class="muted">${(b.entries||[]).length} entrada(s) • ${open} aberta(s) • Total apostado ${money(totalStake)}</div></div><span class="status ${open?"open":"win"}">${open?"Em andamento":"Finalizada"}</span></div><div class="doubleGreen"><span>Potencial total de duplo green</span><strong>${money(groupPotential(b))}</strong></div>${entries}</div>`
+  return `<div class="betGroup"><div class="betTop"><div><strong>${esc(b.event||"Aposta")}</strong><div class="muted">${(b.entries||[]).length} entrada(s) • ${open} aberta(s) • Total apostado ${money(totalStake)}</div></div><span class="status ${open?"open":"win"}">${open?"Em andamento":"Finalizada"}</span></div><div class="doubleGreen"><span>Potencial total de duplo green</span><strong>${money(groupPotential(b))}</strong></div>${open?`<div class="actions" style="border:0;padding-left:0"><button class="secondary" onclick="settleAllGroup(\'${b.id}\',\'win\')">Tudo Green</button><button class="danger" onclick="settleAllGroup(\'${b.id}\',\'loss\')">Tudo Red</button><button class="secondary" onclick="settleAllGroup(\'${b.id}\',\'void\')">Tudo Anulada</button></div>`:""}${entries}</div>`
  }).join(""):'<div class="card empty">Nenhuma aposta.</div>'
 }
 $("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;
@@ -496,6 +567,60 @@ window.deleteWeeklyEntry=(goalId,entryId)=>{
  let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
  if(confirm("Excluir este lançamento?")){g.entries=g.entries.filter(e=>e.id!==entryId);save()}
 };
+
+function renderOperations(){
+ let today=new Date().toISOString().slice(0,10);
+ let games=S.bets.filter(b=>(b.entries||[]).some(e=>e.status==="open")).sort((a,b)=>(a.eventDate||"9999").localeCompare(b.eventDate||"9999"));
+ let todayGames=games.filter(b=>!b.eventDate||b.eventDate.slice(0,10)===today);
+ $("operationsList").innerHTML=todayGames.length?todayGames.map(b=>{
+  let entries=b.entries||[],open=entries.filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0),potential=groupPotential(b);
+  let houses=[...new Map(open.map(e=>{let h=hBy(e.pid,e.houseId);return [e.houseId,h]})).values()].filter(Boolean);
+  return `<section class="operationalGame"><div class="operationalHead"><div><strong>${esc(b.event)}</strong><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleString("pt-BR"):"Horário não informado"} • ${open.length} entrada(s)</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="positive">Potencial ${money(potential)}</div></div></div><div class="operationalBody">${houses.map(h=>`<button class="primary" style="margin:3px" onclick="openHouseSite('${h.pid}','${h.id}')">${esc(h.name)}</button>`).join("")}<button class="secondary" style="margin:3px" onclick="switchToBet('${b.id}')">Ver apostas</button></div></section>`
+ }).join(""):'<div class="card empty">Nenhum jogo com aposta aberta para hoje.</div>'
+}
+window.switchToBet=id=>{document.querySelector('[data-tab="bets"]').click();$("betSearch").value=(S.bets.find(b=>b.id===id)||{}).event||"";renderBets()}
+window.settleAllGroup=(gid,result)=>{
+ let b=S.bets.find(x=>x.id===gid);if(!b)return;
+ if(!confirm("Finalizar todas as entradas abertas como "+result+"?"))return;
+ (b.entries||[]).filter(e=>e.status==="open").forEach(entry=>{
+  let h=hBy(entry.pid,entry.houseId),ret=0;
+  if(result==="win")ret=entry.type==="freebet"?entry.stake*Math.max(0,entry.odd-1):entry.stake*entry.odd;
+  if(result==="void")ret=entry.type==="freebet"?0:entry.stake;
+  if(entry.type==="cash"){h.inPlay-=entry.stake;h.balance+=ret;h.profit+=ret-entry.stake}
+  else{if(result==="void")h.freebet=Number(h.freebet||0)+entry.stake;else h.balance+=ret;h.profit+=ret}
+  entry.status=result;entry.returned=ret;entry.settled=new Date().toISOString();
+ });
+ save()
+}
+function renderArbitrage(){}
+$("calcArbBtn").onclick=()=>{
+ let odds=[$("arbOdd1").value,$("arbOdd2").value,$("arbOdd3").value].map(n).filter(x=>x>1),total=n($("arbTotal").value);
+ if(odds.length<2||!(total>0))return $("arbResult").innerHTML="Informe pelo menos duas odds válidas e um valor total.";
+ let inv=odds.reduce((s,o)=>s+1/o,0),payout=total/inv,profit=payout-total,roi=profit/total*100;
+ let stakes=odds.map(o=>total*(1/o)/inv);
+ $("arbResult").innerHTML=`<strong class="${profit>0?"positive":"negative"}">${profit>0?"Arbitragem encontrada":"Sem arbitragem garantida"}</strong><div class="stats" style="padding:10px 0 0">${stakes.map((s,i)=>`<div class="stat"><span>Entrada ${i+1} • odd ${odds[i]}</span><b>${money(s)}</b></div>`).join("")}</div><p>Retorno equilibrado: <strong>${money(payout)}</strong></p><p>Lucro: <strong>${money(profit)}</strong> • ROI ${pct(roi)}</p>`
+}
+function renderReports(){
+ let now=new Date(),month=$("reportMonth").value||now.toISOString().slice(0,7);$("reportMonth").value=month;
+ let moves=S.moves.filter(m=>(m.date||"").slice(0,7)===month),profit=moves.reduce((s,m)=>s+Number(m.deltaProfit||0),0),deposits=moves.filter(m=>m.type==="deposit").reduce((s,m)=>s+Number(m.value||0),0),withdraws=moves.filter(m=>m.type==="withdraw").reduce((s,m)=>s+Number(m.value||0),0);
+ let bets=S.bets.filter(b=>(b.created||"").slice(0,7)===month),entries=bets.flatMap(b=>b.entries||[]),greens=entries.filter(e=>e.status==="win").length,reds=entries.filter(e=>e.status==="loss").length;
+ $("reportSummary").innerHTML=[["Lucro",money(profit)],["Depósitos",money(deposits)],["Retiradas",money(withdraws)],["Jogos",bets.length],["Greens",greens],["Reds",reds]].map(([a,b])=>`<div class="metric"><span>${a}</span><strong>${b}</strong></div>`).join("");
+ renderCapitalChart();renderAutoBackups()
+}
+$("reportMonth").onchange=renderReports;
+function renderCapitalChart(){
+ let data=[...(S.snapshots||[])].slice(-30),max=Math.max(1,...data.map(x=>x.capital));
+ $("capitalChart").innerHTML=data.length?data.map(x=>`<div class="chartBar" style="height:${Math.max(3,x.capital/max*100)}%"><span>${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</span></div>`).join(""):'<div class="empty">Os snapshots diários aparecerão aqui.</div>'
+}
+function renderAutoBackups(){
+ $("autoBackupsList").innerHTML=(S.snapshots||[]).slice(-10).reverse().map(x=>`<div class="autoBackupItem"><span>${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR")}</span><strong>${money(x.capital)}</strong></div>`).join("")||'<div class="empty">Nenhum snapshot diário ainda.</div>'
+}
+$("exportCsvBtn").onclick=()=>{
+ let rows=[["Data","Tipo","Descrição","Valor","Pessoa","Casa"]];
+ S.moves.forEach(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);rows.push([m.date,m.type,m.label,m.value,p?p.name:"",h?h.name:""])});
+ let csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="movimentacoes-controle-apostas.csv";a.click();URL.revokeObjectURL(url)
+}
+
 function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
@@ -528,7 +653,7 @@ function normalizeOldHouse(h){
  }
 }
 function migrateBackup(x){
- let people=[],bets=[],moves=[],weeklyGoals=[];
+ let people=[],bets=[],moves=[],weeklyGoals=[],snapshots=[],settings={};
  if(typeof x==="string")x=JSON.parse(x.trim().replace(/^\uFEFF/,""));
  if(Array.isArray(x)){
   people=x
@@ -537,7 +662,7 @@ function migrateBackup(x){
   people=root.people||root.pessoas||root.users||root.clientes||root.data||[];
   bets=root.bets||root.apostas||root.games||root.jogos||[];
   moves=root.moves||root.movements||root.movimentacoes||root.historico||[];
-  weeklyGoals=root.weeklyGoals||root.metasSemanais||root.semanalBet365||[];
+  weeklyGoals=root.weeklyGoals||root.metasSemanais||root.semanalBet365||[];snapshots=root.snapshots||[];settings=root.settings||{};
   if(!Array.isArray(people)&&people&&typeof people==="object")people=Object.values(people);
   if(!Array.isArray(bets)&&bets&&typeof bets==="object")bets=Object.values(bets);
   if(!Array.isArray(moves)&&moves&&typeof moves==="object")moves=Object.values(moves);
@@ -612,7 +737,7 @@ function migrateBackup(x){
   }
  });
  weeklyGoals=(Array.isArray(weeklyGoals)?weeklyGoals:[]).map(weeklyNormalizeGoal);
- return {people,bets,moves,weeklyGoals}
+ return {people,bets,moves,weeklyGoals,snapshots:Array.isArray(snapshots)?snapshots:[],settings:settings||{}}
 }
 $("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v12.json";a.click();URL.revokeObjectURL(url)};
 $("importBtn").onclick=()=>$("importFile").click();
@@ -647,6 +772,8 @@ $("importFile").onchange=function(){
  r.readAsText(f,"UTF-8")
 }
 window.closeD=id=>$(id).close();
+function applyTheme(){document.body.classList.toggle("dark",S.settings&&S.settings.theme==="dark");$("themeBtn").textContent=document.body.classList.contains("dark")?"☀️":"🌙"}
+$("themeBtn").onclick=()=>{S.settings=S.settings||{};S.settings.theme=document.body.classList.contains("dark")?"light":"dark";localStorage.setItem(KEY,JSON.stringify(S));applyTheme()};
 let dp=null;
 window.addEventListener("beforeinstallprompt",e=>{
  e.preventDefault();dp=e;$("installBtn").textContent="Instalar"
@@ -675,7 +802,7 @@ $("installBtn").onclick=async()=>{
  }else installInstructions()
 };
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
+load();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
 })();
 </script>
 </body>

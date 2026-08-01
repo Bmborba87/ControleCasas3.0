@@ -1,11 +1,11 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=44",
+  "start_url": "./?v=46",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
-  "theme_color": "#2563eb",
+  "theme_color": "#111827",
   "icons": [
     {
       "src": "icon-192.png",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v44",
-  "description": "Gestão de surebets e múltiplas com inclusão posterior de entradas e proteções."
+  "id": "./betmanager-v46",
+  "description": "BetManager com cadastro inteligente de jogos e operações agrupadas por partida."
 }

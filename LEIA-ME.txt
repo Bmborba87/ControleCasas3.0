@@ -1,11 +1,14 @@
-BETMANAGER — VERSÃO 44
+BETMANAGER — VERSÃO 46
 
-ADIÇÃO POSTERIOR DE ENTRADAS
-- Cada operação possui o botão “+ Adicionar entrada/proteção”.
-- Abre o formulário com os jogos já preenchidos.
-- As entradas antigas são preservadas.
-- É possível incluir uma ou várias novas proteções.
-- O saldo/freebet é descontado apenas das novas entradas.
-- Ajuste de saldo insuficiente continua disponível.
-- Os jogos e a observação também podem ser corrigidos nesse formulário.
-- A nova entrada permanece após salvar e recarregar.
+CADASTRO INTELIGENTE DE JOGOS
+- Ao adicionar um jogo, aparece uma lista de partidas já cadastradas.
+- Selecionar uma partida preenche automaticamente nome, data e hora.
+- Também é possível continuar digitando um jogo novo.
+- Jogos antigos são reconhecidos automaticamente pelo nome e horário.
+
+AGRUPAMENTO POR PARTIDA
+- A partida é o agrupador principal da tela de apostas.
+- Várias operações do mesmo jogo aparecem dentro da mesma parte recolhível.
+- Cada operação continua independente, com suas entradas, proteções e resultados.
+- Ao lado do jogo aparece a Chance de Duplo Green somada das operações.
+- Para múltiplas, o agrupamento usa a combinação exata dos jogos, evitando duplicação.

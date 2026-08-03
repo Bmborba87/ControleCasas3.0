@@ -1,13 +1,16 @@
-BETMANAGER V48
+BETMANAGER V49
 
-CAUSA CORRIGIDA
-O botão Criar aposta chamava a variável betEntryRoleOffset, removida quando
-o formulário foi reformado para o Bloco Principal. Isso gerava ReferenceError
-antes de abrir o diálogo.
+CORREÇÕES
+- Importar backup volta a abrir o seletor de arquivos.
+- Importação de backups antigos restaurada.
+- Exportar backup restaurado.
+- Exportar CSV restaurado.
+- Desfazer restaurado.
+- Fechamento dos diálogos restaurado.
+- Instalação do aplicativo preservada.
+- Criar aposta da V48 preservado.
 
-TESTES
-- Backup antigo: 5 pessoas e 69 casas.
-- Importação e normalização.
-- Abertura do cadastro.
-- Criação de Bloco Principal e proteção.
-- Serialização e recarregamento.
+CAUSA
+Na reforma da V47/V48, o bloco final que continha os eventos de backup e
+alguns utilitários foi removido acidentalmente. Os botões permaneciam na tela,
+mas não possuíam funções associadas.

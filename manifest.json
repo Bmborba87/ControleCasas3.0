@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=48",
+  "start_url": "./?v=49",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v48",
-  "description": "Cadastro de aposta corrigido após importação de backups antigos."
+  "id": "./betmanager-v49",
+  "description": "Botões de backup e ações principais restaurados e validados."
 }

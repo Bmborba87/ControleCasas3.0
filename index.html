@@ -255,7 +255,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v48</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v49</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -677,6 +677,79 @@ function addMainAccountRow(pid="",hid="",data={}){
  row.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",updateBetPreview));
  $("mainAccounts").appendChild(row);updateBetPreview()
 }
+function normalizeGames(b){
+ if(Array.isArray(b.games)&&b.games.length){
+  return b.games.map(g=>{let name=g.name||g.event||g.jogo||"Jogo",date=g.date||g.eventDate||g.data||"";return {id:g.id||uid(),name,date,catalogKey:g.catalogKey||gameIdentity({name,date})}})
+ }
+ let name=b.event||"Aposta",date=b.eventDate||"";return [{id:uid(),name,date,catalogKey:gameIdentity({name,date})}]
+}
+function gameIdentity(game){
+ let name=String(game?.name||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ");
+ let date=String(game?.date||"").slice(0,16);
+ return name+"@@"+date
+}
+function gameCatalog(){
+ let map=new Map();
+ (S.bets||[]).forEach(b=>normalizeGames(b).forEach(g=>{
+  let key=gameIdentity(g);
+  if(g.name&&!map.has(key))map.set(key,{id:g.id||uid(),name:g.name,date:g.date||"",key})
+ }));
+ return [...map.values()].sort((a,b)=>{
+  let ad=a.date||"9999",bd=b.date||"9999";
+  return ad.localeCompare(bd)||a.name.localeCompare(b.name,"pt-BR")
+ })
+}
+function gameCatalogOptions(selectedKey=""){
+ let items=gameCatalog();
+ return `<option value="">Digitar um jogo novo</option>`+
+  items.map(g=>{
+   let label=(g.date?new Date(g.date).toLocaleString("pt-BR")+" • ":"")+g.name;
+   return `<option value="${esc(g.key)}" ${g.key===selectedKey?"selected":""}>${esc(label)}</option>`
+  }).join("")
+}
+function addBetGameRow(data={}){
+ let row=document.createElement("div");row.className="gameBuilder";row.dataset.id=data.id||uid();
+ let selectedKey=data.catalogKey||"";
+ row.innerHTML=`<label class="existingGamePicker">Selecionar jogo já cadastrado
+   <select class="existingGameSelect">${gameCatalogOptions(selectedKey)}</select>
+  </label>
+  <div class="gameGrid">
+   <label>Jogo/evento<input class="gameName" required placeholder="Ex.: Time A x Time B"></label>
+   <label>Data e hora<input class="gameDate" type="datetime-local"></label>
+   <button type="button" class="danger removeGame">Remover</button>
+  </div>
+  <div class="gameCatalogEmpty">${gameCatalog().length?"Ao escolher um jogo, nome, data e hora serão preenchidos automaticamente.":"Nenhum jogo anterior encontrado. Cadastre o primeiro manualmente."}</div>`;
+ let nameInput=row.querySelector(".gameName"),dateInput=row.querySelector(".gameDate"),picker=row.querySelector(".existingGameSelect");
+ nameInput.value=data.name||data.event||"";
+ dateInput.value=data.date||data.eventDate||"";
+ row.dataset.catalogKey=selectedKey||gameIdentity({name:nameInput.value,date:dateInput.value});
+ picker.onchange=()=>{
+  let selected=gameCatalog().find(g=>g.key===picker.value);
+  if(selected){nameInput.value=selected.name;dateInput.value=selected.date;row.dataset.catalogKey=selected.key}
+  else{row.dataset.catalogKey="";nameInput.focus()}
+ };
+ [nameInput,dateInput].forEach(input=>input.addEventListener("input",()=>{
+  if(picker.value)picker.value="";
+  row.dataset.catalogKey=gameIdentity({name:nameInput.value,date:dateInput.value})
+ }));
+ row.querySelector(".removeGame").onclick=()=>{if($("betGames").children.length>1)row.remove()};
+ $("betGames").appendChild(row)
+}
+function readGameRows(){
+ return [...$("betGames").children].map(row=>{
+  let name=row.querySelector(".gameName").value.trim(),date=row.querySelector(".gameDate").value;
+  return {id:row.dataset.id||uid(),name,date,catalogKey:row.dataset.catalogKey||gameIdentity({name,date})}
+ })
+}
+function operationTitle(b){
+ let games=normalizeGames(b);
+ return games.length===1?(games[0].name||"Aposta"):games.length+" jogos • "+(games[0].name||"Múltipla")
+}
+function operationGamesHtml(b){
+ return normalizeGames(b).map((g,index)=>`<div class="multiGameItem">${index+1}. ${esc(g.name)}${g.date?" • "+new Date(g.date).toLocaleString("pt-BR"):""}</div>`).join("")
+}
+$("addBetGameRow").onclick=()=>addBetGameRow();
+
 function readMainAccountRows(){
  let odd=n($("mainOdd").value),type=$("mainType").value,selection=$("mainSelection").value.trim();
  return [...$("mainAccounts").children].map(row=>({
@@ -860,6 +933,155 @@ $("betForm").onsubmit=e=>{
 };
 
 $("betDialog").addEventListener("close",()=>{editingBetId=null});
+
+window.closeD=id=>{
+ let dialog=$(id);
+ if(dialog&&typeof dialog.close==="function")dialog.close()
+};
+function applyTheme(){window.applyBetTheme()}
+
+function normalizeOldHouse(h){
+ h=h||{};
+ let balance=h.balance??h.saldo??h.valor??h.amount??0;
+ let inPlay=h.inPlay??h.emJogo??h.moneyInPlay??h.valorEmJogo??0;
+ let profit=h.profit??h.lucro??h.resultado??0;
+ let freebet=h.freebet??h.freeBet??h.saldoFreebet??h.saldo_freebet??0;
+ let bonus=h.bonus??h.bonusBalance??h.saldoBonus??0;
+ let rollover=h.rollover??h.rolloverRemaining??h.rolloverRestante??0;
+ return {
+  id:h.id||h._id||uid(),
+  name:h.name||h.nome||h.house||h.casa||"Casa",
+  login:h.login||h.usuario||h.email||"",
+  url:h.url||h.website||h.link||h.site||"",
+  note:h.note||h.notes||h.observacao||h.obs||"",
+  balance:Number(balance)||0,
+  inPlay:Number(inPlay)||0,
+  profit:Number(profit)||0,
+  deposits:Number(h.deposits??h.depositos??balance)||0,
+  favorite:Boolean(h.favorite??h.favorita??false),
+  freebet:Number(freebet)||0,
+  bonus:Number(bonus)||0,
+  rollover:Number(rollover)||0,
+  expiry:h.expiry||h.validade||h.expiration||"",
+  tags:Array.isArray(h.tags)?h.tags:(typeof h.tags==="string"?h.tags.split(",").map(x=>x.trim()).filter(Boolean):[]),
+  lastMovement:h.lastMovement||h.ultimaMovimentacao||""
+ }
+}
+function migrateBackup(x){
+ let people=[],bets=[],moves=[],weeklyGoals=[],snapshots=[],settings={},auditLog=[],trash=[];
+ if(typeof x==="string")x=JSON.parse(x.trim().replace(/^\uFEFF/,""));
+ if(Array.isArray(x))people=x;
+ else if(x&&typeof x==="object"){
+  let root=x.data&&typeof x.data==="object"&&!Array.isArray(x.data)?x.data:x;
+  people=root.people||root.pessoas||root.users||root.clientes||root.data||[];
+  bets=root.bets||root.apostas||root.games||root.jogos||[];
+  moves=root.moves||root.movements||root.movimentacoes||root.historico||[];
+  weeklyGoals=root.weeklyGoals||root.metasSemanais||root.semanalBet365||[];
+  snapshots=root.snapshots||[];settings=root.settings||{};auditLog=root.audit||[];trash=root.trash||[];
+  if(!Array.isArray(people)&&people&&typeof people==="object")people=Object.values(people);
+  if(!Array.isArray(bets)&&bets&&typeof bets==="object")bets=Object.values(bets);
+  if(!Array.isArray(moves)&&moves&&typeof moves==="object")moves=Object.values(moves);
+  if(!Array.isArray(weeklyGoals)&&weeklyGoals&&typeof weeklyGoals==="object")weeklyGoals=Object.values(weeklyGoals)
+ }
+ if(!Array.isArray(people))throw new Error("Lista de pessoas não encontrada.");
+ people=people.map(p=>{
+  p=p||{};
+  let houses=p.houses||p.casas||p.accounts||p.contas||[];
+  if(!Array.isArray(houses)&&houses&&typeof houses==="object")houses=Object.values(houses);
+  return {id:p.id||p._id||uid(),name:p.name||p.nome||p.person||p.pessoa||"Sem nome",houses:Array.isArray(houses)?houses.map(normalizeOldHouse):[]}
+ });
+ bets=(Array.isArray(bets)?bets:[]).map(b=>{
+  b=b||{};let entries=b.entries||b.entradas;
+  if(Array.isArray(entries)){
+   return {...b,id:b.id||uid(),event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",note:b.note||b.observacao||"",created:b.created||b.createdAt||b.data||new Date().toISOString(),
+    entries:entries.map((e,index)=>({...e,id:e.id||uid(),pid:e.pid||e.personId||e.pessoaId||"",houseId:e.houseId||e.hid||e.casaId||"",stake:Number(e.stake??e.valor??e.aposta??0)||0,odd:Number(e.odd??e.cotacao??0)||0,type:e.type||e.tipo||"cash",role:e.role||(index===0?"mainReplica":"protection"),status:e.status||e.resultado||"open",returned:Number(e.returned??e.retorno??0)||0}))}
+  }
+  return {id:b.id||uid(),event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",note:b.note||b.observacao||"",created:b.created||b.createdAt||b.data||new Date().toISOString(),
+   entries:[{id:uid(),pid:b.pid||b.personId||b.pessoaId||"",houseId:b.houseId||b.hid||b.casaId||"",stake:Number(b.stake??b.valor??b.aposta??0)||0,odd:Number(b.odd??b.cotacao??0)||0,type:b.type||b.tipo||"cash",role:"mainReplica",status:b.status||b.resultado||"open",returned:Number(b.returned??b.retorno??0)||0,settled:b.settled||b.finalizadaEm||null}]}
+ });
+ moves=(Array.isArray(moves)?moves:[]).map(m=>({id:m.id||uid(),date:m.date||m.data||m.createdAt||new Date().toISOString(),type:m.type||m.tipo||"imported",value:Number(m.value??m.valor??0)||0,pid:m.pid||m.personId||m.pessoaId||"",hid:m.hid||m.houseId||m.casaId||"",label:m.label||m.descricao||m.titulo||"Movimentação importada",note:m.note||m.observacao||"",deltaBalance:Number(m.deltaBalance??m.variacaoSaldo??0)||0,deltaInPlay:Number(m.deltaInPlay??m.variacaoEmJogo??0)||0,deltaProfit:Number(m.deltaProfit??m.variacaoLucro??0)||0}));
+ weeklyGoals=(Array.isArray(weeklyGoals)?weeklyGoals:[]).map(weeklyNormalizeGoal);
+ return normalizeState({people,bets,moves,weeklyGoals,snapshots:Array.isArray(snapshots)?snapshots:[],settings:settings||{},audit:Array.isArray(auditLog)?auditLog:[],trash:Array.isArray(trash)?trash:[],undoStack:[]})
+}
+
+$("exportBtn").onclick=()=>{
+ try{
+  let payload=JSON.stringify(normalizeState(S),null,2);
+  let blob=new Blob([payload],{type:"application/json;charset=utf-8"});
+  let url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="backup-betmanager-v49-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000)
+ }catch(error){
+  console.error("Erro ao exportar:",error);
+  alert("Não foi possível exportar o backup. Detalhe: "+(error.message||error))
+ }
+};
+$("importBtn").onclick=()=>{
+ try{
+  let input=$("importFile");
+  input.value="";
+  input.click()
+ }catch(error){
+  console.error("Erro ao abrir seletor:",error);
+  alert("Não foi possível abrir a seleção de arquivo. Detalhe: "+(error.message||error))
+ }
+};
+$("importFile").onchange=function(){
+ let input=this,file=input.files&&input.files[0];if(!file)return;
+ let reader=new FileReader(),previous=S;
+ reader.onload=()=>{
+  try{
+   let text=String(reader.result||"").replace(/^\uFEFF/,"").trim();
+   if(!text)throw new Error("Arquivo vazio.");
+   let parsed=JSON.parse(text);
+   if(typeof parsed==="string")parsed=JSON.parse(parsed.replace(/^\uFEFF/,"").trim());
+   let migrated=migrateBackup(parsed),counts=stateSize(migrated);
+   if(counts.total===0)throw new Error("Nenhum dado reconhecido.");
+   S=migrated;
+   normalizeBets();
+   S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);
+   let serialized=JSON.stringify(S);
+   localStorage.setItem(KEY,serialized);
+   localStorage.setItem("controleApostasRecovery",serialized);
+   localStorage.setItem("betmanagerRecovery",serialized);
+   render();goToSection("people");
+   alert("Backup importado e carregado.\n\nPessoas: "+counts.people+"\nCasas: "+counts.houses)
+  }catch(error){
+   S=previous;
+   console.error("Erro na importação:",error);
+   try{render()}catch(renderError){console.error(renderError)}
+   alert("Não foi possível importar este backup.\n\nDetalhe: "+(error.message||error))
+  }finally{input.value=""}
+ };
+ reader.onerror=()=>{alert("Não foi possível ler o arquivo.");input.value=""};
+ reader.readAsText(file,"UTF-8")
+};
+
+$("exportCsvBtn").onclick=()=>{
+ try{
+  let rows=[["Data","Tipo","Descrição","Valor","Pessoa","Casa"]];
+  (S.moves||[]).forEach(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);rows.push([m.date,m.type,m.label,m.value,p?p.name:"",h?h.name:""])});
+  let csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\n");
+  let blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="movimentacoes-betmanager.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)
+ }catch(error){alert("Não foi possível exportar o CSV. Detalhe: "+(error.message||error))}
+};
+$("undoBtn").onclick=()=>{
+ let last=(S.undoStack||[]).pop();if(!last)return alert("Não há alteração para desfazer.");
+ let stack=S.undoStack;
+ S=normalizeState(JSON.parse(JSON.stringify(last.state)));
+ S.undoStack=stack;
+ audit("Ação desfeita",last.label||"Alteração");
+ save()
+};
+
+let dp=null;
+window.addEventListener("beforeinstallprompt",e=>{
+ e.preventDefault();dp=e;
+ if($("installBtn"))$("installBtn").textContent="Instalar"
+});
+
 window.addEventListener("appinstalled",()=>{
  dp=null;$("installBtn").textContent="Instalado";$("installBtn").disabled=true
 });

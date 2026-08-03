@@ -1,8 +1,7 @@
-BETMANAGER V55
+BETMANAGER V56
 
-APOSTAS MÚLTIPLAS
-- Todos os jogos aparecem com suas próprias datas e horários.
-- A tela de apostas não mostra mais apenas a data do primeiro jogo.
-- A Linha do Tempo do Dashboard também lista cada partida da múltipla.
-- Os jogos são apresentados em ordem cronológica.
-- A coluna de horário identifica a operação como “2 jogos”, “3 jogos” etc.
+CORREÇÃO
+- O botão Abrir da linha do tempo não pesquisa mais por “Múltipla • 2 jogos”.
+- Agora usa a assinatura interna exata da combinação de jogos.
+- Funciona para aposta simples, múltipla com dois jogos e múltipla com três ou mais.
+- Ao digitar na pesquisa ou mudar o filtro, o filtro interno da linha do tempo é limpo.

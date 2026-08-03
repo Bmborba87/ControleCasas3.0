@@ -346,6 +346,7 @@ body.dark .houseWalletEditor{background:#0c1b30}
 <body>
 <script>
 window.goToSection=function(id){
+ if(id!=="bets"&&typeof activeTimelineSignature!=="undefined")activeTimelineSignature="";
  document.querySelectorAll(".panel").forEach(function(panel){panel.classList.toggle("active",panel.id===id)});
  document.querySelectorAll("[data-bottom]").forEach(function(button){
   var selected=["dashboard","people","bets","weekly365","more"].includes(id)?id:"more";
@@ -370,7 +371,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v55</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v56</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -776,14 +777,20 @@ function renderTodayDashboard(){
    return `<div class="timelineItem ${status}">
     <div class="timelineTime">${time}<small>${group.games.length>1?"múltipla":key===today?"hoje":key==="sem-data"?"sem data":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></div>
     <div class="timelineMain"><strong>${esc(gameGroupTitle(group))}</strong>${group.games.length>1?`<div class="timelineMultiGames">${groupGamesWithDatesHtml(group,true)}</div>`:""}<div class="timelineMeta"><span>${group.operations.length} estratégia(s)</span><span>${openEntries} entrada(s) aberta(s)</span><span>${groupProtectionLabel(group)}</span></div></div>
-    <div class="timelineAction"><strong>${money(chance)}</strong><button type="button" class="secondary" data-timeline-title="${esc(gameGroupTitle(group))}">Abrir</button></div>
+    <div class="timelineAction"><strong>${money(chance)}</strong><button type="button" class="secondary" data-timeline-signature="${esc(group.signature)}">Abrir</button></div>
    </div>`
   }).join("");
   return `<div class="todayDayGroup"><div class="todayDayTitle">${esc(title)}</div>${items}</div>`
  }).join("");
- document.querySelectorAll("[data-timeline-title]").forEach(button=>button.onclick=()=>openTimelineGame(button.dataset.timelineTitle))
+ document.querySelectorAll("[data-timeline-signature]").forEach(button=>button.onclick=()=>openTimelineGame(button.dataset.timelineSignature))
 }
-window.openTimelineGame=query=>{goToSection("bets");$("betSearch").value=String(query||"");renderBets()};
+let activeTimelineSignature="";
+window.openTimelineGame=signature=>{
+ activeTimelineSignature=String(signature||"");
+ $("betSearch").value="";
+ goToSection("bets");
+ renderBets()
+};
 
 function renderDash(){
  renderTodayDashboard();
@@ -1431,6 +1438,7 @@ function renderBets(){
   return text.includes(q)
  });
  let groups=groupedBetOperations(bs);
+ if(activeTimelineSignature)groups=groups.filter(group=>group.signature===activeTimelineSignature);
  $("betsList").innerHTML=groups.length?groups.map(group=>{
   let chance=group.operations.reduce((sum,b)=>sum+operationChanceDoubleGreen(b),0);
   let totalStake=group.operations.reduce((sum,b)=>sum+(b.entries||[]).reduce((s,e)=>s+Number(e.stake||0),0),0);
@@ -1444,7 +1452,8 @@ function renderBets(){
   </details>`
  }).join(""):'<div class="card empty">Nenhuma aposta em andamento. As finalizadas estão no Histórico.</div>'
 }
-$("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;
+$("betSearch").oninput=()=>{activeTimelineSignature="";renderBets()};
+$("betStatus").onchange=()=>{activeTimelineSignature="";renderBets()};
 window.openSettle=(gid,eid)=>{
  let b=S.bets.find(x=>x.id===gid),entry=b.entries.find(x=>x.id===eid);
  $("settleGroupId").value=gid;$("settleEntryId").value=eid;

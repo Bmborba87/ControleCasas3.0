@@ -1,6 +1,9 @@
-BETMANAGER V53
+BETMANAGER V54
 
-- Casas recolhíveis, mantendo nome e saldo sempre visíveis.
-- Apostas mostra somente estratégias em andamento.
-- Estratégias finalizadas passam para Histórico.
-- Data e hora do jogo aparecem em destaque.
+- Saldos das casas alinhados em coluna fixa.
+- Dashboard Hoje com jogos e status de proteção.
+- Chance DG total dos jogos de hoje.
+- Linha do tempo cronológica das estratégias abertas.
+- Atalho direto para cada jogo.
+- Resumo financeiro antigo preservado em área recolhível.
+- Datas calculadas no horário local do aparelho.

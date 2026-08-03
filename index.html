@@ -260,6 +260,20 @@ body.dark .operationStatusBadge.settled{background:#1f2937;color:#d1d5db}
  .wizardActions button{width:100%}
 }
 
+
+.houseWalletEditor,.houseInfoEditor{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.houseWalletEditor{background:#f8fbff}
+body.dark .houseWalletEditor{background:#0c1b30}
+.houseEditorSectionTitle{font-weight:900;margin-bottom:9px}
+.houseWalletGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.houseCompactSummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.houseCompactMetric{border:1px solid var(--border);border-radius:9px;padding:9px;background:var(--soft)}
+.houseCompactMetric span{display:block;font-size:.69rem;color:var(--muted)}
+.houseCompactMetric strong{display:block;margin-top:4px}
+.houseSecondarySummary{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:.72rem;color:var(--muted)}
+.house .actions{margin-top:9px}
+@media(max-width:520px){.houseWalletGrid,.houseCompactSummary{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -289,7 +303,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v51</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v52</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -444,10 +458,31 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </main>
 
 <dialog id="houseDialog"><form id="houseForm">
-<div class="dhead"><div><h2 id="houseTitle">Adicionar casa</h2><div id="housePerson" class="muted"></div></div><button type="button" class="secondary" onclick="closeD('houseDialog')">X</button></div>
+<div class="dhead">
+ <div><h2 id="houseTitle">Adicionar casa</h2><div id="housePerson" class="muted"></div></div>
+ <button type="button" class="secondary" onclick="closeD('houseDialog')">X</button>
+</div>
 <input id="housePid" type="hidden"><input id="houseHid" type="hidden">
-<label>Casa<input id="houseName"></label><label>Login/identificação<input id="houseLogin"></label><label>Link da casa<input id="houseUrl" type="url" inputmode="url" placeholder="https://www.exemplo.com"></label><label>Saldo<input id="houseBalance" inputmode="decimal" placeholder="0,00"></label><label>Bônus disponível<input id="houseBonus" inputmode="decimal" placeholder="0,00"></label><label>Rollover restante<input id="houseRollover" inputmode="decimal" placeholder="0,00"></label><label>Limite por aposta<input id="houseMaxStake" inputmode="decimal" placeholder="0,00 = sem limite"></label><label>Limite diário<input id="houseDailyLimit" inputmode="decimal" placeholder="0,00 = sem limite"></label><label>Validade da freebet/bônus<input id="houseExpiry" type="date"></label><label>Tags<input id="houseTags" placeholder="VIP, exchange, limitada"></label><label>Observação<textarea id="houseNote" rows="2"></textarea></label>
-<div class="dactions"><button type="button" class="secondary" onclick="closeD('houseDialog')">Cancelar</button><button class="primary">Salvar</button></div>
+
+<div class="houseWalletEditor">
+ <div class="houseEditorSectionTitle">Carteira</div>
+ <div class="houseWalletGrid">
+  <label>Saldo disponível<input id="houseBalance" inputmode="decimal" placeholder="0,00"></label>
+  <label>Freebet disponível<input id="houseFreebet" inputmode="decimal" placeholder="0,00"></label>
+ </div>
+</div>
+
+<div class="houseInfoEditor">
+ <div class="houseEditorSectionTitle">Informações da casa</div>
+ <label>Nome da casa<input id="houseName" placeholder="Ex.: Bet365"></label>
+ <label>Site/Link <span class="muted">(opcional)</span><input id="houseUrl" type="url" inputmode="url" placeholder="https://www.exemplo.com"></label>
+ <label>Observação <span class="muted">(opcional)</span><textarea id="houseNote" rows="2"></textarea></label>
+</div>
+
+<div class="dactions">
+ <button type="button" class="secondary" onclick="closeD('houseDialog')">Cancelar</button>
+ <button class="primary">Salvar casa</button>
+</div>
 </form></dialog>
 
 <dialog id="moveDialog"><form id="moveForm">
@@ -625,9 +660,54 @@ function renderDash(){
  $("dashHighlights").innerHTML=`<div class="row"><span>Mais lucrativa</span><strong>${best?esc(best.name)+" • "+money(best.profit):"—"}</strong></div><div class="row"><span>Menos lucrativa</span><strong>${worst?esc(worst.name)+" • "+money(worst.profit):"—"}</strong></div>`
 }
 function houseVisible(p,h){let q=$("search").value.toLowerCase(),fb=$("fBalance").value,fo=$("fOpen").value,fr=$("fResult").value,open=S.bets.some(b=>(b.entries||[]).some(e=>e.houseId===h.id&&e.status==="open"));return(!q||(p.name+" "+h.name+" "+h.login+" "+(h.url||"")+" "+(h.tags||[]).join(" ")).toLowerCase().includes(q))&&(fb==="all"||(fb==="positive"?h.balance>0:h.balance===0))&&(fo==="all"||(fo==="open"?open:!open))&&(fr==="all"||(fr==="profit"?h.profit>0:h.profit<0))}
-function renderPeople(){let ps=[...S.people].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));$("peopleList").innerHTML=ps.map(p=>{let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));if(!hs.length&&$("search").value)return"";let pb=p.houses.reduce((s,h)=>s+h.balance,0),pi=p.houses.reduce((s,h)=>s+h.inPlay,0),pp=p.houses.reduce((s,h)=>s+h.profit,0),pd=p.houses.reduce((s,h)=>s+h.deposits,0),proi=pd?pp/pd*100:0;
-let hhtml=hs.map(h=>{let roi=h.deposits?h.profit/h.deposits*100:0;return`<div class="house"><div class="houseTop"><div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span><div class="muted">${esc(h.login||"")}</div></div><strong>${money(h.balance)}</strong></div><div class="stats"><div class="stat"><span>Em jogo</span><b>${money(h.inPlay)}</b></div><div class="stat"><span>Freebet</span><b>${money(h.freebet||0)}</b></div><div class="stat"><span>Bônus</span><b>${money(h.bonus||0)}</b></div><div class="stat"><span>Rollover</span><b>${money(h.rollover||0)}</b></div><div class="stat"><span>Patrimônio</span><b>${money(h.balance+h.inPlay)}</b></div><div class="stat"><span>Lucro</span><b class="${h.profit>=0?"positive":"negative"}">${money(h.profit)}</b></div></div>${(h.tags||[]).length?`<div class="muted" style="margin-top:6px">🏷️ ${(h.tags||[]).map(esc).join(" • ")}</div>`:""}${h.expiry?`<div class="muted" style="margin-top:4px">⏰ Validade: ${new Date(h.expiry+"T12:00:00").toLocaleDateString("pt-BR")}</div>`:""}${h.maxStake?`<div class="muted">Limite/aposta: ${money(h.maxStake)}</div>`:""}${h.dailyLimit?`<div class="muted">Limite diário: ${money(h.dailyLimit)}</div>`:""}<div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div></div>`}).join("");
-return`<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`}).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'}
+function renderPeople(){
+ let ps=[...S.people].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
+ $("peopleList").innerHTML=ps.map(p=>{
+  let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));
+  if(!hs.length&&$("search").value)return"";
+  let pb=p.houses.reduce((s,h)=>s+Number(h.balance||0),0),pi=p.houses.reduce((s,h)=>s+Number(h.inPlay||0),0),pp=p.houses.reduce((s,h)=>s+Number(h.profit||0),0),pd=p.houses.reduce((s,h)=>s+Number(h.deposits||0),0),proi=pd?pp/pd*100:0;
+  let hhtml=hs.map(h=>`<div class="house">
+   <div class="houseTop">
+    <div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span></div>
+    <strong>${money(h.balance)}</strong>
+   </div>
+   <div class="houseCompactSummary">
+    <div class="houseCompactMetric"><span>Saldo disponível</span><strong>${money(h.balance)}</strong></div>
+    <div class="houseCompactMetric"><span>Freebet</span><strong>${money(h.freebet||0)}</strong></div>
+   </div>
+   <div class="houseSecondarySummary">
+    <span>Em jogo: ${money(h.inPlay)}</span>
+    <span>Patrimônio: ${money(Number(h.balance||0)+Number(h.inPlay||0))}</span>
+    <span>Lucro: ${money(h.profit)}</span>
+   </div>
+   <div class="actions">
+    <button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button>
+    <button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button>
+    <button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button>
+    <button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>
+    ${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}
+    <button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button>
+    <button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button>
+   </div>
+  </div>`).join("");
+  return `<section class="person ${openPid===p.id?"open":""}">
+   <div class="personHead" onclick="togglePerson('${p.id}')">
+    <div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div>
+    <div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div>
+   </div>
+   <div class="personBody">
+    <div class="actions">
+     <button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button>
+     <button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button>
+     <button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button>
+     <button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button>
+     <button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button>
+    </div>
+    ${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}
+   </div>
+  </section>`
+ }).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'
+}
 window.togglePerson=id=>{openPid=openPid===id?null:id;render()};window.toggleFav=(pid,hid)=>{let h=hBy(pid,hid);h.favorite=!h.favorite;save()}
 $("personForm").onsubmit=e=>{e.preventDefault();let name=$("personName").value.trim();if(!name)return;if(S.people.some(p=>p.name.toLowerCase()===name.toLowerCase()))return alert("Nome já cadastrado.");let p={id:uid(),name,houses:[]};S.people.push(p);openPid=p.id;$("personForm").reset();save()}
 ["search","fBalance","fOpen","fResult"].forEach(id=>$(id).oninput=renderPeople)
@@ -643,23 +723,65 @@ window.openHouseSite=(pid,hid)=>{
  if(!url)return alert("Esta casa não possui um link válido.");
  window.open(url,"_blank","noopener,noreferrer")
 };
-window.addHouse=pid=>{$("houseForm").reset();$("housePid").value=pid;$("houseHid").value="";$("houseTitle").textContent="Adicionar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
-window.editHouse=(pid,hid)=>{let h=hBy(pid,hid);$("housePid").value=pid;$("houseHid").value=hid;$("houseName").value=h.name;$("houseLogin").value=h.login;$("houseUrl").value=h.url||"";$("houseBonus").value=h.bonus||0;$("houseRollover").value=h.rollover||0;$("houseMaxStake").value=h.maxStake||0;$("houseDailyLimit").value=h.dailyLimit||0;$("houseExpiry").value=h.expiry||"";$("houseTags").value=(h.tags||[]).join(", ");$("houseBalance").value=h.balance.toLocaleString("pt-BR",{minimumFractionDigits:2});$("houseNote").value=h.note;$("houseTitle").textContent="Editar casa";$("housePerson").textContent=pBy(pid).name;$("houseDialog").showModal()}
+window.addHouse=pid=>{
+ $("houseForm").reset();
+ $("housePid").value=pid;
+ $("houseHid").value="";
+ $("houseBalance").value="0,00";
+ $("houseFreebet").value="0,00";
+ $("houseTitle").textContent="Adicionar casa";
+ $("housePerson").textContent=pBy(pid).name;
+ $("houseDialog").showModal()
+};
+window.editHouse=(pid,hid)=>{
+ let h=hBy(pid,hid);
+ $("houseForm").reset();
+ $("housePid").value=pid;
+ $("houseHid").value=hid;
+ $("houseName").value=h.name;
+ $("houseUrl").value=h.url||"";
+ $("houseBalance").value=Number(h.balance||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+ $("houseFreebet").value=Number(h.freebet||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+ $("houseNote").value=h.note||"";
+ $("houseTitle").textContent="Editar casa";
+ $("housePerson").textContent=pBy(pid).name;
+ $("houseDialog").showModal()
+};
 $("houseForm").onsubmit=e=>{
  e.preventDefault();
- let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value,name=$("houseName").value.trim(),bal=n($("houseBalance").value),url=normalizeUrl($("houseUrl").value),bonus=n($("houseBonus").value)||0,rollover=n($("houseRollover").value)||0,maxStake=n($("houseMaxStake").value)||0,dailyLimit=n($("houseDailyLimit").value)||0,expiry=$("houseExpiry").value,tags=$("houseTags").value.split(",").map(x=>x.trim()).filter(Boolean);
- if(!name||isNaN(bal))return alert("Preencha nome e saldo.");
+ let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value;
+ let name=$("houseName").value.trim(),bal=n($("houseBalance").value),freebet=n($("houseFreebet").value),url=normalizeUrl($("houseUrl").value);
+ if(!name||!(bal>=0)||!(freebet>=0))return alert("Preencha nome, saldo e freebet com valores válidos.");
  if($("houseUrl").value.trim()&&!url)return alert("Informe um link válido.");
  if(hid){
-  let h=hBy(pid,hid),diff=bal-h.balance;
-  h.name=name;h.login=$("houseLogin").value.trim();h.url=url||"";h.note=$("houseNote").value.trim();h.bonus=bonus;h.rollover=rollover;h.maxStake=maxStake;h.dailyLimit=dailyLimit;h.expiry=expiry;h.tags=tags;h.lastMovement=new Date().toISOString();
-  if(diff!==0){h.balance=bal;if(diff>0)h.deposits+=diff;move("adjust",Math.abs(diff),pid,hid,"Ajuste de saldo","",diff,0,0)}
+  let h=hBy(pid,hid),balanceDiff=bal-Number(h.balance||0),freebetDiff=freebet-Number(h.freebet||0);
+  h.name=name;
+  h.url=url||"";
+  h.note=$("houseNote").value.trim();
+  h.lastMovement=new Date().toISOString();
+  if(balanceDiff!==0){
+   h.balance=bal;
+   if(balanceDiff>0)h.deposits=Number(h.deposits||0)+balanceDiff;
+   move("adjust",Math.abs(balanceDiff),pid,hid,"Ajuste de saldo","",balanceDiff,0,0)
+  }
+  if(freebetDiff!==0){
+   h.freebet=freebet;
+   move("freebet_adjust",Math.abs(freebetDiff),pid,hid,"Ajuste de freebet","",0,0,0)
+  }
  }else{
-  let h={id:uid(),name,login:$("houseLogin").value.trim(),url:url||"",note:$("houseNote").value.trim(),balance:bal,inPlay:0,profit:0,deposits:bal,freebet:0,bonus,rollover,maxStake,dailyLimit,expiry,tags,lastMovement:new Date().toISOString(),favorite:false};
-  p.houses.push(h);if(bal)move("deposit",bal,pid,h.id,"Saldo inicial","",bal,0,0)
+  let h={
+   id:uid(),name,url:url||"",note:$("houseNote").value.trim(),
+   balance:bal,inPlay:0,profit:0,deposits:bal,freebet,
+   login:"",bonus:0,rollover:0,maxStake:0,dailyLimit:0,expiry:"",tags:[],
+   lastMovement:new Date().toISOString(),favorite:false
+  };
+  p.houses.push(h);
+  if(bal)move("deposit",bal,pid,h.id,"Saldo inicial","",bal,0,0);
+  if(freebet)move("freebet_adjust",freebet,pid,h.id,"Freebet inicial","",0,0,0)
  }
- save();$("houseDialog").close()
-}
+ save();
+ $("houseDialog").close()
+};
 window.openMove=(pid,hid,type)=>{let h=hBy(pid,hid);$("moveForm").reset();$("movePid").value=pid;$("moveHid").value=hid;$("moveType").value=type;$("moveTitle").textContent=type==="deposit"?"Adicionar valor":"Remover valor";$("moveSub").textContent=pBy(pid).name+" • "+h.name;$("moveDialog").showModal()}
 $("moveForm").onsubmit=e=>{e.preventDefault();let pid=$("movePid").value,hid=$("moveHid").value,h=hBy(pid,hid),type=$("moveType").value,v=n($("moveValue").value),note=$("moveNote").value.trim();if(!(v>0))return alert("Valor inválido.");if(type==="deposit"){h.balance+=v;h.deposits+=v;move(type,v,pid,hid,"Valor adicionado",note,v,0,0)}else{if(v>h.balance)return alert("Saldo insuficiente.");h.balance-=v;move(type,v,pid,hid,"Valor removido",note,-v,0,0)}save();$("moveDialog").close()}
 window.editPerson=id=>{let p=pBy(id),x=prompt("Novo nome:",p.name);if(x&&x.trim()){p.name=x.trim();save()}};window.delPerson=id=>{if(confirm("Excluir pessoa e todas as casas?")){S.people=S.people.filter(p=>p.id!==id);save()}};window.delHouse=(pid,hid)=>{if(confirm("Excluir esta casa?")){pBy(pid).houses=pBy(pid).houses.filter(h=>h.id!==hid);save()}}

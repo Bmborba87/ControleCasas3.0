@@ -1,21 +1,21 @@
-BETMANAGER V51 — SIMPLIFICAÇÃO
+BETMANAGER V52 — CASAS SIMPLIFICADAS
 
-1. CADASTRO EM QUATRO ETAPAS
-- Jogo
-- Bloco Principal
-- Proteções
-- Revisão
+REMOVIDOS DA INTERFACE
+- Bônus disponível
+- Rollover restante
+- Login/Identificação
+- Limite por aposta
+- Limite diário
+- Tags
 
-2. CÁLCULOS RECOLHIDOS
-- A tela principal mostra apenas jogo, contas, casas, Chance DG e status.
-- Valores técnicos ficam em “Ver cálculos detalhados”.
+NOVA EDIÇÃO DA CASA
+- Saldo disponível
+- Freebet disponível
+- Nome da casa
+- Site/Link opcional
+- Observação opcional
 
-3. STATUS AUTOMÁTICO
-- Sem proteção: nenhuma proteção cadastrada.
-- Proteção incompleta: há proteção, mas o resultado mínimo previsto é negativo.
-- Protegida: resultado mínimo previsto igual ou maior que zero.
-- Finalizada: nenhuma entrada em aberto.
-
-COMPATIBILIDADE
-- Não altera a estrutura do backup.
-- Estratégias antigas recebem o status automaticamente.
+CARTÕES DAS CASAS
+- Saldo e freebet em destaque
+- Em jogo, patrimônio e lucro em resumo compacto
+- Dados antigos permanecem preservados no backup, mas não aparecem.

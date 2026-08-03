@@ -226,6 +226,40 @@ body.dark .mainBlockCard{background:#0f2545;border-color:#2563eb}
  .mainReplicaItem{grid-template-columns:1fr 1fr}
 }
 
+
+.betWizardSteps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 14px}
+.betWizardStep{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--card);color:var(--muted);border:1px solid var(--border);padding:8px 6px;font-size:.73rem}
+.betWizardStep span{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:999px;background:var(--border);font-weight:900}
+.betWizardStep.active{color:var(--blue);border-color:var(--blue);background:#eff6ff}
+.betWizardStep.complete{color:var(--green)}
+body.dark .betWizardStep.active{background:#10233f}
+.betWizardPanel{display:none}.betWizardPanel.active{display:block}
+.wizardIntro{display:flex;flex-direction:column;gap:3px;margin-bottom:11px;padding:10px;border-radius:10px;background:var(--soft)}
+.wizardIntro span{font-size:.76rem;color:var(--muted)}
+.advancedOptions,.advancedCalculations{margin-top:10px;border:1px solid var(--border);border-radius:9px;padding:8px}
+.advancedOptions summary,.advancedCalculations summary{cursor:pointer;font-weight:800;color:var(--muted)}
+.betReview{display:grid;gap:9px}
+.reviewCard{border:1px solid var(--border);border-radius:10px;padding:11px;background:var(--card)}
+.reviewCard h4{margin:0 0 7px}.reviewLine{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:.78rem}
+.reviewLine span{color:var(--muted)}.reviewLine strong{text-align:right}
+.operationStatusBadge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-size:.7rem;font-weight:900}
+.operationStatusBadge.unprotected{background:#fef2f2;color:#991b1b}
+.operationStatusBadge.partial{background:#fffbeb;color:#92400e}
+.operationStatusBadge.protected{background:#ecfdf5;color:#166534}
+.operationStatusBadge.settled{background:#f3f4f6;color:#374151}
+body.dark .operationStatusBadge.unprotected{background:#450a0a;color:#fecaca}
+body.dark .operationStatusBadge.partial{background:#422006;color:#fde68a}
+body.dark .operationStatusBadge.protected{background:#052e16;color:#bbf7d0}
+body.dark .operationStatusBadge.settled{background:#1f2937;color:#d1d5db}
+.operationCompactInfo{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.operationCompactInfo span{font-size:.72rem;color:var(--muted)}
+.wizardActions{position:sticky;bottom:0;background:var(--card);padding-top:10px}
+@media(max-width:620px){
+ .betWizardStep{font-size:0}.betWizardStep span{font-size:.72rem}
+ .wizardActions{display:grid;grid-template-columns:1fr 1fr}
+ .wizardActions button{width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -255,7 +289,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v50</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v51</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -308,7 +342,13 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 
 <section id="bets" class="panel">
 <div class="card" style="display:flex;justify-content:space-between;align-items:center"><div><h3 style="margin-bottom:3px">Apostas</h3><div class="muted">Organize operações com entrada principal e proteções.</div></div><button id="newBet" class="primary">Nova aposta</button></div>
-<div class="filters"><input id="betSearch" placeholder="Pesquisar"><select id="betStatus"><option value="all">Todos</option><option value="open">Com entradas abertas</option><option value="settled">Finalizadas</option></select><span></span><span></span></div>
+<div class="filters"><input id="betSearch" placeholder="Pesquisar"><select id="betStatus">
+<option value="all">Todos</option>
+<option value="unprotected">Sem proteção</option>
+<option value="partial">Proteção incompleta</option>
+<option value="protected">Protegida</option>
+<option value="settled">Finalizada</option>
+</select><span></span><span></span></div>
 <div id="betsList" class="grid"></div>
 </section>
 
@@ -430,28 +470,65 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </form></dialog>
 
 <dialog id="betDialog"><form id="betForm">
-<div class="dhead"><div><h2 id="betDialogTitle">Nova aposta</h2><div id="betDialogMode" class="muted"></div><div class="muted">Cadastre todas as entradas do mesmo jogo juntas.</div></div><button type="button" class="secondary" onclick="closeD('betDialog')">X</button></div>
-<div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong>Jogos da aposta</strong><button type="button" id="addBetGameRow" class="secondary">+ Adicionar jogo</button></div><div id="betGames"></div></div>
-<label>Observação<textarea id="betNote" rows="2"></textarea></label>
-<div class="mainBlockBuilder">
- <div class="builderTitle"><div><strong>Bloco Principal</strong><div class="muted">Uma aposta lógica replicada em uma ou mais contas.</div></div><button type="button" id="addMainAccount" class="secondary">+ Adicionar conta</button></div>
- <div class="mainCommonGrid">
-  <label>Tipo<select id="mainType"><option value="cash">Saldo</option><option value="freebet">Freebet</option></select></label>
-  <label>Odd única<input id="mainOdd" inputmode="decimal" placeholder="Ex.: 4,50"></label>
-  <label>Seleção / Criar Aposta<input id="mainSelection" placeholder="Ex.: Empate + 2 seleções"></label>
+<div class="dhead">
+ <div><h2 id="betDialogTitle">Nova aposta</h2><div id="betDialogMode" class="muted"></div></div>
+ <button type="button" class="secondary" onclick="closeD('betDialog')">X</button>
+</div>
+
+<div class="betWizardSteps" aria-label="Etapas do cadastro">
+ <button type="button" class="betWizardStep active" data-step="1"><span>1</span>Jogo</button>
+ <button type="button" class="betWizardStep" data-step="2"><span>2</span>Principal</button>
+ <button type="button" class="betWizardStep" data-step="3"><span>3</span>Proteções</button>
+ <button type="button" class="betWizardStep" data-step="4"><span>4</span>Revisão</button>
+</div>
+
+<section class="betWizardPanel active" data-step-panel="1">
+ <div class="wizardIntro"><strong>Qual é o jogo?</strong><span>Escolha uma partida já cadastrada ou informe manualmente.</span></div>
+ <div><div class="builderTitle"><strong>Jogos da aposta</strong><button type="button" id="addBetGameRow" class="secondary">+ Adicionar jogo</button></div><div id="betGames"></div></div>
+ <details class="advancedOptions"><summary>Mais opções</summary><label>Observação<textarea id="betNote" rows="2" placeholder="Opcional"></textarea></label></details>
+</section>
+
+<section class="betWizardPanel" data-step-panel="2">
+ <div class="wizardIntro"><strong>Monte o Bloco Principal</strong><span>Informe a aposta uma vez e escolha todas as contas em que ela foi replicada.</span></div>
+ <div class="mainBlockBuilder">
+  <div class="builderTitle"><div><strong>Bloco Principal</strong><div class="muted">Odd e seleção únicas para todas as contas.</div></div><button type="button" id="addMainAccount" class="secondary">+ Adicionar conta</button></div>
+  <div class="mainCommonGrid">
+   <label>Odd única<input id="mainOdd" inputmode="decimal" placeholder="Ex.: 4,50"></label>
+   <label>Seleção / Criar Aposta<input id="mainSelection" placeholder="Ex.: Empate + 2 seleções"></label>
+  </div>
+  <details class="advancedOptions"><summary>Mais opções</summary><label>Tipo<select id="mainType"><option value="cash">Saldo</option><option value="freebet">Freebet</option></select></label></details>
+  <div id="mainAccounts"></div>
  </div>
- <div id="mainAccounts"></div>
+</section>
+
+<section class="betWizardPanel" data-step-panel="3">
+ <div class="wizardIntro"><strong>Adicione as proteções</strong><span>Esta etapa é opcional. Você pode salvar sem proteção e completar depois.</span></div>
+ <div class="protectionsBuilder">
+  <div class="builderTitle"><div><strong>Proteções compartilhadas</strong><div class="muted">Valem para todo o Bloco Principal.</div></div><button type="button" id="addBetEntry" class="secondary">+ Adicionar proteção</button></div>
+  <div id="betEntries"></div>
+  <div id="noProtectionsHint" class="card empty">Nenhuma proteção adicionada.</div>
+ </div>
+</section>
+
+<section class="betWizardPanel" data-step-panel="4">
+ <div class="wizardIntro"><strong>Revise antes de salvar</strong><span>Confira apenas o essencial. Os cálculos completos ficam recolhidos.</span></div>
+ <div id="betReview" class="betReview"></div>
+ <details class="advancedCalculations">
+  <summary>Ver cálculos detalhados</summary>
+  <div class="doubleGreen">
+   <span>Resumo da estratégia</span>
+   <strong id="betDoubleGreenPreview">Preencha o Bloco Principal</strong>
+   <div id="betSurebetPreview" class="muted">A Chance de Duplo Green considera a soma de todas as réplicas da principal.</div>
+  </div>
+ </details>
+</section>
+
+<div class="dactions wizardActions">
+ <button type="button" id="betWizardBack" class="secondary">Voltar</button>
+ <button type="button" class="secondary" onclick="closeD('betDialog')">Cancelar</button>
+ <button type="button" id="betWizardNext" class="primary">Continuar</button>
+ <button type="submit" id="betWizardSave" class="primary" style="display:none">Salvar estratégia</button>
 </div>
-<div class="protectionsBuilder">
- <div class="builderTitle"><div><strong>Proteções compartilhadas</strong><div class="muted">Valem para todo o Bloco Principal.</div></div><button type="button" id="addBetEntry" class="secondary">+ Adicionar proteção</button></div>
- <div id="betEntries"></div>
-</div>
-<div class="doubleGreen">
- <span>Resumo da estratégia</span>
- <strong id="betDoubleGreenPreview">Preencha o Bloco Principal</strong>
- <div id="betSurebetPreview" class="muted">A Chance de Duplo Green considera a soma de todas as réplicas da principal.</div>
-</div>
-<div class="dactions"><button type="button" class="secondary" onclick="closeD('betDialog')">Cancelar</button><button class="primary">Salvar jogo</button></div>
 </form></dialog>
 
 <dialog id="settleDialog"><form id="settleForm">
@@ -645,6 +722,16 @@ function groupOutcomeLabel(b){
 }
 function groupStatus(b){return (b.entries||[]).some(e=>e.status==="open")?"open":"settled"}
 function operationType(b){return protectionEntries(b).length?"Surebet protegida":"Superodd / sem proteção"}
+function operationProtectionStatus(b){
+ if(groupStatus(b)==="settled")return "settled";
+ let protections=protectionEntries(b);
+ if(!protections.length)return "unprotected";
+ return groupGuaranteedResult(b)>=0?"protected":"partial"
+}
+function operationProtectionLabel(b){
+ return {unprotected:"Sem proteção",partial:"Proteção incompleta",protected:"Protegida",settled:"Finalizada"}[operationProtectionStatus(b)]
+}
+
 function mainEntry(b){return mainEntries(b)[0]}
 function doubleGreenPairs(b){
  return protectionEntries(b).filter(e=>e.doubleGreenCompatible).map(e=>({protection:e,gross:mainBlockChance(b)+entryPotentialReturn(e),net:mainBlockChance(b)+entryPotentialReturn(e)-groupCashCost(b)}))
@@ -789,9 +876,9 @@ function addBetEntryRow(pid="",hid="",data={}){
  row.querySelector(".entryOdd").value=data.odd?String(data.odd).replace(".",","):"";
  row.querySelector(".entrySelection").value=data.selection||"";
  row.querySelector(".entryDoubleGreen").checked=Boolean(data.doubleGreenCompatible);
- row.querySelector(".removeEntry").onclick=()=>{row.remove();updateBetPreview()};
+ row.querySelector(".removeEntry").onclick=()=>{row.remove();$("noProtectionsHint").style.display=$("betEntries").children.length?"none":"block";updateBetPreview()};
  row.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",updateBetPreview));
- $("betEntries").appendChild(row);updateBetPreview()
+ $("betEntries").appendChild(row);$("noProtectionsHint").style.display="none";updateBetPreview()
 }
 function readEntryRow(row){
  return {
@@ -836,6 +923,59 @@ $("addMainAccount").onclick=()=>addMainAccountRow();
 $("addBetEntry").onclick=()=>addBetEntryRow();
 
 $("mainOdd").addEventListener("input",updateBetPreview);$("mainType").addEventListener("change",updateBetPreview);$("mainSelection").addEventListener("input",updateBetPreview);
+
+let betWizardStep=1;
+function showBetWizardStep(step){
+ betWizardStep=Math.max(1,Math.min(4,Number(step)||1));
+ document.querySelectorAll(".betWizardPanel").forEach(panel=>panel.classList.toggle("active",Number(panel.dataset.stepPanel)===betWizardStep));
+ document.querySelectorAll(".betWizardStep").forEach(button=>{
+  let n=Number(button.dataset.step);
+  button.classList.toggle("active",n===betWizardStep);
+  button.classList.toggle("complete",n<betWizardStep)
+ });
+ $("betWizardBack").style.visibility=betWizardStep===1?"hidden":"visible";
+ $("betWizardNext").style.display=betWizardStep===4?"none":"inline-flex";
+ $("betWizardSave").style.display=betWizardStep===4?"inline-flex":"none";
+ if(betWizardStep===4)renderBetReview()
+}
+function validateBetWizardStep(step){
+ if(step===1){
+  let games=readGameRows();
+  if(!games.length||games.some(g=>!g.name)){alert("Informe o jogo antes de continuar.");return false}
+ }
+ if(step===2){
+  let mains=readMainAccountRows();
+  if(!editingBetId&&!mains.length){alert("Adicione ao menos uma conta ao Bloco Principal.");return false}
+  if(mains.some(x=>!x.pid||!x.houseId||!(x.stake>0)||!(x.odd>0))){alert("Preencha a odd, a conta, a casa e o valor da principal.");return false}
+ }
+ return true
+}
+function renderBetReview(){
+ let games=readGameRows(),mains=readMainAccountRows(),protections=[...$("betEntries").children].map(readEntryRow);
+ let validMains=mains.filter(x=>x.stake>0&&x.odd>0),validProtections=protections.filter(x=>x.stake>0&&x.odd>0);
+ let gameText=games.map(g=>g.name).join(" + ")||"Jogo não informado";
+ let houses=[...new Set([...validMains,...validProtections].map(e=>{let h=hBy(e.pid,e.houseId);return h?h.name:""}).filter(Boolean))];
+ let stakeMain=validMains.reduce((s,e)=>s+e.stake,0),chance=validMains.reduce((s,e)=>s+entryPotentialReturn(e),0);
+ let temporary={entries:[...validMains,...validProtections]};
+ let status=validProtections.length?(groupGuaranteedResult(temporary)>=0?"Protegida":"Proteção incompleta"):"Sem proteção";
+ $("betReview").innerHTML=`
+  <div class="reviewCard"><h4>${esc(gameText)}</h4>
+   <div class="reviewLine"><span>Status</span><strong>${status}</strong></div>
+   <div class="reviewLine"><span>Bloco Principal</span><strong>${validMains.length} conta(s) • ${money(stakeMain)}</strong></div>
+   <div class="reviewLine"><span>Odd única</span><strong>${$("mainOdd").value||"—"}</strong></div>
+   <div class="reviewLine"><span>Chance de Duplo Green</span><strong>${money(chance)}</strong></div>
+  </div>
+  <div class="reviewCard"><h4>Casas utilizadas</h4><div>${houses.length?houses.map(h=>`<span class="tag">${esc(h)}</span>`).join(" "):'<span class="muted">Nenhuma casa preenchida.</span>'}</div></div>
+  <div class="reviewCard"><h4>Proteções</h4><div class="reviewLine"><span>Quantidade</span><strong>${validProtections.length}</strong></div><div class="reviewLine"><span>Total lançado</span><strong>${money(validProtections.reduce((s,e)=>s+e.stake,0))}</strong></div></div>`;
+ updateBetPreview()
+}
+$("betWizardBack").onclick=()=>showBetWizardStep(betWizardStep-1);
+$("betWizardNext").onclick=()=>{if(validateBetWizardStep(betWizardStep))showBetWizardStep(betWizardStep+1)};
+document.querySelectorAll(".betWizardStep").forEach(button=>button.onclick=()=>{
+ let target=Number(button.dataset.step);
+ if(target<betWizardStep||validateBetWizardStep(betWizardStep))showBetWizardStep(target)
+});
+
 $("newBet").onclick=()=>{
  try{
   if(!allH().length)return alert("Cadastre ao menos uma casa.");
@@ -849,6 +989,7 @@ $("newBet").onclick=()=>{
   addBetGameRow();
   addMainAccountRow();
   updateBetPreview();
+  showBetWizardStep(1);
   $("betDialog").showModal()
  }catch(error){
   console.error("Erro ao abrir cadastro de aposta:",error);
@@ -867,6 +1008,7 @@ window.openBetFor=(pid,hid)=>{
   addBetGameRow();
   addMainAccountRow(pid,hid);
   updateBetPreview();
+  showBetWizardStep(1);
   $("betDialog").showModal()
  }catch(error){
   console.error("Erro ao abrir aposta pela casa:",error);
@@ -882,7 +1024,7 @@ window.addEntriesToBet=gid=>{
  $("betForm").reset();$("betGames").innerHTML="";normalizeGames(b).forEach(g=>addBetGameRow(g));$("betNote").value=b.note||"";
  let first=mainEntries(b)[0];
  $("mainType").value=first?.type||"cash";$("mainOdd").value=first?.odd?String(first.odd).replace(".",","):"";$("mainSelection").value=first?.selection||"";
- $("mainAccounts").innerHTML="";$("betEntries").innerHTML="";updateBetPreview();$("betDialog").showModal()
+ $("mainAccounts").innerHTML="";$("betEntries").innerHTML="";updateBetPreview();showBetWizardStep(1);$("betDialog").showModal()
 };
 
 $("betForm").onsubmit=e=>{
@@ -1012,7 +1154,8 @@ function gameGroupStatus(group){
 function renderBetOperationCard(b,operationIndex){
  let mains=mainEntries(b),protections=protectionEntries(b),entriesList=b.entries||[],open=entriesList.filter(e=>e.status==="open").length;
  let totalStake=entriesList.reduce((s,e)=>s+Number(e.stake||0),0),guaranteed=groupGuaranteedResult(b),actual=groupActualResult(b),outcome=groupOutcomeLabel(b),totalActualReturn=entriesList.reduce((s,e)=>s+Number(e.returned||0),0);
- let first=mains[0],mainOdd=first?.odd||0,mainSelection=first?.selection||"Principal";
+ let first=mains[0],mainOdd=first?.odd||0,mainSelection=first?.selection||"Principal",status=operationProtectionStatus(b),statusLabel=operationProtectionLabel(b);
+ let houses=[...new Set(entriesList.map(e=>{let h=hBy(e.pid,e.houseId);return h?h.name:""}).filter(Boolean))];
  let mainRows=mains.map(e=>{
   let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status;
   return `<div class="mainReplicaItem"><div><strong>${esc(p?.name||"")}</strong><div class="muted">${esc(h?.name||"")}</div></div><div><span class="muted">Stake</span><strong>${money(e.stake)}</strong></div><div><span class="muted">Status</span><strong>${txt}</strong></div><div>${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""} <button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button></div></div>`
@@ -1020,20 +1163,20 @@ function renderBetOperationCard(b,operationIndex){
  let protectionRows=protections.map((e,index)=>{
   let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status,scenario=scenarioNetResult(b,e);
   return `<div class="betEntry"><div class="betTop"><div><span class="entryRoleBadge protection">Proteção ${index+1}</span><strong style="display:block">${esc((p?.name||"")+" • "+(h?.name||""))}</strong><div class="muted">${esc(e.selection||"Resultado não informado")} • ${txt}</div></div><span class="status ${e.status}">${txt}</span></div>
-  <div class="stats"><div class="stat"><span>Valor</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd}</b></div><div class="stat chanceDoubleGreen"><span>Chance DG</span><b>${money(entryPotentialReturn(e))}</b></div><div class="stat"><span>Se só ela vencer</span><b>${money(scenario)}</b></div></div>
+  <details class="advancedCalculations"><summary>Ver cálculos desta proteção</summary><div class="stats"><div class="stat"><span>Valor</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd}</b></div><div class="stat chanceDoubleGreen"><span>Chance DG</span><b>${money(entryPotentialReturn(e))}</b></div><div class="stat"><span>Se só ela vencer</span><b>${money(scenario)}</b></div></div></details>
   <div class="entryActionRow">${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""}<button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button><button class="danger" onclick="deleteBetEntry('${b.id}','${e.id}')">Excluir</button></div></div>`
  }).join("");
- return `<details class="betGroup operationNested"><summary><div class="summaryMain"><strong><span class="operationNumber">${operationIndex+1}</span>Estratégia ${operationIndex+1}</strong><div class="summaryMeta">Principal em ${mains.length} conta(s) • ${protections.length} proteção(ões) • Stake total ${money(totalStake)} • Chance DG ${money(mainBlockChance(b))}</div></div><span class="status ${open?"open":groupWins(b)>=1?"win":"loss"}">${outcome}</span></summary>
+ return `<details class="betGroup operationNested"><summary><div class="summaryMain"><strong><span class="operationNumber">${operationIndex+1}</span>Estratégia ${operationIndex+1}</strong><div class="operationCompactInfo"><span>${mains.length} conta(s)</span><span>${houses.join(" • ")||"Sem casa"}</span><span>Chance DG ${money(mainBlockChance(b))}</span></div></div><span class="operationStatusBadge ${status}">${statusLabel}</span></summary>
  <div class="betGroupContent">
-  <div class="mainBlockCard"><div class="betTop"><div><span class="entryRoleBadge main">Bloco Principal</span><strong style="display:block">${esc(mainSelection)}</strong><div class="muted">Odd única ${mainOdd} • Stake total ${money(mainBlockStake(b))} • ${mains.length} conta(s)</div></div><div class="gameGroupChance"><span>Chance de Duplo Green</span><strong>${money(mainBlockChance(b))}</strong></div></div><div class="mainReplicaList">${mainRows}</div></div>
-  <div class="stats"><div class="stat"><span>Total comprometido em saldo</span><b>${money(groupCashCost(b))}</b></div><div class="stat"><span>Resultado mínimo previsto</span><b>${protections.length?money(guaranteed):"Sem proteção"}</b></div><div class="stat"><span>Retorno recebido</span><b>${open?"Em andamento":money(totalActualReturn)}</b></div><div class="stat"><span>Lucro/prejuízo realizado</span><b>${open?"Em andamento":money(actual)}</b></div></div>
+  <div class="mainBlockCard"><div class="betTop"><div><span class="entryRoleBadge main">Bloco Principal</span><strong style="display:block">${esc(mainSelection)}</strong><div class="muted">Odd ${mainOdd} • Stake ${money(mainBlockStake(b))} • ${mains.length} conta(s)</div></div><div class="gameGroupChance"><span>Chance de Duplo Green</span><strong>${money(mainBlockChance(b))}</strong></div></div><div class="mainReplicaList">${mainRows}</div></div>
   <div class="entryActionRow"><button class="primary" onclick="addEntriesToBet('${b.id}')">+ Conta principal / proteção</button><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogos</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir estratégia</button></div>
-  ${protectionRows||'<div class="card empty">Nenhuma proteção cadastrada.</div>'}
+  ${protectionRows||'<div class="card empty">Nenhuma proteção cadastrada. Você pode completar esta estratégia depois.</div>'}
+  <details class="advancedCalculations"><summary>Ver cálculos detalhados da estratégia</summary><div class="stats"><div class="stat"><span>Total comprometido</span><b>${money(groupCashCost(b))}</b></div><div class="stat"><span>Resultado mínimo previsto</span><b>${protections.length?money(guaranteed):"Sem proteção"}</b></div><div class="stat"><span>Retorno recebido</span><b>${open?"Em andamento":money(totalActualReturn)}</b></div><div class="stat"><span>Lucro/prejuízo realizado</span><b>${open?"Em andamento":money(actual)}</b></div></div></details>
  </div></details>`
 }
 function renderBets(){
  let q=$("betSearch").value.toLowerCase(),st=$("betStatus").value;
- let bs=S.bets.filter(b=>st==="all"||groupStatus(b)===st).filter(b=>{
+ let bs=S.bets.filter(b=>st==="all"||operationProtectionStatus(b)===st).filter(b=>{
   let text=[b.event,b.note,...normalizeGames(b).map(g=>g.name),...(b.entries||[]).flatMap(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId);return [p?p.name:"",h?h.name:"",e.selection||""]})].join(" ").toLowerCase();
   return text.includes(q)
  });

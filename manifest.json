@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=50",
+  "start_url": "./?v=51",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v50",
-  "description": "Base reconstruída com backup, Semanal e cadastro de apostas restaurados."
+  "id": "./betmanager-v51",
+  "description": "Cadastro em etapas, cálculos recolhidos e status automático das estratégias."
 }

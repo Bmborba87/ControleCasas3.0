@@ -1,8 +1,21 @@
-BETMANAGER V50 — BASE RECONSTRUÍDA
+BETMANAGER V51 — SIMPLIFICAÇÃO
 
-- Corrigido weeklyNormalizeGoal is not defined.
-- Restaurado o módulo completo do Semanal Bet365.
-- Restaurado o Cadastro Inteligente de Jogos.
-- Restaurados importar/exportar backup, histórico, relatórios, lixeira e auditoria.
-- Corrigido o botão Criar aposta.
-- Preservados Bloco Principal e proteções compartilhadas.
+1. CADASTRO EM QUATRO ETAPAS
+- Jogo
+- Bloco Principal
+- Proteções
+- Revisão
+
+2. CÁLCULOS RECOLHIDOS
+- A tela principal mostra apenas jogo, contas, casas, Chance DG e status.
+- Valores técnicos ficam em “Ver cálculos detalhados”.
+
+3. STATUS AUTOMÁTICO
+- Sem proteção: nenhuma proteção cadastrada.
+- Proteção incompleta: há proteção, mas o resultado mínimo previsto é negativo.
+- Protegida: resultado mínimo previsto igual ou maior que zero.
+- Finalizada: nenhuma entrada em aberto.
+
+COMPATIBILIDADE
+- Não altera a estrutura do backup.
+- Estratégias antigas recebem o status automaticamente.

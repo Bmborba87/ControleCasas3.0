@@ -1,16 +1,8 @@
-BETMANAGER V49
+BETMANAGER V50 — BASE RECONSTRUÍDA
 
-CORREÇÕES
-- Importar backup volta a abrir o seletor de arquivos.
-- Importação de backups antigos restaurada.
-- Exportar backup restaurado.
-- Exportar CSV restaurado.
-- Desfazer restaurado.
-- Fechamento dos diálogos restaurado.
-- Instalação do aplicativo preservada.
-- Criar aposta da V48 preservado.
-
-CAUSA
-Na reforma da V47/V48, o bloco final que continha os eventos de backup e
-alguns utilitários foi removido acidentalmente. Os botões permaneciam na tela,
-mas não possuíam funções associadas.
+- Corrigido weeklyNormalizeGoal is not defined.
+- Restaurado o módulo completo do Semanal Bet365.
+- Restaurado o Cadastro Inteligente de Jogos.
+- Restaurados importar/exportar backup, histórico, relatórios, lixeira e auditoria.
+- Corrigido o botão Criar aposta.
+- Preservados Bloco Principal e proteções compartilhadas.

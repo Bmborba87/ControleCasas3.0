@@ -255,7 +255,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v49</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v50</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -725,8 +725,14 @@ function addBetGameRow(data={}){
  row.dataset.catalogKey=selectedKey||gameIdentity({name:nameInput.value,date:dateInput.value});
  picker.onchange=()=>{
   let selected=gameCatalog().find(g=>g.key===picker.value);
-  if(selected){nameInput.value=selected.name;dateInput.value=selected.date;row.dataset.catalogKey=selected.key}
-  else{row.dataset.catalogKey="";nameInput.focus()}
+  if(selected){
+   nameInput.value=selected.name;
+   dateInput.value=selected.date;
+   row.dataset.catalogKey=selected.key
+  }else{
+   row.dataset.catalogKey="";
+   nameInput.focus()
+  }
  };
  [nameInput,dateInput].forEach(input=>input.addEventListener("input",()=>{
   if(picker.value)picker.value="";
@@ -749,6 +755,7 @@ function operationGamesHtml(b){
  return normalizeGames(b).map((g,index)=>`<div class="multiGameItem">${index+1}. ${esc(g.name)}${g.date?" • "+new Date(g.date).toLocaleString("pt-BR"):""}</div>`).join("")
 }
 $("addBetGameRow").onclick=()=>addBetGameRow();
+
 
 function readMainAccountRows(){
  let odd=n($("mainOdd").value),type=$("mainType").value,selection=$("mainSelection").value.trim();
@@ -934,12 +941,350 @@ $("betForm").onsubmit=e=>{
 
 $("betDialog").addEventListener("close",()=>{editingBetId=null});
 
-window.closeD=id=>{
- let dialog=$(id);
- if(dialog&&typeof dialog.close==="function")dialog.close()
-};
-function applyTheme(){window.applyBetTheme()}
+function snapshotState(label){
+ S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];
+ let copy=JSON.parse(JSON.stringify({...S,undoStack:[]}));
+ S.undoStack.push({id:uid(),date:new Date().toISOString(),label,state:copy});
+ S.undoStack=S.undoStack.slice(-10)
+}
+function audit(label,details=""){
+ S.audit=Array.isArray(S.audit)?S.audit:[];
+ S.audit.unshift({id:uid(),date:new Date().toISOString(),label,details});
+ S.audit=S.audit.slice(0,500)
+}
+function applyEntryComplete(entry){
+ let h=hBy(entry.pid,entry.houseId);if(!h)throw new Error("Casa da entrada não encontrada");
+ let stake=Number(entry.stake||0),ret=Number(entry.returned||0),status=entry.status||"open";
+ if(entry.type==="cash"){
+  if(status==="open"){h.balance-=stake;h.inPlay+=stake}
+  else if(status==="win"||status==="loss"){h.balance+=ret-stake;h.profit+=ret-stake}
+  else if(status==="void"){}
+ }else{
+  if(status==="open"){h.freebet=Number(h.freebet||0)-stake}
+  else if(status==="win"){h.freebet=Number(h.freebet||0)-stake;h.balance+=ret;h.profit+=ret}
+  else if(status==="loss"){h.freebet=Number(h.freebet||0)-stake}
+  else if(status==="void"){}
+ }
+}
+function reverseEntryComplete(entry){
+ let h=hBy(entry.pid,entry.houseId);if(!h)return;
+ let stake=Number(entry.stake||0),ret=Number(entry.returned||0),status=entry.status||"open";
+ if(entry.type==="cash"){
+  if(status==="open"){h.balance+=stake;h.inPlay=Math.max(0,h.inPlay-stake)}
+  else if(status==="win"||status==="loss"){h.balance-=ret-stake;h.profit-=ret-stake}
+ }else{
+  if(status==="open"){h.freebet=Number(h.freebet||0)+stake}
+  else if(status==="win"){h.freebet=Number(h.freebet||0)+stake;h.balance-=ret;h.profit-=ret}
+  else if(status==="loss"){h.freebet=Number(h.freebet||0)+stake}
+ }
+}
+function cleanTrash(){
+ let limit=Date.now()-30*86400000;
+ S.trash=(S.trash||[]).filter(x=>new Date(x.deletedAt).getTime()>=limit)
+}
 
+function operationChanceDoubleGreen(b){return mainBlockChance(b)}
+function operationGameSignature(b){
+ return normalizeGames(b).map(g=>g.catalogKey||gameIdentity(g)).sort().join("||")
+}
+function groupedBetOperations(bets){
+ let map=new Map();
+ bets.forEach(b=>{
+  let signature=operationGameSignature(b);
+  if(!map.has(signature))map.set(signature,{signature,games:normalizeGames(b),operations:[]});
+  map.get(signature).operations.push(b)
+ });
+ return [...map.values()].sort((a,b)=>{
+  let ad=a.games.map(g=>g.date).filter(Boolean).sort()[0]||"9999";
+  let bd=b.games.map(g=>g.date).filter(Boolean).sort()[0]||"9999";
+  return ad.localeCompare(bd)
+ })
+}
+function gameGroupTitle(group){
+ if(group.games.length===1)return group.games[0].name||"Jogo";
+ return "Múltipla • "+group.games.length+" jogos"
+}
+function gameGroupStatus(group){
+ let open=group.operations.filter(b=>groupStatus(b)==="open").length;
+ if(open)return open+" em andamento";
+ return group.operations.length+" finalizada(s)"
+}
+function renderBetOperationCard(b,operationIndex){
+ let mains=mainEntries(b),protections=protectionEntries(b),entriesList=b.entries||[],open=entriesList.filter(e=>e.status==="open").length;
+ let totalStake=entriesList.reduce((s,e)=>s+Number(e.stake||0),0),guaranteed=groupGuaranteedResult(b),actual=groupActualResult(b),outcome=groupOutcomeLabel(b),totalActualReturn=entriesList.reduce((s,e)=>s+Number(e.returned||0),0);
+ let first=mains[0],mainOdd=first?.odd||0,mainSelection=first?.selection||"Principal";
+ let mainRows=mains.map(e=>{
+  let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status;
+  return `<div class="mainReplicaItem"><div><strong>${esc(p?.name||"")}</strong><div class="muted">${esc(h?.name||"")}</div></div><div><span class="muted">Stake</span><strong>${money(e.stake)}</strong></div><div><span class="muted">Status</span><strong>${txt}</strong></div><div>${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""} <button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button></div></div>`
+ }).join("");
+ let protectionRows=protections.map((e,index)=>{
+  let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status,scenario=scenarioNetResult(b,e);
+  return `<div class="betEntry"><div class="betTop"><div><span class="entryRoleBadge protection">Proteção ${index+1}</span><strong style="display:block">${esc((p?.name||"")+" • "+(h?.name||""))}</strong><div class="muted">${esc(e.selection||"Resultado não informado")} • ${txt}</div></div><span class="status ${e.status}">${txt}</span></div>
+  <div class="stats"><div class="stat"><span>Valor</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd}</b></div><div class="stat chanceDoubleGreen"><span>Chance DG</span><b>${money(entryPotentialReturn(e))}</b></div><div class="stat"><span>Se só ela vencer</span><b>${money(scenario)}</b></div></div>
+  <div class="entryActionRow">${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""}<button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button><button class="danger" onclick="deleteBetEntry('${b.id}','${e.id}')">Excluir</button></div></div>`
+ }).join("");
+ return `<details class="betGroup operationNested"><summary><div class="summaryMain"><strong><span class="operationNumber">${operationIndex+1}</span>Estratégia ${operationIndex+1}</strong><div class="summaryMeta">Principal em ${mains.length} conta(s) • ${protections.length} proteção(ões) • Stake total ${money(totalStake)} • Chance DG ${money(mainBlockChance(b))}</div></div><span class="status ${open?"open":groupWins(b)>=1?"win":"loss"}">${outcome}</span></summary>
+ <div class="betGroupContent">
+  <div class="mainBlockCard"><div class="betTop"><div><span class="entryRoleBadge main">Bloco Principal</span><strong style="display:block">${esc(mainSelection)}</strong><div class="muted">Odd única ${mainOdd} • Stake total ${money(mainBlockStake(b))} • ${mains.length} conta(s)</div></div><div class="gameGroupChance"><span>Chance de Duplo Green</span><strong>${money(mainBlockChance(b))}</strong></div></div><div class="mainReplicaList">${mainRows}</div></div>
+  <div class="stats"><div class="stat"><span>Total comprometido em saldo</span><b>${money(groupCashCost(b))}</b></div><div class="stat"><span>Resultado mínimo previsto</span><b>${protections.length?money(guaranteed):"Sem proteção"}</b></div><div class="stat"><span>Retorno recebido</span><b>${open?"Em andamento":money(totalActualReturn)}</b></div><div class="stat"><span>Lucro/prejuízo realizado</span><b>${open?"Em andamento":money(actual)}</b></div></div>
+  <div class="entryActionRow"><button class="primary" onclick="addEntriesToBet('${b.id}')">+ Conta principal / proteção</button><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogos</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir estratégia</button></div>
+  ${protectionRows||'<div class="card empty">Nenhuma proteção cadastrada.</div>'}
+ </div></details>`
+}
+function renderBets(){
+ let q=$("betSearch").value.toLowerCase(),st=$("betStatus").value;
+ let bs=S.bets.filter(b=>st==="all"||groupStatus(b)===st).filter(b=>{
+  let text=[b.event,b.note,...normalizeGames(b).map(g=>g.name),...(b.entries||[]).flatMap(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId);return [p?p.name:"",h?h.name:"",e.selection||""]})].join(" ").toLowerCase();
+  return text.includes(q)
+ });
+ let groups=groupedBetOperations(bs);
+ $("betsList").innerHTML=groups.length?groups.map(group=>{
+  let chance=group.operations.reduce((sum,b)=>sum+operationChanceDoubleGreen(b),0);
+  let totalStake=group.operations.reduce((sum,b)=>sum+(b.entries||[]).reduce((s,e)=>s+Number(e.stake||0),0),0);
+  let gameList=group.games.map((g,index)=>`<div class="multiGameItem">${index+1}. ${esc(g.name)}${g.date?" • "+new Date(g.date).toLocaleString("pt-BR"):""}</div>`).join("");
+  return `<details class="gameEventGroup">
+   <summary>
+    <div class="gameGroupMain"><h3>${esc(gameGroupTitle(group))}</h3>${group.games.length>1?`<div class="multiGameList">${gameList}</div>`:""}<div class="gameGroupMeta">${group.operations.length} operação(ões) • ${gameGroupStatus(group)} • Total lançado ${money(totalStake)}</div></div>
+    <div class="gameGroupChance"><span>Chance de Duplo Green somada</span><strong>${money(chance)}</strong></div>
+   </summary>
+   <div class="gameGroupBody">${group.operations.map((b,index)=>renderBetOperationCard(b,index)).join("")}</div>
+  </details>`
+ }).join(""):'<div class="card empty">Nenhuma operação cadastrada.</div>'
+}
+$("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;
+window.openSettle=(gid,eid)=>{
+ let b=S.bets.find(x=>x.id===gid),entry=b.entries.find(x=>x.id===eid);
+ $("settleGroupId").value=gid;$("settleEntryId").value=eid;
+ $("settleSub").textContent=b.event||"Aposta";
+ $("settleReturn").value=entry.odd?(entry.type==="freebet"?entry.stake*(entry.odd-1):entry.stake*entry.odd).toFixed(2).replace(".",","):"";
+ $("settleDialog").showModal()
+};
+$("settleForm").onsubmit=e=>{
+ e.preventDefault();
+ let b=S.bets.find(x=>x.id===$("settleGroupId").value),entry=b.entries.find(x=>x.id===$("settleEntryId").value),h=hBy(entry.pid,entry.houseId),res=$("settleResult").value;
+ let ret=res==="loss"?0:res==="void"?(entry.type==="cash"?entry.stake:0):n($("settleReturn").value);
+ if(!(ret>=0))return alert("Retorno inválido.");
+ snapshotState("Finalizar entrada");reverseEntryComplete(entry);
+ entry.status=res;entry.returned=ret;entry.settled=new Date().toISOString();
+ applyEntryComplete(entry);
+ audit("Entrada finalizada",`${b.event} • ${res} • ${money(ret)}`);
+ save();$("settleDialog").close()
+};
+
+
+function weeklyCurrent(goal){
+ return (goal.entries||[]).reduce((sum,e)=>sum+Number(e.value||0),0)
+}
+function weeklyNormalizeGoal(g){
+ return {
+  id:g.id||uid(),
+  accountName:g.accountName||g.personName||g.nomeConta||g.name||g.nome||"Sem nome",
+  linkedPersonId:g.linkedPersonId||g.personId||"",
+  target:Number(g.target??g.meta??1500)||1500,
+  created:g.created||g.createdAt||new Date().toISOString(),
+  entries:Array.isArray(g.entries)?g.entries.map(e=>({
+   id:e.id||uid(),
+   date:e.date||e.data||new Date().toISOString(),
+   value:Number(e.value??e.valor??0)||0,
+   note:e.note||e.observacao||""
+  })):[]
+ }
+}
+let activeWeeklyGoalId="";
+window.selectWeeklyGoal=id=>{activeWeeklyGoalId=id;renderWeeklyGoals()};
+function renderWeeklyGoals(){
+ populateWeeklyPersonOptions();
+ if(!Array.isArray(S.weeklyGoals))S.weeklyGoals=[];
+ let goals=[...S.weeklyGoals].sort((a,b)=>new Date(b.created)-new Date(a.created));
+ if(!goals.length){$("weeklyGoalTabs").innerHTML="";$("weeklyGoalsList").innerHTML='<div class="card empty">Nenhuma meta semanal criada.</div>';return}
+ if(!goals.some(g=>g.id===activeWeeklyGoalId))activeWeeklyGoalId=goals[0].id;
+ $("weeklyGoalTabs").innerHTML=goals.map(g=>`<button class="weeklyGoalTab ${g.id===activeWeeklyGoalId?"active":""}" onclick="selectWeeklyGoal('${g.id}')">${esc(g.accountName)}</button>`).join("");
+ let g=goals.find(x=>x.id===activeWeeklyGoalId),current=weeklyCurrent(g),remaining=Math.max(0,g.target-current),percent=g.target>0?Math.max(0,current/g.target*100):0,complete=current>=g.target;
+ let entries=[...(g.entries||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
+ $("weeklyGoalsList").innerHTML=`<section class="weeklyGoal ${complete?"weeklyComplete":""}">
+  <div class="weeklyGoalHead"><div class="weeklyGoalTitle"><span class="weeklyBadge">${complete?"Meta concluída":"Em andamento"}</span><div><h3>${esc(g.accountName)}</h3><div class="muted">Meta ${money(g.target)}${g.linkedPersonId?" • vinculada":""}</div></div></div><strong>${money(current)}</strong></div>
+  <div class="weeklyProgress"><div style="width:${Math.min(100,percent)}%"></div></div>
+  <div class="weeklyNumbers"><span>${pct(percent)} concluído</span><span>Faltam ${money(remaining)}</span></div>
+  <form class="weeklyAddForm" onsubmit="addWeeklyValue(event,'${g.id}',1)"><label>Valor<input class="weeklyValueInput" inputmode="decimal" placeholder="0,00"></label><label>Observação<input class="weeklyNoteInput" placeholder="Aposta, cashout ou correção"></label><div class="weeklyMovementButtons"><button type="submit" class="primary">+ Adicionar</button><button type="button" class="weeklyRemoveBtn" onclick="addWeeklyValue(event,'${g.id}',-1)">− Retirar</button></div></form>
+  <details class="weeklyEntriesDetails"><summary>Lançamentos (${entries.length})</summary><div class="weeklyEntries">${entries.length?entries.map(e=>`<div class="weeklyEntry"><span>${new Date(e.date).toLocaleDateString("pt-BR")}</span><span>${esc(e.note||"Lançamento")}</span><strong class="weeklyValue ${e.value>=0?"positive":"negative"}">${e.value>=0?"+":""}${money(e.value)}</strong><button class="danger" onclick="deleteWeeklyEntry('${g.id}','${e.id}')">Excluir</button></div>`).join(""):'<div class="empty">Nenhum lançamento.</div>'}</div></details>
+  <div class="weeklyGoalActions"><button class="secondary" onclick="editWeeklyGoal('${g.id}')">Editar</button><button class="warning" onclick="resetWeeklyGoal('${g.id}')">Reiniciar</button><button class="danger" onclick="deleteWeeklyGoal('${g.id}')">Excluir</button></div>
+ </section>`
+}
+function populateWeeklyPersonOptions(){
+ let select=$("weeklyGoalPerson");if(!select)return;
+ let current=select.value;
+ select.innerHTML='<option value="">Usar nome novo</option>'+S.people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+ if([...select.options].some(o=>o.value===current))select.value=current;
+ toggleWeeklyCustomName()
+}
+function toggleWeeklyCustomName(){
+ let linked=Boolean($("weeklyGoalPerson").value);
+ $("weeklyCustomNameWrap").style.display=linked?"none":"block";
+ $("weeklyGoalAccountName").required=!linked
+}
+$("weeklyGoalPerson").onchange=toggleWeeklyCustomName;
+$("weeklyGoalForm").onsubmit=e=>{
+ e.preventDefault();
+ let linkedPersonId=$("weeklyGoalPerson").value,person=linkedPersonId?pBy(linkedPersonId):null;
+ let accountName=person?person.name:$("weeklyGoalAccountName").value.trim();
+ let target=n($("weeklyGoalTarget").value);
+ if(!accountName)return alert("Escolha uma pessoa existente ou digite um nome novo.");
+ if(!(target>0))return alert("Digite uma meta válida.");
+ let newGoal={id:uid(),accountName,linkedPersonId:person?person.id:"",target,created:new Date().toISOString(),entries:[]};
+ S.weeklyGoals.push(newGoal);activeWeeklyGoalId=newGoal.id;
+ $("weeklyGoalForm").reset();$("weeklyGoalTarget").value="1500,00";populateWeeklyPersonOptions();save()
+};
+window.addWeeklyValue=(event,goalId,direction=1)=>{
+ event.preventDefault();
+ let form=event.target.closest("form")||event.target;
+ let input=form.querySelector(".weeklyValueInput"),note=form.querySelector(".weeklyNoteInput");
+ let raw=Math.abs(n(input.value)),goal=S.weeklyGoals.find(g=>g.id===goalId);
+ if(!goal)return;
+ if(!(raw>0))return alert("Digite um valor maior que zero.");
+ let value=direction<0?-raw:raw;
+ goal.entries.push({id:uid(),date:new Date().toISOString(),value,note:note.value.trim()||(direction<0?"Retirada / cashout":"Lançamento")});
+ form.reset();save()
+};
+window.editWeeklyGoal=goalId=>{
+ let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
+ let accountName=prompt("Nome da conta:",g.accountName);if(accountName===null)return;
+ let targetRaw=prompt("Valor da meta:",Number(g.target).toLocaleString("pt-BR",{minimumFractionDigits:2}));if(targetRaw===null)return;
+ let target=n(targetRaw);if(!(target>0))return alert("Meta inválida.");
+ g.accountName=accountName.trim()||"Sem nome";
+ g.target=target;
+ save()
+};
+window.resetWeeklyGoal=goalId=>{
+ let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
+ if(confirm("Reiniciar esta meta e apagar todos os lançamentos?")){g.entries=[];g.created=new Date().toISOString();save()}
+};
+window.deleteWeeklyGoal=goalId=>{
+ if(confirm("Excluir esta meta semanal?")){S.weeklyGoals=S.weeklyGoals.filter(g=>g.id!==goalId);save()}
+};
+window.deleteWeeklyEntry=(goalId,entryId)=>{
+ let g=S.weeklyGoals.find(x=>x.id===goalId);if(!g)return;
+ if(confirm("Excluir este lançamento?")){g.entries=g.entries.filter(e=>e.id!==entryId);save()}
+};
+
+function renderOperations(){
+ let today=new Date().toISOString().slice(0,10);
+ let games=S.bets.filter(b=>(b.entries||[]).some(e=>e.status==="open")).sort((a,b)=>(a.eventDate||"9999").localeCompare(b.eventDate||"9999"));
+ let todayGames=games.filter(b=>!b.eventDate||b.eventDate.slice(0,10)===today);
+ $("operationsList").innerHTML=todayGames.length?todayGames.map(b=>{
+  let entries=b.entries||[],open=entries.filter(e=>e.status==="open"),stake=open.reduce((s,e)=>s+Number(e.stake||0),0),potential=groupGuaranteedResult(b);
+  let houses=[...new Map(open.map(e=>{let h=hBy(e.pid,e.houseId);return [e.houseId,h]})).values()].filter(Boolean);
+  return `<section class="operationalGame"><div class="operationalHead"><div><strong>${esc(operationTitle(b))}</strong><div class="multiGameList">${operationGamesHtml(b)}</div><div class="muted">${b.eventDate?new Date(b.eventDate).toLocaleString("pt-BR"):"Horário não informado"} • ${open.length} entrada(s)</div></div><div style="text-align:right"><strong>${money(stake)}</strong><div class="positive">${entries.length>1?"Mínimo previsto "+money(potential):"Sem proteção"}</div></div></div><div class="operationalBody">${houses.map(h=>`<button class="primary" style="margin:3px" onclick="openHouseSite('${h.pid}','${h.id}')">${esc(h.name)}</button>`).join("")}<button class="secondary" style="margin:3px" onclick="switchToBet('${b.id}')">Ver apostas</button></div></section>`
+ }).join(""):'<div class="card empty">Nenhum jogo com aposta aberta para hoje.</div>'
+}
+window.switchToBet=id=>{document.querySelector('[data-tab="bets"]').click();$("betSearch").value=(S.bets.find(b=>b.id===id)||{}).event||"";renderBets()}
+
+
+function renderReports(){
+ let now=new Date(),month=$("reportMonth").value||now.toISOString().slice(0,7);$("reportMonth").value=month;
+ let moves=S.moves.filter(m=>(m.date||"").slice(0,7)===month),profit=moves.reduce((s,m)=>s+Number(m.deltaProfit||0),0),deposits=moves.filter(m=>m.type==="deposit").reduce((s,m)=>s+Number(m.value||0),0),withdraws=moves.filter(m=>m.type==="withdraw").reduce((s,m)=>s+Number(m.value||0),0);
+ let bets=S.bets.filter(b=>(b.created||"").slice(0,7)===month),entries=bets.flatMap(b=>b.entries||[]),greens=entries.filter(e=>e.status==="win").length,reds=entries.filter(e=>e.status==="loss").length,doubleGreens=bets.filter(b=>groupWins(b)>=2).length;
+ $("reportSummary").innerHTML=[["Lucro",money(profit)],["Depósitos",money(deposits)],["Retiradas",money(withdraws)],["Operações",bets.length],["Greens",greens],["Reds",reds],["Duplos greens",doubleGreens]].map(([a,b])=>`<div class="metric"><span>${a}</span><strong>${b}</strong></div>`).join("");
+ renderCapitalChart();renderAutoBackups()
+}
+$("reportMonth").onchange=renderReports;
+function renderCapitalChart(){
+ let data=[...(S.snapshots||[])].slice(-30),max=Math.max(1,...data.map(x=>x.capital));
+ $("capitalChart").innerHTML=data.length?data.map(x=>`<div class="chartBar" style="height:${Math.max(3,x.capital/max*100)}%"><span>${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</span></div>`).join(""):'<div class="empty">Os snapshots diários aparecerão aqui.</div>'
+}
+function renderAutoBackups(){
+ $("autoBackupsList").innerHTML=(S.snapshots||[]).slice(-10).reverse().map(x=>`<div class="autoBackupItem"><span>${new Date(x.date+"T12:00:00").toLocaleDateString("pt-BR")}</span><strong>${money(x.capital)}</strong></div>`).join("")||'<div class="empty">Nenhum snapshot diário ainda.</div>'
+}
+$("exportCsvBtn").onclick=()=>{
+ let rows=[["Data","Tipo","Descrição","Valor","Pessoa","Casa"]];
+ S.moves.forEach(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);rows.push([m.date,m.type,m.label,m.value,p?p.name:"",h?h.name:""])});
+ let csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\n"),blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="movimentacoes-controle-apostas.csv";a.click();URL.revokeObjectURL(url)
+}
+
+
+window.editBetGame=gid=>{
+ let b=S.bets.find(x=>x.id===gid);if(!b)return;
+ let event=prompt("Jogo/evento:",b.event);if(event===null)return;
+ let date=prompt("Data e hora (AAAA-MM-DDTHH:MM):",b.eventDate||"");if(date===null)return;
+ snapshotState("Editar jogo");let old=b.event;b.event=event.trim()||b.event;b.eventDate=date.trim();audit("Jogo editado",`${old} → ${b.event}`);save()
+};
+window.editBetEntry=(gid,eid)=>{
+ let b=S.bets.find(x=>x.id===gid),e=b&&b.entries.find(x=>x.id===eid);if(!e)return;
+ let stake=n(prompt("Valor da entrada:",Number(e.stake).toLocaleString("pt-BR",{minimumFractionDigits:2})));if(!(stake>0))return alert("Valor inválido.");
+ let odd=n(prompt("Odd:",String(e.odd).replace(".",",")));if(!(odd>0))return alert("Odd inválida.");
+ let type=prompt("Tipo: cash ou freebet",e.type);if(!["cash","freebet"].includes(type))return alert("Tipo inválido.");
+ let selection=prompt("Resultado/mercado protegido:",e.selection||"");if(selection===null)return;
+ let compatible=e.role==="main"?false:confirm("Esta proteção pode ficar green junto com a entrada principal?");
+ let people=S.people.map((p,i)=>`${i+1} - ${p.name}`).join("\n"),pi=Number(prompt("Pessoa:\n"+people,String(Math.max(0,S.people.findIndex(p=>p.id===e.pid))+1)))-1,p=S.people[pi];if(!p)return alert("Pessoa inválida.");
+ let houses=p.houses.map((h,i)=>`${i+1} - ${h.name}`).join("\n"),hi=Number(prompt("Casa:\n"+houses,String(Math.max(0,p.houses.findIndex(h=>h.id===e.houseId))+1)))-1,h=p.houses[hi];if(!h)return alert("Casa inválida.");
+ snapshotState("Editar entrada");reverseEntryComplete(e);
+ e.pid=p.id;e.houseId=h.id;e.stake=stake;e.odd=odd;e.type=type;e.selection=selection.trim();e.doubleGreenCompatible=e.role==="main"?false:compatible;
+ try{applyEntryComplete(e)}catch(err){alert(err.message);return}
+ audit("Entrada editada",`${b.event} • ${p.name} • ${h.name}`);save()
+};
+window.duplicateBetEntry=(gid,eid)=>{
+ let b=S.bets.find(x=>x.id===gid),e=b&&b.entries.find(x=>x.id===eid);if(!e)return;
+ let copy={...JSON.parse(JSON.stringify(e)),id:uid(),role:"protection",doubleGreenCompatible:false,status:"open",returned:0,settled:null,created:new Date().toISOString()};
+ snapshotState("Duplicar entrada");
+ try{applyEntryComplete(copy)}catch(err){return alert(err.message)}
+ b.entries.push(copy);audit("Entrada duplicada",b.event);save()
+};
+window.moveBetEntry=(gid,eid)=>{
+ let source=S.bets.find(x=>x.id===gid),entry=source&&source.entries.find(x=>x.id===eid);if(!entry)return;
+ let options=S.bets.filter(x=>x.id!==gid).map((b,i)=>`${i+1} - ${b.event}`).join("\n");
+ let raw=prompt("Mover para qual jogo?\n"+options+"\n\nDigite 0 para criar um novo jogo.","1");if(raw===null)return;
+ snapshotState("Mover entrada");
+ let target;
+ if(Number(raw)===0){let name=prompt("Nome do novo jogo:");if(!name)return;target={id:uid(),event:name,eventDate:"",note:"",created:new Date().toISOString(),entries:[]};S.bets.unshift(target)}
+ else target=S.bets.filter(x=>x.id!==gid)[Number(raw)-1];
+ if(!target)return alert("Jogo inválido.");
+ source.entries=source.entries.filter(x=>x.id!==eid);source.entries.forEach((x,i)=>{x.role=i===0?"main":"protection";if(i===0)x.doubleGreenCompatible=false});entry.role="protection";entry.doubleGreenCompatible=false;target.entries.push(entry);target.entries.forEach((x,i)=>{x.role=i===0?"main":"protection";if(i===0)x.doubleGreenCompatible=false});
+ if(!source.entries.length)S.bets=S.bets.filter(x=>x.id!==source.id);
+ audit("Entrada movida",`${source.event} → ${target.event}`);save()
+};
+window.deleteBetEntry=(gid,eid)=>{
+ let b=S.bets.find(x=>x.id===gid),entry=b&&b.entries.find(x=>x.id===eid);if(!entry||!confirm("Excluir esta entrada e desfazer seu efeito financeiro?"))return;
+ snapshotState("Excluir entrada");reverseEntryComplete(entry);
+ S.trash.push({id:uid(),type:"entry",deletedAt:new Date().toISOString(),groupId:gid,groupEvent:b.event,item:JSON.parse(JSON.stringify(entry))});
+ b.entries=b.entries.filter(x=>x.id!==eid);b.entries.forEach((x,i)=>{x.role=i===0?"main":"protection";if(i===0)x.doubleGreenCompatible=false});if(!b.entries.length)S.bets=S.bets.filter(x=>x.id!==gid);
+ audit("Entrada excluída",b.event);save()
+};
+window.deleteBetGame=gid=>{
+ let b=S.bets.find(x=>x.id===gid);if(!b||!confirm("Excluir o jogo inteiro e desfazer todas as entradas?"))return;
+ snapshotState("Excluir jogo");(b.entries||[]).forEach(reverseEntryComplete);
+ S.trash.push({id:uid(),type:"game",deletedAt:new Date().toISOString(),item:JSON.parse(JSON.stringify(b))});
+ S.bets=S.bets.filter(x=>x.id!==gid);audit("Jogo excluído",b.event);save()
+};
+function renderAudit(){
+ $("auditList").innerHTML=(S.audit||[]).length?S.audit.map(a=>`<div class="auditItem"><strong>${esc(a.label)}</strong><div class="muted">${new Date(a.date).toLocaleString("pt-BR")} • ${esc(a.details||"")}</div></div>`).join(""):'<div class="empty">Nenhuma alteração registrada.</div>';
+ $("undoBtn").disabled=!(S.undoStack||[]).length
+}
+$("undoBtn").onclick=()=>{
+ let last=(S.undoStack||[]).pop();if(!last)return;
+ let stack=S.undoStack;
+ S=JSON.parse(JSON.stringify(last.state));S.undoStack=stack;
+ audit("Ação desfeita",last.label);save()
+};
+function renderTrash(){
+ cleanTrash();
+ $("trashList").innerHTML=(S.trash||[]).length?S.trash.map(t=>`<div class="trashItem"><strong>${t.type==="game"?"Jogo":"Entrada"}: ${esc(t.type==="game"?t.item.event:t.groupEvent)}</strong><div class="muted">Excluído em ${new Date(t.deletedAt).toLocaleString("pt-BR")}</div><div class="entryActionRow"><button class="success" onclick="restoreTrash('${t.id}')">Restaurar</button><button class="danger" onclick="purgeTrash('${t.id}')">Apagar definitivamente</button></div></div>`).join(""):'<div class="empty">A lixeira está vazia.</div>'
+}
+window.restoreTrash=id=>{
+ let t=S.trash.find(x=>x.id===id);if(!t)return;
+ snapshotState("Restaurar da lixeira");
+ if(t.type==="game"){(t.item.entries||[]).forEach(applyEntryComplete);S.bets.unshift(t.item)}
+ else{
+  let group=S.bets.find(x=>x.id===t.groupId);
+  if(!group){group={id:t.groupId,event:t.groupEvent,eventDate:"",note:"Restaurado",created:new Date().toISOString(),entries:[]};S.bets.unshift(group)}
+  applyEntryComplete(t.item);group.entries.push(t.item)
+ }
+ S.trash=S.trash.filter(x=>x.id!==id);audit("Item restaurado",t.type);save()
+};
+window.purgeTrash=id=>{if(confirm("Apagar definitivamente?")){S.trash=S.trash.filter(x=>x.id!==id);save()}};
+
+function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
+function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
+function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
+$("snapshotDate").value=new Date().toISOString().slice(0,10);$("snapshotDate").onchange=renderSnapshot;
 function normalizeOldHouse(h){
  h=h||{};
  let balance=h.balance??h.saldo??h.valor??h.amount??0;
@@ -968,79 +1313,108 @@ function normalizeOldHouse(h){
  }
 }
 function migrateBackup(x){
- let people=[],bets=[],moves=[],weeklyGoals=[],snapshots=[],settings={},auditLog=[],trash=[];
+ let people=[],bets=[],moves=[],weeklyGoals=[],snapshots=[],settings={},auditLog=[],trash=[],undoStack=[];
  if(typeof x==="string")x=JSON.parse(x.trim().replace(/^\uFEFF/,""));
- if(Array.isArray(x))people=x;
- else if(x&&typeof x==="object"){
+ if(Array.isArray(x)){
+  people=x
+ }else if(x&&typeof x==="object"){
   let root=x.data&&typeof x.data==="object"&&!Array.isArray(x.data)?x.data:x;
   people=root.people||root.pessoas||root.users||root.clientes||root.data||[];
   bets=root.bets||root.apostas||root.games||root.jogos||[];
   moves=root.moves||root.movements||root.movimentacoes||root.historico||[];
-  weeklyGoals=root.weeklyGoals||root.metasSemanais||root.semanalBet365||[];
-  snapshots=root.snapshots||[];settings=root.settings||{};auditLog=root.audit||[];trash=root.trash||[];
+  weeklyGoals=root.weeklyGoals||root.metasSemanais||root.semanalBet365||[];snapshots=root.snapshots||[];settings=root.settings||{};auditLog=root.audit||[];trash=root.trash||[];undoStack=[];
   if(!Array.isArray(people)&&people&&typeof people==="object")people=Object.values(people);
   if(!Array.isArray(bets)&&bets&&typeof bets==="object")bets=Object.values(bets);
   if(!Array.isArray(moves)&&moves&&typeof moves==="object")moves=Object.values(moves);
   if(!Array.isArray(weeklyGoals)&&weeklyGoals&&typeof weeklyGoals==="object")weeklyGoals=Object.values(weeklyGoals)
  }
- if(!Array.isArray(people))throw new Error("Lista de pessoas não encontrada.");
+ if(!Array.isArray(people))throw new Error("Lista de pessoas não encontrada");
  people=people.map(p=>{
   p=p||{};
   let houses=p.houses||p.casas||p.accounts||p.contas||[];
   if(!Array.isArray(houses)&&houses&&typeof houses==="object")houses=Object.values(houses);
-  return {id:p.id||p._id||uid(),name:p.name||p.nome||p.person||p.pessoa||"Sem nome",houses:Array.isArray(houses)?houses.map(normalizeOldHouse):[]}
+  return {
+   id:p.id||p._id||uid(),
+   name:p.name||p.nome||p.person||p.pessoa||"Sem nome",
+   houses:Array.isArray(houses)?houses.map(normalizeOldHouse):[]
+  }
  });
  bets=(Array.isArray(bets)?bets:[]).map(b=>{
-  b=b||{};let entries=b.entries||b.entradas;
+  b=b||{};
+  let entries=b.entries||b.entradas;
   if(Array.isArray(entries)){
-   return {...b,id:b.id||uid(),event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",note:b.note||b.observacao||"",created:b.created||b.createdAt||b.data||new Date().toISOString(),
-    entries:entries.map((e,index)=>({...e,id:e.id||uid(),pid:e.pid||e.personId||e.pessoaId||"",houseId:e.houseId||e.hid||e.casaId||"",stake:Number(e.stake??e.valor??e.aposta??0)||0,odd:Number(e.odd??e.cotacao??0)||0,type:e.type||e.tipo||"cash",role:e.role||(index===0?"mainReplica":"protection"),status:e.status||e.resultado||"open",returned:Number(e.returned??e.retorno??0)||0}))}
+   return {
+    ...b,
+    id:b.id||uid(),
+    event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",
+    note:b.note||b.observacao||"",
+    created:b.created||b.createdAt||b.data||new Date().toISOString(),
+    entries:entries.map(e=>({
+     ...e,
+     id:e.id||uid(),
+     pid:e.pid||e.personId||e.pessoaId||"",
+     houseId:e.houseId||e.hid||e.casaId||"",
+     stake:Number(e.stake??e.valor??e.aposta??0)||0,
+     odd:Number(e.odd??e.cotacao??0)||0,
+     type:e.type||e.tipo||"cash",
+     status:e.status||e.resultado||"open",
+     returned:Number(e.returned??e.retorno??0)||0
+    }))
+   }
   }
-  return {id:b.id||uid(),event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",note:b.note||b.observacao||"",created:b.created||b.createdAt||b.data||new Date().toISOString(),
-   entries:[{id:uid(),pid:b.pid||b.personId||b.pessoaId||"",houseId:b.houseId||b.hid||b.casaId||"",stake:Number(b.stake??b.valor??b.aposta??0)||0,odd:Number(b.odd??b.cotacao??0)||0,type:b.type||b.tipo||"cash",role:"mainReplica",status:b.status||b.resultado||"open",returned:Number(b.returned??b.retorno??0)||0,settled:b.settled||b.finalizadaEm||null}]}
+  return {
+   id:b.id||uid(),
+   event:b.event||b.evento||b.game||b.jogo||b.sport||"Aposta",
+   note:b.note||b.observacao||"",
+   created:b.created||b.createdAt||b.data||new Date().toISOString(),
+   entries:[{
+    id:uid(),
+    pid:b.pid||b.personId||b.pessoaId||"",
+    houseId:b.houseId||b.hid||b.casaId||"",
+    stake:Number(b.stake??b.valor??b.aposta??0)||0,
+    odd:Number(b.odd??b.cotacao??0)||0,
+    type:b.type||b.tipo||"cash",
+    status:b.status||b.resultado||"open",
+    returned:Number(b.returned??b.retorno??0)||0,
+    settled:b.settled||b.finalizadaEm||null
+   }]
+  }
  });
- moves=(Array.isArray(moves)?moves:[]).map(m=>({id:m.id||uid(),date:m.date||m.data||m.createdAt||new Date().toISOString(),type:m.type||m.tipo||"imported",value:Number(m.value??m.valor??0)||0,pid:m.pid||m.personId||m.pessoaId||"",hid:m.hid||m.houseId||m.casaId||"",label:m.label||m.descricao||m.titulo||"Movimentação importada",note:m.note||m.observacao||"",deltaBalance:Number(m.deltaBalance??m.variacaoSaldo??0)||0,deltaInPlay:Number(m.deltaInPlay??m.variacaoEmJogo??0)||0,deltaProfit:Number(m.deltaProfit??m.variacaoLucro??0)||0}));
+ moves=(Array.isArray(moves)?moves:[]).map(m=>{
+  m=m||{};
+  return {
+   id:m.id||uid(),
+   date:m.date||m.data||m.createdAt||new Date().toISOString(),
+   type:m.type||m.tipo||"imported",
+   value:Number(m.value??m.valor??0)||0,
+   pid:m.pid||m.personId||m.pessoaId||"",
+   hid:m.hid||m.houseId||m.casaId||"",
+   label:m.label||m.descricao||m.titulo||"Movimentação importada",
+   note:m.note||m.observacao||"",
+   deltaBalance:Number(m.deltaBalance??m.variacaoSaldo??0)||0,
+   deltaInPlay:Number(m.deltaInPlay??m.variacaoEmJogo??0)||0,
+   deltaProfit:Number(m.deltaProfit??m.variacaoLucro??0)||0
+  }
+ });
  weeklyGoals=(Array.isArray(weeklyGoals)?weeklyGoals:[]).map(weeklyNormalizeGoal);
- return normalizeState({people,bets,moves,weeklyGoals,snapshots:Array.isArray(snapshots)?snapshots:[],settings:settings||{},audit:Array.isArray(auditLog)?auditLog:[],trash:Array.isArray(trash)?trash:[],undoStack:[]})
+ return {people,bets,moves,weeklyGoals,snapshots:Array.isArray(snapshots)?snapshots:[],settings:settings||{},audit:Array.isArray(auditLog)?auditLog:[],trash:Array.isArray(trash)?trash:[],undoStack:[]}
 }
-
-$("exportBtn").onclick=()=>{
- try{
-  let payload=JSON.stringify(normalizeState(S),null,2);
-  let blob=new Blob([payload],{type:"application/json;charset=utf-8"});
-  let url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="backup-betmanager-v49-"+new Date().toISOString().slice(0,10)+".json";
-  document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000)
- }catch(error){
-  console.error("Erro ao exportar:",error);
-  alert("Não foi possível exportar o backup. Detalhe: "+(error.message||error))
- }
-};
-$("importBtn").onclick=()=>{
- try{
-  let input=$("importFile");
-  input.value="";
-  input.click()
- }catch(error){
-  console.error("Erro ao abrir seletor:",error);
-  alert("Não foi possível abrir a seleção de arquivo. Detalhe: "+(error.message||error))
- }
-};
+$("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v12.json";a.click();URL.revokeObjectURL(url)};
+$("importBtn").onclick=()=>$("importFile").click();
 $("importFile").onchange=function(){
  let input=this,file=input.files&&input.files[0];if(!file)return;
- let reader=new FileReader(),previous=S;
+ let reader=new FileReader();
  reader.onload=()=>{
+  let previous=S;
   try{
    let text=String(reader.result||"").replace(/^\uFEFF/,"").trim();
    if(!text)throw new Error("Arquivo vazio.");
    let parsed=JSON.parse(text);
    if(typeof parsed==="string")parsed=JSON.parse(parsed.replace(/^\uFEFF/,"").trim());
-   let migrated=migrateBackup(parsed),counts=stateSize(migrated);
+   let migrated=normalizeState(migrateBackup(parsed));
+   let counts=stateSize(migrated);
    if(counts.total===0)throw new Error("Nenhum dado reconhecido.");
    S=migrated;
-   normalizeBets();
-   S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);
    let serialized=JSON.stringify(S);
    localStorage.setItem(KEY,serialized);
    localStorage.setItem("controleApostasRecovery",serialized);
@@ -1048,40 +1422,19 @@ $("importFile").onchange=function(){
    render();goToSection("people");
    alert("Backup importado e carregado.\n\nPessoas: "+counts.people+"\nCasas: "+counts.houses)
   }catch(error){
-   S=previous;
-   console.error("Erro na importação:",error);
-   try{render()}catch(renderError){console.error(renderError)}
+   S=previous;console.error("Erro na importação:",error);render();
    alert("Não foi possível importar este backup.\n\nDetalhe: "+(error.message||error))
   }finally{input.value=""}
  };
  reader.onerror=()=>{alert("Não foi possível ler o arquivo.");input.value=""};
  reader.readAsText(file,"UTF-8")
-};
-
-$("exportCsvBtn").onclick=()=>{
- try{
-  let rows=[["Data","Tipo","Descrição","Valor","Pessoa","Casa"]];
-  (S.moves||[]).forEach(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);rows.push([m.date,m.type,m.label,m.value,p?p.name:"",h?h.name:""])});
-  let csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\n");
-  let blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="movimentacoes-betmanager.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)
- }catch(error){alert("Não foi possível exportar o CSV. Detalhe: "+(error.message||error))}
-};
-$("undoBtn").onclick=()=>{
- let last=(S.undoStack||[]).pop();if(!last)return alert("Não há alteração para desfazer.");
- let stack=S.undoStack;
- S=normalizeState(JSON.parse(JSON.stringify(last.state)));
- S.undoStack=stack;
- audit("Ação desfeita",last.label||"Alteração");
- save()
-};
-
+}
+window.closeD=id=>$(id).close();
+function applyTheme(){window.applyBetTheme()}
 let dp=null;
 window.addEventListener("beforeinstallprompt",e=>{
- e.preventDefault();dp=e;
- if($("installBtn"))$("installBtn").textContent="Instalar"
+ e.preventDefault();dp=e;$("installBtn").textContent="Instalar"
 });
-
 window.addEventListener("appinstalled",()=>{
  dp=null;$("installBtn").textContent="Instalado";$("installBtn").disabled=true
 });

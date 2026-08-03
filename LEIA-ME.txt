@@ -1,21 +1,6 @@
-BETMANAGER V52 — CASAS SIMPLIFICADAS
+BETMANAGER V53
 
-REMOVIDOS DA INTERFACE
-- Bônus disponível
-- Rollover restante
-- Login/Identificação
-- Limite por aposta
-- Limite diário
-- Tags
-
-NOVA EDIÇÃO DA CASA
-- Saldo disponível
-- Freebet disponível
-- Nome da casa
-- Site/Link opcional
-- Observação opcional
-
-CARTÕES DAS CASAS
-- Saldo e freebet em destaque
-- Em jogo, patrimônio e lucro em resumo compacto
-- Dados antigos permanecem preservados no backup, mas não aparecem.
+- Casas recolhíveis, mantendo nome e saldo sempre visíveis.
+- Apostas mostra somente estratégias em andamento.
+- Estratégias finalizadas passam para Histórico.
+- Data e hora do jogo aparecem em destaque.

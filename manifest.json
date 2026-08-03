@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=52",
+  "start_url": "./?v=53",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v52",
-  "description": "Cadastro de casas simplificado com foco em saldo e freebet."
+  "id": "./betmanager-v53",
+  "description": "Casas recolhíveis, datas visíveis e apostas finalizadas movidas ao histórico."
 }

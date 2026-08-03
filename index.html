@@ -274,6 +274,24 @@ body.dark .houseWalletEditor{background:#0c1b30}
 .house .actions{margin-top:9px}
 @media(max-width:520px){.houseWalletGrid,.houseCompactSummary{grid-template-columns:1fr}}
 
+
+.houseCollapsible{border:1px solid var(--border);border-radius:11px;margin-bottom:9px;background:var(--card);overflow:hidden}
+.houseCollapsible>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 12px}
+.houseCollapsible>summary::-webkit-details-marker{display:none}
+.houseCollapsible>summary::after{content:"＋";font-weight:900;color:var(--muted)}
+.houseCollapsible[open]>summary::after{content:"−"}
+.houseCollapsible[open]>summary{border-bottom:1px solid var(--border)}
+.houseCollapsible .houseBody{padding:10px 12px}
+.houseSummaryName{display:flex;align-items:center;gap:7px;min-width:0}
+.houseSummaryName strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.houseSummaryBalance{text-align:right;white-space:nowrap}
+.houseSummaryBalance span{display:block;font-size:.67rem;color:var(--muted)}
+.houseSummaryBalance strong{display:block;margin-top:2px}
+.gameDateVisible{display:inline-flex;margin-top:5px;padding:4px 7px;border-radius:999px;background:var(--soft);font-size:.7rem;font-weight:800;color:var(--text)}
+.settledHistoryCard{border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--card)}
+.settledHistoryTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.settledHistoryMeta{font-size:.72rem;color:var(--muted);margin-top:5px}
+.settledHistoryResult{font-weight:900;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -303,7 +321,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v52</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v53</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -357,16 +375,18 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 <section id="bets" class="panel">
 <div class="card" style="display:flex;justify-content:space-between;align-items:center"><div><h3 style="margin-bottom:3px">Apostas</h3><div class="muted">Organize operações com entrada principal e proteções.</div></div><button id="newBet" class="primary">Nova aposta</button></div>
 <div class="filters"><input id="betSearch" placeholder="Pesquisar"><select id="betStatus">
-<option value="all">Todos</option>
+<option value="all">Todas em andamento</option>
 <option value="unprotected">Sem proteção</option>
 <option value="partial">Proteção incompleta</option>
 <option value="protected">Protegida</option>
-<option value="settled">Finalizada</option>
 </select><span></span><span></span></div>
 <div id="betsList" class="grid"></div>
 </section>
 
-<section id="history" class="panel"><div class="card"><h3>Movimentações</h3><div id="historyList"></div></div></section>
+<section id="history" class="panel">
+ <div class="card"><h3>Histórico de apostas finalizadas</h3><p class="muted">As estratégias concluídas saem automaticamente da tela de apostas e permanecem disponíveis aqui.</p><div id="settledBetsHistory"></div></div>
+ <div class="card"><h3>Movimentações</h3><div id="historyList"></div></div>
+</section>
 
 <section id="snapshot" class="panel">
 <div class="card"><h3>Patrimônio em uma data</h3><label>Selecione a data<input id="snapshotDate" type="date"></label></div>
@@ -666,46 +686,18 @@ function renderPeople(){
   let hs=[...p.houses].sort((a,b)=>(b.favorite-a.favorite)||a.name.localeCompare(b.name,"pt-BR")).filter(h=>houseVisible(p,h));
   if(!hs.length&&$("search").value)return"";
   let pb=p.houses.reduce((s,h)=>s+Number(h.balance||0),0),pi=p.houses.reduce((s,h)=>s+Number(h.inPlay||0),0),pp=p.houses.reduce((s,h)=>s+Number(h.profit||0),0),pd=p.houses.reduce((s,h)=>s+Number(h.deposits||0),0),proi=pd?pp/pd*100:0;
-  let hhtml=hs.map(h=>`<div class="house">
-   <div class="houseTop">
-    <div><span class="fav ${h.favorite?"on":""}" onclick="toggleFav('${p.id}','${h.id}')">★</span> <span class="houseName">${esc(h.name)}</span></div>
-    <strong>${money(h.balance)}</strong>
+  let hhtml=hs.map(h=>`<details class="houseCollapsible">
+   <summary>
+    <div class="houseSummaryName"><span class="fav ${h.favorite?"on":""}" onclick="event.preventDefault();event.stopPropagation();toggleFav('${p.id}','${h.id}')">★</span><strong>${esc(h.name)}</strong></div>
+    <div class="houseSummaryBalance"><span>Saldo disponível</span><strong>${money(h.balance)}</strong></div>
+   </summary>
+   <div class="houseBody">
+    <div class="houseCompactSummary"><div class="houseCompactMetric"><span>Saldo disponível</span><strong>${money(h.balance)}</strong></div><div class="houseCompactMetric"><span>Freebet</span><strong>${money(h.freebet||0)}</strong></div></div>
+    <div class="houseSecondarySummary"><span>Em jogo: ${money(h.inPlay)}</span><span>Patrimônio: ${money(Number(h.balance||0)+Number(h.inPlay||0))}</span><span>Lucro: ${money(h.profit)}</span></div>
+    <div class="actions"><button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button><button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button><button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button><button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}<button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button><button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button></div>
    </div>
-   <div class="houseCompactSummary">
-    <div class="houseCompactMetric"><span>Saldo disponível</span><strong>${money(h.balance)}</strong></div>
-    <div class="houseCompactMetric"><span>Freebet</span><strong>${money(h.freebet||0)}</strong></div>
-   </div>
-   <div class="houseSecondarySummary">
-    <span>Em jogo: ${money(h.inPlay)}</span>
-    <span>Patrimônio: ${money(Number(h.balance||0)+Number(h.inPlay||0))}</span>
-    <span>Lucro: ${money(h.profit)}</span>
-   </div>
-   <div class="actions">
-    <button class="success" onclick="openMove('${p.id}','${h.id}','deposit')">+ Valor</button>
-    <button class="danger" onclick="openMove('${p.id}','${h.id}','withdraw')">− Valor</button>
-    <button class="warning" onclick="openBetFor('${p.id}','${h.id}')">Nova aposta</button>
-    <button class="secondary" onclick="editFreebet('${p.id}','${h.id}')">Freebet</button>
-    ${h.url?`<button class="primary" onclick="openHouseSite('${p.id}','${h.id}')">Abrir site</button>`:""}
-    <button class="secondary" onclick="editHouse('${p.id}','${h.id}')">Editar</button>
-    <button class="danger" onclick="delHouse('${p.id}','${h.id}')">Excluir</button>
-   </div>
-  </div>`).join("");
-  return `<section class="person ${openPid===p.id?"open":""}">
-   <div class="personHead" onclick="togglePerson('${p.id}')">
-    <div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div>
-    <div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div>
-   </div>
-   <div class="personBody">
-    <div class="actions">
-     <button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button>
-     <button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button>
-     <button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button>
-     <button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button>
-     <button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button>
-    </div>
-    ${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}
-   </div>
-  </section>`
+  </details>`).join("");
+  return `<section class="person ${openPid===p.id?"open":""}"><div class="personHead" onclick="togglePerson('${p.id}')"><div class="personTitle"><span class="arrow">▶</span><h3>${esc(p.name)}</h3></div><div style="text-align:right"><strong>${money(pb+pi)}</strong><div class="muted">${pct(proi)}</div></div></div><div class="personBody"><div class="actions"><button class="primary" onclick="event.stopPropagation();addHouse('${p.id}')">+ Casa</button><button class="secondary" onclick="event.stopPropagation();openDup('${p.id}')">Duplicar casas</button><button class="secondary" onclick="event.stopPropagation();openTransfer()">Transferir</button><button class="secondary" onclick="event.stopPropagation();editPerson('${p.id}')">Editar nome</button><button class="danger" onclick="event.stopPropagation();delPerson('${p.id}')">Excluir</button></div>${hhtml||'<div class="empty">Nenhuma casa encontrada.</div>'}</div></section>`
  }).join("")||'<div class="card empty">Nenhuma pessoa cadastrada.</div>'
 }
 window.togglePerson=id=>{openPid=openPid===id?null:id;render()};window.toggleFav=(pid,hid)=>{let h=hBy(pid,hid);h.favorite=!h.favorite;save()}
@@ -1268,6 +1260,13 @@ function gameGroupTitle(group){
  if(group.games.length===1)return group.games[0].name||"Jogo";
  return "Múltipla • "+group.games.length+" jogos"
 }
+function gameGroupDateLabel(group){
+ let dates=group.games.map(g=>g.date).filter(Boolean).sort();
+ if(!dates.length)return "Data não informada";
+ if(group.games.length===1)return new Date(dates[0]).toLocaleString("pt-BR");
+ return "Primeiro jogo: "+new Date(dates[0]).toLocaleString("pt-BR")
+}
+
 function gameGroupStatus(group){
  let open=group.operations.filter(b=>groupStatus(b)==="open").length;
  if(open)return open+" em andamento";
@@ -1298,7 +1297,7 @@ function renderBetOperationCard(b,operationIndex){
 }
 function renderBets(){
  let q=$("betSearch").value.toLowerCase(),st=$("betStatus").value;
- let bs=S.bets.filter(b=>st==="all"||operationProtectionStatus(b)===st).filter(b=>{
+ let bs=S.bets.filter(b=>groupStatus(b)==="open").filter(b=>st==="all"||operationProtectionStatus(b)===st).filter(b=>{
   let text=[b.event,b.note,...normalizeGames(b).map(g=>g.name),...(b.entries||[]).flatMap(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId);return [p?p.name:"",h?h.name:"",e.selection||""]})].join(" ").toLowerCase();
   return text.includes(q)
  });
@@ -1309,12 +1308,12 @@ function renderBets(){
   let gameList=group.games.map((g,index)=>`<div class="multiGameItem">${index+1}. ${esc(g.name)}${g.date?" • "+new Date(g.date).toLocaleString("pt-BR"):""}</div>`).join("");
   return `<details class="gameEventGroup">
    <summary>
-    <div class="gameGroupMain"><h3>${esc(gameGroupTitle(group))}</h3>${group.games.length>1?`<div class="multiGameList">${gameList}</div>`:""}<div class="gameGroupMeta">${group.operations.length} operação(ões) • ${gameGroupStatus(group)} • Total lançado ${money(totalStake)}</div></div>
+    <div class="gameGroupMain"><h3>${esc(gameGroupTitle(group))}</h3><div class="gameDateVisible">📅 ${esc(gameGroupDateLabel(group))}</div>${group.games.length>1?`<div class="multiGameList">${gameList}</div>`:""}<div class="gameGroupMeta">${group.operations.length} operação(ões) • ${gameGroupStatus(group)} • Total lançado ${money(totalStake)}</div></div>
     <div class="gameGroupChance"><span>Chance de Duplo Green somada</span><strong>${money(chance)}</strong></div>
    </summary>
    <div class="gameGroupBody">${group.operations.map((b,index)=>renderBetOperationCard(b,index)).join("")}</div>
   </details>`
- }).join(""):'<div class="card empty">Nenhuma operação cadastrada.</div>'
+ }).join(""):'<div class="card empty">Nenhuma aposta em andamento. As finalizadas estão no Histórico.</div>'
 }
 $("betSearch").oninput=renderBets;$("betStatus").onchange=renderBets;
 window.openSettle=(gid,eid)=>{
@@ -1546,7 +1545,20 @@ window.restoreTrash=id=>{
 };
 window.purgeTrash=id=>{if(confirm("Apagar definitivamente?")){S.trash=S.trash.filter(x=>x.id!==id);save()}};
 
-function renderHistory(){$("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'}
+function renderHistory(){
+ let settled=S.bets.filter(b=>groupStatus(b)==="settled").sort((a,b)=>{
+  let ad=Math.max(...(a.entries||[]).map(e=>new Date(e.settled||0).getTime()),0);
+  let bd=Math.max(...(b.entries||[]).map(e=>new Date(e.settled||0).getTime()),0);
+  return bd-ad
+ });
+ $("settledBetsHistory").innerHTML=settled.length?settled.map(b=>{
+  let games=normalizeGames(b),dateLabel=games.map(g=>g.date).filter(Boolean).sort()[0];
+  let settledAt=(b.entries||[]).map(e=>e.settled).filter(Boolean).sort().slice(-1)[0];
+  let actual=groupActualResult(b),houses=[...new Set((b.entries||[]).map(e=>{let h=hBy(e.pid,e.houseId);return h?h.name:""}).filter(Boolean))];
+  return `<details class="settledHistoryCard"><summary class="settledHistoryTop"><div><strong>${esc(operationTitle(b))}</strong><div class="settledHistoryMeta">${dateLabel?"Jogo: "+new Date(dateLabel).toLocaleString("pt-BR")+" • ":""}${settledAt?"Finalizada em "+new Date(settledAt).toLocaleString("pt-BR"):""}</div></div><div class="settledHistoryResult ${actual>=0?"positive":"negative"}">${money(actual)}</div></summary><div class="settledHistoryMeta">Casas: ${esc(houses.join(" • ")||"Não informadas")} • Chance DG: ${money(mainBlockChance(b))}</div></details>`
+ }).join(""):'<div class="empty">Nenhuma aposta finalizada.</div>';
+ $("historyList").innerHTML=S.moves.length?S.moves.map(m=>{let p=pBy(m.pid),h=hBy(m.pid,m.hid);return`<div class="row"><span>${new Date(m.date).toLocaleString("pt-BR")}</span><div><strong>${esc(m.label)}</strong><div class="muted">${esc((p?p.name:"")+" • "+(h?h.name:""))}</div></div><strong>${money(m.value)}</strong></div>`}).join(""):'<div class="empty">Nenhuma movimentação.</div>'
+}
 function snapshotAt(dateStr){let end=new Date(dateStr+"T23:59:59.999").getTime(),per={};S.people.forEach(p=>per[p.id]={name:p.name,balance:0,inPlay:0,profit:0});S.moves.filter(m=>new Date(m.date).getTime()<=end).slice().reverse().forEach(m=>{if(!per[m.pid])per[m.pid]={name:"Pessoa removida",balance:0,inPlay:0,profit:0};per[m.pid].balance+=m.deltaBalance||0;per[m.pid].inPlay+=m.deltaInPlay||0;per[m.pid].profit+=m.deltaProfit||0});return Object.values(per)}
 function renderSnapshot(){let d=$("snapshotDate").value;if(!d)return;let rows=snapshotAt(d),b=rows.reduce((s,x)=>s+x.balance,0),i=rows.reduce((s,x)=>s+x.inPlay,0),p=rows.reduce((s,x)=>s+x.profit,0);$("sBalance").textContent=money(b);$("sInPlay").textContent=money(i);$("sCapital").textContent=money(b+i);$("sProfit").textContent=money(p);$("snapshotList").innerHTML=rows.map(r=>`<div class="row"><strong>${esc(r.name)}</strong><span>Disponível ${money(r.balance)} • Em jogo ${money(r.inPlay)}</span><strong>${money(r.balance+r.inPlay)}</strong></div>`).join("")}
 $("snapshotDate").value=new Date().toISOString().slice(0,10);$("snapshotDate").onchange=renderSnapshot;

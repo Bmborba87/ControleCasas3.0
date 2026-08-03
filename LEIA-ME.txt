@@ -1,15 +1,13 @@
-BETMANAGER V47
+BETMANAGER V48
 
-BLOCO PRINCIPAL
-- Uma aposta lógica pode ser replicada em várias contas/CPFs.
-- Odd, tipo e seleção são informados uma única vez.
-- Cada conta possui apenas pessoa, casa e valor.
-- Stake total e Chance de Duplo Green são somadas automaticamente.
-- Proteções são únicas e compartilhadas por todo o bloco.
-- Apostas antigas são convertidas automaticamente.
+CAUSA CORRIGIDA
+O botão Criar aposta chamava a variável betEntryRoleOffset, removida quando
+o formulário foi reformado para o Bloco Principal. Isso gerava ReferenceError
+antes de abrir o diálogo.
 
-SEMANAL BET365
-- Metas acessadas por abas.
-- Apenas uma meta aparece por vez.
-- Lançamentos e datas ficam em área recolhível.
-- Adicionar e Retirar continuam disponíveis.
+TESTES
+- Backup antigo: 5 pessoas e 69 casas.
+- Importação e normalização.
+- Abertura do cadastro.
+- Criação de Bloco Principal e proteção.
+- Serialização e recarregamento.

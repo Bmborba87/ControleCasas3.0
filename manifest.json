@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=54",
+  "start_url": "./?v=55",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v54",
-  "description": "Dashboard Hoje, linha do tempo e saldos das casas alinhados."
+  "id": "./betmanager-v55",
+  "description": "Apostas múltiplas com data e hora visíveis para todos os jogos."
 }

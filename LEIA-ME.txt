@@ -1,9 +1,8 @@
-BETMANAGER V54
+BETMANAGER V55
 
-- Saldos das casas alinhados em coluna fixa.
-- Dashboard Hoje com jogos e status de proteção.
-- Chance DG total dos jogos de hoje.
-- Linha do tempo cronológica das estratégias abertas.
-- Atalho direto para cada jogo.
-- Resumo financeiro antigo preservado em área recolhível.
-- Datas calculadas no horário local do aparelho.
+APOSTAS MÚLTIPLAS
+- Todos os jogos aparecem com suas próprias datas e horários.
+- A tela de apostas não mostra mais apenas a data do primeiro jogo.
+- A Linha do Tempo do Dashboard também lista cada partida da múltipla.
+- Os jogos são apresentados em ordem cronológica.
+- A coluna de horário identifica a operação como “2 jogos”, “3 jogos” etc.

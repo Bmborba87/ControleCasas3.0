@@ -329,6 +329,18 @@ body.dark .houseWalletEditor{background:#0c1b30}
  .timelineAction{grid-column:2;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px}
 }
 
+
+.timelineMultiGames{display:grid;gap:5px;margin-top:7px}
+.timelineMultiGame{display:grid;grid-template-columns:92px minmax(0,1fr);gap:7px;align-items:center;font-size:.7rem}
+.timelineMultiGame .multiGameDate,.multiGameItem .multiGameDate{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:800}
+.timelineMultiGame strong,.multiGameItem strong{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.multiGameList{display:grid;gap:5px;margin-top:8px}
+.multiGameItem{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--soft)}
+@media(max-width:560px){
+ .timelineMultiGame{grid-template-columns:82px minmax(0,1fr)}
+ .multiGameItem{grid-template-columns:96px minmax(0,1fr)}
+}
+
 </style>
 </head>
 <body>
@@ -358,7 +370,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v54</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v55</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -758,12 +770,12 @@ function renderTodayDashboard(){
   let title=key==="sem-data"?"Sem data informada":key===today?"Hoje":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit"});
   let items=list.map(group=>{
    let date=groupFirstDate(group),status=groupProtectionStatus(group);
-   let time=date?new Date(date).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";
+   let time=group.games.length>1?group.games.length+" jogos":date?new Date(date).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";
    let chance=group.operations.reduce((s,b)=>s+operationChanceDoubleGreen(b),0);
    let openEntries=group.operations.reduce((s,b)=>s+(b.entries||[]).filter(e=>e.status==="open").length,0);
    return `<div class="timelineItem ${status}">
-    <div class="timelineTime">${time}<small>${key===today?"hoje":key==="sem-data"?"sem data":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></div>
-    <div class="timelineMain"><strong>${esc(gameGroupTitle(group))}</strong><div class="timelineMeta"><span>${group.operations.length} estratégia(s)</span><span>${openEntries} entrada(s) aberta(s)</span><span>${groupProtectionLabel(group)}</span></div></div>
+    <div class="timelineTime">${time}<small>${group.games.length>1?"múltipla":key===today?"hoje":key==="sem-data"?"sem data":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></div>
+    <div class="timelineMain"><strong>${esc(gameGroupTitle(group))}</strong>${group.games.length>1?`<div class="timelineMultiGames">${groupGamesWithDatesHtml(group,true)}</div>`:""}<div class="timelineMeta"><span>${group.operations.length} estratégia(s)</span><span>${openEntries} entrada(s) aberta(s)</span><span>${groupProtectionLabel(group)}</span></div></div>
     <div class="timelineAction"><strong>${money(chance)}</strong><button type="button" class="secondary" data-timeline-title="${esc(gameGroupTitle(group))}">Abrir</button></div>
    </div>`
   }).join("");
@@ -1370,8 +1382,19 @@ function gameGroupDateLabel(group){
  let dates=group.games.map(g=>g.date).filter(Boolean).sort();
  if(!dates.length)return "Data não informada";
  if(group.games.length===1)return new Date(dates[0]).toLocaleString("pt-BR");
- return "Primeiro jogo: "+new Date(dates[0]).toLocaleString("pt-BR")
+ return group.games.length+" jogos com datas abaixo"
 }
+function groupGamesWithDatesHtml(group,compact=false){
+ let games=[...group.games].sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
+ return games.map((g,index)=>{
+  let date=g.date?new Date(g.date):null;
+  let dateText=date&&!Number.isNaN(date.getTime())
+   ?date.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})+" • "+date.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
+   :"Data não informada";
+  return `<div class="${compact?"timelineMultiGame":"multiGameItem"}"><span class="multiGameDate">${esc(dateText)}</span><strong>${esc(g.name)}</strong></div>`
+ }).join("")
+}
+
 
 function gameGroupStatus(group){
  let open=group.operations.filter(b=>groupStatus(b)==="open").length;
@@ -1411,7 +1434,7 @@ function renderBets(){
  $("betsList").innerHTML=groups.length?groups.map(group=>{
   let chance=group.operations.reduce((sum,b)=>sum+operationChanceDoubleGreen(b),0);
   let totalStake=group.operations.reduce((sum,b)=>sum+(b.entries||[]).reduce((s,e)=>s+Number(e.stake||0),0),0);
-  let gameList=group.games.map((g,index)=>`<div class="multiGameItem">${index+1}. ${esc(g.name)}${g.date?" • "+new Date(g.date).toLocaleString("pt-BR"):""}</div>`).join("");
+  let gameList=groupGamesWithDatesHtml(group,false);
   return `<details class="gameEventGroup">
    <summary>
     <div class="gameGroupMain"><h3>${esc(gameGroupTitle(group))}</h3><div class="gameDateVisible">📅 ${esc(gameGroupDateLabel(group))}</div>${group.games.length>1?`<div class="multiGameList">${gameList}</div>`:""}<div class="gameGroupMeta">${group.operations.length} operação(ões) • ${gameGroupStatus(group)} • Total lançado ${money(totalStake)}</div></div>

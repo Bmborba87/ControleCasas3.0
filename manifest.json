@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=46",
+  "start_url": "./?v=47",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v46",
-  "description": "BetManager com cadastro inteligente de jogos e operações agrupadas por partida."
+  "id": "./betmanager-v47",
+  "description": "Bloco Principal replicado em várias contas, proteções compartilhadas e Semanal otimizado."
 }

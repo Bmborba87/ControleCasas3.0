@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=56",
+  "start_url": "./?v=57",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v56",
-  "description": "Abertura de apostas múltiplas pela linha do tempo corrigida por assinatura interna."
+  "id": "./betmanager-v57",
+  "description": "Suporte a Tradicional, Exchange Back, Exchange Lay, comissão variável e aumento de odd."
 }

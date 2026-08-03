@@ -1,7 +1,11 @@
-BETMANAGER V56
+BETMANAGER V57
 
-CORREÇÃO
-- O botão Abrir da linha do tempo não pesquisa mais por “Múltipla • 2 jogos”.
-- Agora usa a assinatura interna exata da combinação de jogos.
-- Funciona para aposta simples, múltipla com dois jogos e múltipla com três ou mais.
-- Ao digitar na pesquisa ou mudar o filtro, o filtro interno da linha do tempo é limpo.
+- Modalidade por entrada: Tradicional, Exchange Back ou Exchange Lay.
+- Comissão padrão configurável por casa e editável em cada entrada.
+- Comissão salva na própria aposta, sem alterar apostas antigas quando o padrão mudar.
+- Campo Aumento (%) para a principal e proteções.
+- Odd efetiva = 1 + (odd original - 1) × (1 + aumento/100).
+- Lay calcula responsabilidade = stake × (odd - 1).
+- Saldo e em jogo usam a responsabilidade no Lay.
+- Back e Lay descontam comissão somente sobre o lucro.
+- Backups antigos são tratados como modalidade Tradicional, aumento 0 e comissão 0.

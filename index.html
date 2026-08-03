@@ -341,6 +341,11 @@ body.dark .houseWalletEditor{background:#0c1b30}
  .multiGameItem{grid-template-columns:96px minmax(0,1fr)}
 }
 
+
+.entryModeBadge{display:inline-flex;border-radius:999px;padding:3px 7px;font-size:.65rem;font-weight:900;margin-right:5px;background:var(--soft)}
+.exchangeFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.calcInline{font-size:.72rem;color:var(--muted);margin-top:5px}
+@media(max-width:650px){.exchangeFields{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -371,7 +376,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v56</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v57</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -564,6 +569,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
  <div class="houseEditorSectionTitle">Informações da casa</div>
  <label>Nome da casa<input id="houseName" placeholder="Ex.: Bet365"></label>
  <label>Site/Link <span class="muted">(opcional)</span><input id="houseUrl" type="url" inputmode="url" placeholder="https://www.exemplo.com"></label>
+ <label>Comissão padrão do Exchange (%) <span class="muted">(opcional e editável em cada entrada)</span><input id="houseExchangeCommission" inputmode="decimal" placeholder="Ex.: 4,5"></label>
  <label>Observação <span class="muted">(opcional)</span><textarea id="houseNote" rows="2"></textarea></label>
 </div>
 
@@ -616,7 +622,10 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
  <div class="mainBlockBuilder">
   <div class="builderTitle"><div><strong>Bloco Principal</strong><div class="muted">Odd e seleção únicas para todas as contas.</div></div><button type="button" id="addMainAccount" class="secondary">+ Adicionar conta</button></div>
   <div class="mainCommonGrid">
-   <label>Odd única<input id="mainOdd" inputmode="decimal" placeholder="Ex.: 4,50"></label>
+   <label>Modalidade<select id="mainModality"><option value="traditional">Tradicional</option><option value="exchange_back">Exchange Back</option><option value="exchange_lay">Exchange Lay</option></select></label>
+   <label>Odd original<input id="mainOdd" inputmode="decimal" placeholder="Ex.: 3,60"></label>
+   <label id="mainBoostWrap">Aumento (%)<input id="mainBoost" inputmode="decimal" placeholder="Ex.: 25"></label>
+   <label>Odd efetiva<input id="mainEffectiveOdd" readonly placeholder="Calculada automaticamente"></label>
    <label>Seleção / Criar Aposta<input id="mainSelection" placeholder="Ex.: Empate + 2 seleções"></label>
   </div>
   <details class="advancedOptions"><summary>Mais opções</summary><label>Tipo<select id="mainType"><option value="cash">Saldo</option><option value="freebet">Freebet</option></select></label></details>
@@ -859,6 +868,7 @@ window.editHouse=(pid,hid)=>{
  $("houseUrl").value=h.url||"";
  $("houseBalance").value=Number(h.balance||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
  $("houseFreebet").value=Number(h.freebet||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+ $("houseExchangeCommission").value=Number(h.exchangeCommission||0)?String(h.exchangeCommission).replace(".",","):"";
  $("houseNote").value=h.note||"";
  $("houseTitle").textContent="Editar casa";
  $("housePerson").textContent=pBy(pid).name;
@@ -867,14 +877,14 @@ window.editHouse=(pid,hid)=>{
 $("houseForm").onsubmit=e=>{
  e.preventDefault();
  let pid=$("housePid").value,p=pBy(pid),hid=$("houseHid").value;
- let name=$("houseName").value.trim(),bal=n($("houseBalance").value),freebet=n($("houseFreebet").value),url=normalizeUrl($("houseUrl").value);
+ let name=$("houseName").value.trim(),bal=n($("houseBalance").value),freebet=n($("houseFreebet").value),exchangeCommission=n($("houseExchangeCommission").value)||0,url=normalizeUrl($("houseUrl").value);
  if(!name||!(bal>=0)||!(freebet>=0))return alert("Preencha nome, saldo e freebet com valores válidos.");
  if($("houseUrl").value.trim()&&!url)return alert("Informe um link válido.");
  if(hid){
   let h=hBy(pid,hid),balanceDiff=bal-Number(h.balance||0),freebetDiff=freebet-Number(h.freebet||0);
   h.name=name;
   h.url=url||"";
-  h.note=$("houseNote").value.trim();
+  h.exchangeCommission=Math.max(0,exchangeCommission);h.note=$("houseNote").value.trim();
   h.lastMovement=new Date().toISOString();
   if(balanceDiff!==0){
    h.balance=bal;
@@ -887,7 +897,7 @@ $("houseForm").onsubmit=e=>{
   }
  }else{
   let h={
-   id:uid(),name,url:url||"",note:$("houseNote").value.trim(),
+   id:uid(),name,url:url||"",note:$("houseNote").value.trim(),exchangeCommission:Math.max(0,exchangeCommission),
    balance:bal,inPlay:0,profit:0,deposits:bal,freebet,
    login:"",bonus:0,rollover:0,maxStake:0,dailyLimit:0,expiry:"",tags:[],
    lastMovement:new Date().toISOString(),favorite:false
@@ -920,27 +930,40 @@ function normalizeBets(){
  S.bets=(S.bets||[]).map(b=>{
   let games=normalizeGames(b),blockId=b.mainBlockId||uid();
   if(Array.isArray(b.entries)){
-   let hasReplicas=b.entries.some(e=>e.role==="mainReplica");
    let entries=b.entries.map((e,index)=>{
-    let role=e.role||(index===0?"mainReplica":"protection");
-    if(role==="main")role="mainReplica";
-    return {...e,id:e.id||uid(),type:e.type||"cash",role,mainBlockId:role==="mainReplica"?(e.mainBlockId||blockId):undefined,selection:e.selection||"",doubleGreenCompatible:role==="protection"&&Boolean(e.doubleGreenCompatible),freebetUsed:Number(e.freebetUsed||0),status:e.status||"open",returned:Number(e.returned||0)}
+    let role=e.role||(index===0?"mainReplica":"protection");if(role==="main")role="mainReplica";
+    return {...e,id:e.id||uid(),type:e.type||"cash",modality:e.modality||"traditional",boost:Number(e.boost||0),commission:Number(e.commission||0),role,mainBlockId:role==="mainReplica"?(e.mainBlockId||blockId):undefined,selection:e.selection||"",doubleGreenCompatible:role==="protection"&&Boolean(e.doubleGreenCompatible),freebetUsed:Number(e.freebetUsed||0),status:e.status||"open",returned:Number(e.returned||0)}
    });
    return {...b,mainBlockId:blockId,games,event:games.length===1?games[0].name:games.length+" jogos • "+games[0].name,eventDate:games.map(g=>g.date).filter(Boolean).sort()[0]||"",note:b.note||"",entries}
   }
-  return {id:b.id||uid(),mainBlockId:blockId,games,event:games[0].name,eventDate:games[0].date||"",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid,houseId:b.houseId,stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",role:"mainReplica",mainBlockId:blockId,selection:"",doubleGreenCompatible:false,freebetUsed:0,status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
+  return {id:b.id||uid(),mainBlockId:blockId,games,event:games[0].name,eventDate:games[0].date||"",note:b.note||"",created:b.created||new Date().toISOString(),entries:[{id:uid(),pid:b.pid,houseId:b.houseId,stake:Number(b.stake||0),odd:Number(b.odd||0),type:"cash",modality:"traditional",boost:0,commission:0,role:"mainReplica",mainBlockId:blockId,selection:"",doubleGreenCompatible:false,freebetUsed:0,status:b.status||"open",returned:Number(b.returned||0),settled:b.settled||null}]}
  })
 }
+function effectiveOdd(e){
+ let odd=Number(e.odd||0),boost=Math.max(0,Number(e.boost||0));
+ if(e.modality==="exchange_lay")return odd;
+ return odd>0?1+(odd-1)*(1+boost/100):0
+}
+function layLiability(e){return Math.max(0,Number(e.stake||0)*(Number(e.odd||0)-1))}
+function entryExposure(e){
+ if(e.type==="freebet")return 0;
+ return e.modality==="exchange_lay"?layLiability(e):Number(e.stake||0)
+}
+function entryNetWin(e){
+ let stake=Number(e.stake||0),commission=Math.max(0,Number(e.commission||0))/100,odd=effectiveOdd(e);
+ if(e.modality==="exchange_lay")return stake*(1-commission);
+ let profit=stake*Math.max(0,odd-1);
+ if(e.modality==="exchange_back")profit*=1-commission;
+ return profit
+}
 function entryPotentialReturn(e){
- let stake=Number(e.stake||0),odd=Number(e.odd||0);
- return e.type==="freebet"?stake*Math.max(0,odd-1):stake*odd
+ let exposure=entryExposure(e),profit=entryNetWin(e);
+ if(e.type==="freebet")return profit;
+ return exposure+profit
 }
-function entryOwnResult(e){
- let gross=entryPotentialReturn(e),stake=Number(e.stake||0);
- return e.type==="freebet"?gross:gross-stake
-}
+function entryOwnResult(e){return entryNetWin(e)}
 function entryProfitPotential(e){return entryOwnResult(e)}
-function groupCashCost(b){return (b.entries||[]).filter(e=>e.type!=="freebet").reduce((s,e)=>s+Number(e.stake||0),0)}
+function groupCashCost(b){return (b.entries||[]).reduce((s,e)=>s+entryExposure(e),0)}
 function groupFreebetCost(b){return (b.entries||[]).filter(e=>e.type==="freebet").reduce((s,e)=>s+Number(e.stake||0),0)}
 function scenarioGrossReturn(b,e){return e.role==="mainReplica"?mainBlockChance(b):entryPotentialReturn(e)}
 function scenarioNetResult(b,e){return scenarioGrossReturn(b,e)-groupCashCost(b)}
@@ -996,12 +1019,16 @@ function addMainAccountRow(pid="",hid="",data={}){
  row.innerHTML=`<label>Nome/CPF<select class="mainPerson">${personOptions(pid)}</select></label>
  <label>Casa<select class="mainHouse">${houseOptions(pid,hid)}</select></label>
  <label>Valor nesta conta<input class="mainStake" inputmode="decimal" placeholder="100,00"></label>
- <button type="button" class="danger removeMainAccount">Remover</button>`;
- row.querySelector(".mainPerson").onchange=e=>{row.querySelector(".mainHouse").innerHTML=houseOptions(e.target.value);updateBetPreview()};
+ <label class="mainCommissionWrap">Comissão (%)<input class="mainCommission" inputmode="decimal" placeholder="Padrão da casa"></label>
+ <div class="calcInline mainExposure"></div><button type="button" class="danger removeMainAccount">Remover</button>`;
+ function applyDefaultCommission(){let h=hBy(row.querySelector(".mainPerson").value,row.querySelector(".mainHouse").value);if(!row.querySelector(".mainCommission").value&&h?.exchangeCommission)row.querySelector(".mainCommission").value=String(h.exchangeCommission).replace(".",",");updateBetPreview()}
+ row.querySelector(".mainPerson").onchange=e=>{row.querySelector(".mainHouse").innerHTML=houseOptions(e.target.value);applyDefaultCommission()};
+ row.querySelector(".mainHouse").onchange=applyDefaultCommission;
  row.querySelector(".mainStake").value=data.stake?String(data.stake).replace(".",","):"";
+ row.querySelector(".mainCommission").value=data.commission?String(data.commission).replace(".",","):"";
  row.querySelector(".removeMainAccount").onclick=()=>{row.remove();updateBetPreview()};
  row.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",updateBetPreview));
- $("mainAccounts").appendChild(row);updateBetPreview()
+ $("mainAccounts").appendChild(row);applyDefaultCommission();updateMainMode();updateBetPreview()
 }
 function normalizeGames(b){
  if(Array.isArray(b.games)&&b.games.length){
@@ -1084,12 +1111,11 @@ $("addBetGameRow").onclick=()=>addBetGameRow();
 
 
 function readMainAccountRows(){
- let odd=n($("mainOdd").value),type=$("mainType").value,selection=$("mainSelection").value.trim();
+ let odd=n($("mainOdd").value),type=$("mainType").value,selection=$("mainSelection").value.trim(),modality=$("mainModality").value,boost=n($("mainBoost").value)||0;
  return [...$("mainAccounts").children].map(row=>({
-  pid:row.querySelector(".mainPerson").value,
-  houseId:row.querySelector(".mainHouse").value,
-  stake:n(row.querySelector(".mainStake").value),
-  odd,type,selection,role:"mainReplica",doubleGreenCompatible:false
+  pid:row.querySelector(".mainPerson").value,houseId:row.querySelector(".mainHouse").value,
+  stake:n(row.querySelector(".mainStake").value),commission:n(row.querySelector(".mainCommission").value)||0,
+  odd,type,selection,modality,boost:modality==="exchange_lay"?0:boost,role:"mainReplica",doubleGreenCompatible:false
  }))
 }
 function addBetEntryRow(pid="",hid="",data={}){
@@ -1099,50 +1125,53 @@ function addBetEntryRow(pid="",hid="",data={}){
  <div class="entryGrid">
  <label>Pessoa<select class="entryPerson">${personOptions(pid)}</select></label>
  <label>Casa<select class="entryHouse">${houseOptions(pid,hid)}</select></label>
+ <label>Modalidade<select class="entryModality"><option value="traditional">Tradicional</option><option value="exchange_back">Exchange Back</option><option value="exchange_lay">Exchange Lay</option></select></label>
  <label>Tipo<select class="entryType"><option value="cash">Saldo</option><option value="freebet">Freebet</option></select></label>
- <label>Valor<input class="entryStake" inputmode="decimal" placeholder="0,00"></label>
- <label>Odd<input class="entryOdd" inputmode="decimal" placeholder="0,00"></label>
- <button type="button" class="danger removeEntry">Remover</button>
- </div>
- <div class="entryExtraGrid">
-  <label>Resultado/mercado protegido<input class="entrySelection" placeholder="Ex.: Grêmio ou outro mercado"></label>
-  <label class="doubleGreenWrap"><span>Compatibilidade</span><span style="display:flex;align-items:center;gap:7px;margin-top:7px"><input class="entryDoubleGreen" type="checkbox" style="width:auto"> Pode dar duplo green com a principal</span></label>
- </div>
+ <label>Valor / Stake<input class="entryStake" inputmode="decimal" placeholder="0,00"></label>
+ <label>Odd original<input class="entryOdd" inputmode="decimal" placeholder="0,00"></label>
+ <button type="button" class="danger removeEntry">Remover</button></div>
+ <div class="exchangeFields"><label class="entryBoostWrap">Aumento (%)<input class="entryBoost" inputmode="decimal" placeholder="0"></label><label class="entryCommissionWrap">Comissão (%)<input class="entryCommission" inputmode="decimal" placeholder="Padrão da casa"></label></div>
+ <div class="entryExtraGrid"><label>Resultado/mercado protegido<input class="entrySelection" placeholder="Ex.: Grêmio ou outro mercado"></label>
+ <label class="doubleGreenWrap"><span>Compatibilidade</span><span style="display:flex;align-items:center;gap:7px;margin-top:7px"><input class="entryDoubleGreen" type="checkbox" style="width:auto"> Pode dar duplo green com a principal</span></label></div>
  <div class="muted entryPreview">Preencha o valor e a odd.</div>`;
- row.querySelector(".entryPerson").onchange=e=>{row.querySelector(".entryHouse").innerHTML=houseOptions(e.target.value);updateBetPreview()};
- row.querySelector(".entryType").value=data.type||"cash";
- row.querySelector(".entryStake").value=data.stake?String(data.stake).replace(".",","):"";
- row.querySelector(".entryOdd").value=data.odd?String(data.odd).replace(".",","):"";
- row.querySelector(".entrySelection").value=data.selection||"";
- row.querySelector(".entryDoubleGreen").checked=Boolean(data.doubleGreenCompatible);
+ function defaultCommission(){let h=hBy(row.querySelector(".entryPerson").value,row.querySelector(".entryHouse").value);if(!row.querySelector(".entryCommission").value&&h?.exchangeCommission)row.querySelector(".entryCommission").value=String(h.exchangeCommission).replace(".",",");updateEntryMode(row);updateBetPreview()}
+ row.querySelector(".entryPerson").onchange=e=>{row.querySelector(".entryHouse").innerHTML=houseOptions(e.target.value);defaultCommission()};
+ row.querySelector(".entryHouse").onchange=defaultCommission;
+ row.querySelector(".entryModality").value=data.modality||"traditional";row.querySelector(".entryType").value=data.type||"cash";
+ row.querySelector(".entryStake").value=data.stake?String(data.stake).replace(".",","):"";row.querySelector(".entryOdd").value=data.odd?String(data.odd).replace(".",","):"";
+ row.querySelector(".entryBoost").value=data.boost?String(data.boost).replace(".",","):"";row.querySelector(".entryCommission").value=data.commission?String(data.commission).replace(".",","):"";
+ row.querySelector(".entrySelection").value=data.selection||"";row.querySelector(".entryDoubleGreen").checked=Boolean(data.doubleGreenCompatible);
  row.querySelector(".removeEntry").onclick=()=>{row.remove();$("noProtectionsHint").style.display=$("betEntries").children.length?"none":"block";updateBetPreview()};
- row.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",updateBetPreview));
- $("betEntries").appendChild(row);$("noProtectionsHint").style.display="none";updateBetPreview()
+ row.querySelectorAll("input,select").forEach(el=>el.addEventListener("input",()=>{updateEntryMode(row);updateBetPreview()}));
+ $("betEntries").appendChild(row);$("noProtectionsHint").style.display="none";defaultCommission()
 }
-function readEntryRow(row){
- return {
-  pid:row.querySelector(".entryPerson").value,
-  houseId:row.querySelector(".entryHouse").value,
-  type:row.querySelector(".entryType").value,
-  stake:n(row.querySelector(".entryStake").value),
-  odd:n(row.querySelector(".entryOdd").value),
-  role:"protection",
-  selection:row.querySelector(".entrySelection").value.trim(),
-  doubleGreenCompatible:row.querySelector(".entryDoubleGreen").checked
- }
+function updateEntryMode(row){
+ let modality=row.querySelector(".entryModality").value,isLay=modality==="exchange_lay",isExchange=modality.startsWith("exchange");
+ row.querySelector(".entryBoostWrap").style.display=isLay?"none":"block";row.querySelector(".entryCommissionWrap").style.display=isExchange?"block":"none";
+ if(isLay){row.querySelector(".entryBoost").value="";row.querySelector(".entryType").value="cash"}
+}function readEntryRow(row){
+ let modality=row.querySelector(".entryModality").value;
+ return {pid:row.querySelector(".entryPerson").value,houseId:row.querySelector(".entryHouse").value,type:modality==="exchange_lay"?"cash":row.querySelector(".entryType").value,
+  stake:n(row.querySelector(".entryStake").value),odd:n(row.querySelector(".entryOdd").value),boost:modality==="exchange_lay"?0:(n(row.querySelector(".entryBoost").value)||0),
+  commission:modality.startsWith("exchange")?(n(row.querySelector(".entryCommission").value)||0):0,modality,role:"protection",
+  selection:row.querySelector(".entrySelection").value.trim(),doubleGreenCompatible:row.querySelector(".entryDoubleGreen").checked}
 }
 function updateBetPreview(){
  let mains=readMainAccountRows(),protections=[...$("betEntries").children].map(readEntryRow);
  let validMains=mains.filter(e=>e.stake>0&&e.odd>0);
  let validProtections=protections.filter(e=>e.stake>0&&e.odd>0);
  let all=[...validMains,...validProtections];
- let cashCost=all.filter(e=>e.type!=="freebet").reduce((s,e)=>s+Number(e.stake||0),0);
+ let cashCost=all.reduce((s,e)=>s+entryExposure(e),0);
  let mainChance=validMains.reduce((s,e)=>s+entryPotentialReturn(e),0);
  let mainStake=validMains.reduce((s,e)=>s+Number(e.stake||0),0);
+ let sample=validMains[0]||{odd:n($("mainOdd").value)||0,boost:n($("mainBoost").value)||0,modality:$("mainModality").value};
+ $("mainEffectiveOdd").value=effectiveOdd(sample)?effectiveOdd(sample).toFixed(2).replace(".",","):"";
+ [...$("mainAccounts").children].forEach((row,index)=>{let e=mains[index];if(e)row.querySelector(".mainExposure").textContent=e.modality==="exchange_lay"?"Responsabilidade: "+money(layLiability(e)):""});
+
  [...$("betEntries").children].forEach((row,index)=>{
   let e=protections[index],gross=entryPotentialReturn(e),scenario=gross-cashCost;
   row.querySelector(".entryPreview").innerHTML=e.stake>0&&e.odd>0
-   ?`Chance DG da proteção: <strong>${money(gross)}</strong> • Se só ela vencer: <strong>${money(scenario)}</strong>`
+   ?`${e.modality==="exchange_lay"?"Responsabilidade "+money(layLiability(e))+" • ":""}Odd efetiva <strong>${effectiveOdd(e).toFixed(2)}</strong> • Chance DG: <strong>${money(gross)}</strong> • Se só ela vencer: <strong>${money(scenario)}</strong>`
    :"Preencha o valor e a odd."
  });
  if(!validMains.length){
@@ -1161,6 +1190,15 @@ function updateBetPreview(){
 $("addMainAccount").onclick=()=>addMainAccountRow();
 $("addBetEntry").onclick=()=>addBetEntryRow();
 
+function updateMainMode(){
+ let modality=$("mainModality").value,isLay=modality==="exchange_lay",isExchange=modality.startsWith("exchange");
+ $("mainBoostWrap").style.display=isLay?"none":"block";
+ document.querySelectorAll(".mainCommissionWrap").forEach(el=>el.style.display=isExchange?"block":"none");
+ if(isLay){$("mainBoost").value="";$("mainType").value="cash"}
+ updateBetPreview()
+}
+$("mainModality").addEventListener("change",updateMainMode);
+$("mainBoost").addEventListener("input",updateBetPreview);
 $("mainOdd").addEventListener("input",updateBetPreview);$("mainType").addEventListener("change",updateBetPreview);$("mainSelection").addEventListener("input",updateBetPreview);
 
 let betWizardStep=1;
@@ -1201,7 +1239,7 @@ function renderBetReview(){
   <div class="reviewCard"><h4>${esc(gameText)}</h4>
    <div class="reviewLine"><span>Status</span><strong>${status}</strong></div>
    <div class="reviewLine"><span>Bloco Principal</span><strong>${validMains.length} conta(s) • ${money(stakeMain)}</strong></div>
-   <div class="reviewLine"><span>Odd única</span><strong>${$("mainOdd").value||"—"}</strong></div>
+   <div class="reviewLine"><span>Odd efetiva</span><strong>${$("mainEffectiveOdd").value||"—"}</strong></div>
    <div class="reviewLine"><span>Chance de Duplo Green</span><strong>${money(chance)}</strong></div>
   </div>
   <div class="reviewCard"><h4>Casas utilizadas</h4><div>${houses.length?houses.map(h=>`<span class="tag">${esc(h)}</span>`).join(" "):'<span class="muted">Nenhuma casa preenchida.</span>'}</div></div>
@@ -1226,8 +1264,8 @@ $("newBet").onclick=()=>{
   $("mainAccounts").innerHTML="";
   $("betEntries").innerHTML="";
   addBetGameRow();
-  addMainAccountRow();
-  updateBetPreview();
+  $("mainModality").value="traditional";$("mainBoost").value="";addMainAccountRow();
+  updateMainMode();updateBetPreview();
   showBetWizardStep(1);
   $("betDialog").showModal()
  }catch(error){
@@ -1245,8 +1283,8 @@ window.openBetFor=(pid,hid)=>{
   $("mainAccounts").innerHTML="";
   $("betEntries").innerHTML="";
   addBetGameRow();
-  addMainAccountRow(pid,hid);
-  updateBetPreview();
+  $("mainModality").value="traditional";$("mainBoost").value="";addMainAccountRow(pid,hid);
+  updateMainMode();updateBetPreview();
   showBetWizardStep(1);
   $("betDialog").showModal()
  }catch(error){
@@ -1262,7 +1300,7 @@ window.addEntriesToBet=gid=>{
  $("betDialogMode").textContent="As entradas existentes serão preservadas. Adicione novas contas da principal ou novas proteções.";
  $("betForm").reset();$("betGames").innerHTML="";normalizeGames(b).forEach(g=>addBetGameRow(g));$("betNote").value=b.note||"";
  let first=mainEntries(b)[0];
- $("mainType").value=first?.type||"cash";$("mainOdd").value=first?.odd?String(first.odd).replace(".",","):"";$("mainSelection").value=first?.selection||"";
+ $("mainType").value=first?.type||"cash";$("mainModality").value=first?.modality||"traditional";$("mainOdd").value=first?.odd?String(first.odd).replace(".",","):"";$("mainBoost").value=first?.boost?String(first.boost).replace(".",","):"";$("mainSelection").value=first?.selection||"";updateMainMode();
  $("mainAccounts").innerHTML="";$("betEntries").innerHTML="";updateBetPreview();showBetWizardStep(1);$("betDialog").showModal()
 };
 
@@ -1275,23 +1313,24 @@ $("betForm").onsubmit=e=>{
  if(!games.length||games.some(g=>!g.name))return alert("Informe todos os jogos.");
  if(!targetBet&&!newMains.length)return alert("Adicione ao menos uma conta ao Bloco Principal.");
  if(targetBet&&!newMains.length&&!newProtections.length)return alert("Adicione uma nova conta principal ou uma proteção.");
- if(newMains.some(x=>!x.pid||!x.houseId||!(x.stake>0)||!(x.odd>0)))return alert("Preencha todas as contas do Bloco Principal.");
- if(newProtections.some(x=>!x.pid||!x.houseId||!(x.stake>0)||!(x.odd>0)))return alert("Preencha todas as proteções.");
+ if(newMains.some(x=>!x.pid||!x.houseId||!(x.stake>0)||!(x.odd>0)||(x.modality==="exchange_lay"&&x.odd<=1)||x.commission<0||x.commission>=100||x.boost<0))return alert("Revise os dados do Bloco Principal. Lay exige odd acima de 1 e a comissão deve ficar entre 0% e 99,99%.");
+ if(newProtections.some(x=>!x.pid||!x.houseId||!(x.stake>0)||!(x.odd>0)||(x.modality==="exchange_lay"&&x.odd<=1)||x.commission<0||x.commission>=100||x.boost<0))return alert("Revise as proteções. Lay exige odd acima de 1 e a comissão deve ficar entre 0% e 99,99%.");
 
  let allNew=[...newMains,...newProtections],adjustments=[],projectedCash=new Map(),projectedFreebet=new Map();
  for(let x of allNew){
   let h=hBy(x.pid,x.houseId);if(!h)return alert("Casa não encontrada.");
   let key=x.pid+"::"+x.houseId,field=x.type==="freebet"?"freebet":"balance";
   let map=x.type==="freebet"?projectedFreebet:projectedCash;
+  let needed=x.type==="freebet"?Number(x.stake||0):entryExposure(x);
   let available=map.has(key)?map.get(key):Number(h[field]||0);
-  if(x.stake>available){
-   let shortage=x.stake-available;
+  if(needed>available){
+   let shortage=needed-available;
    let raw=prompt((x.type==="freebet"?"Freebet":"Saldo")+" insuficiente em "+h.name+".\nAdicione ao menos "+money(shortage)+".",shortage.toFixed(2).replace(".",","));
    if(raw===null)return;
    let added=n(raw);if(added<shortage)return alert("Valor insuficiente. O formulário foi mantido.");
    available+=added;adjustments.push({kind:x.type==="freebet"?"freebet":"cash",pid:x.pid,hid:x.houseId,value:added,houseName:h.name})
   }
-  map.set(key,available-x.stake)
+  map.set(key,available-needed)
  }
  adjustments.forEach(a=>{
   let h=hBy(a.pid,a.hid);
@@ -1304,7 +1343,7 @@ $("betForm").onsubmit=e=>{
  ];
  created.forEach(x=>{
   let h=hBy(x.pid,x.houseId);
-  if(x.type==="cash"){h.balance-=x.stake;h.inPlay+=x.stake;move("bet",x.stake,x.pid,x.houseId,(x.role==="mainReplica"?"Principal replicada: ":"Proteção: ")+event,note,-x.stake,x.stake,0)}
+  if(x.type==="cash"){let exposure=entryExposure(x);h.balance-=exposure;h.inPlay+=exposure;move("bet",exposure,x.pid,x.houseId,(x.role==="mainReplica"?"Principal replicada: ":"Proteção: ")+event,note,-exposure,exposure,0)}
   else{h.freebet=Number(h.freebet||0)-x.stake;move("freebet_bet",x.stake,x.pid,x.houseId,"Entrada com freebet: "+event,note,0,0,0)}
  });
  if(targetBet){
@@ -1335,24 +1374,23 @@ function audit(label,details=""){
 }
 function applyEntryComplete(entry){
  let h=hBy(entry.pid,entry.houseId);if(!h)throw new Error("Casa da entrada não encontrada");
- let stake=Number(entry.stake||0),ret=Number(entry.returned||0),status=entry.status||"open";
+ let exposure=entryExposure(entry),stake=Number(entry.stake||0),ret=Number(entry.returned||0),status=entry.status||"open";
  if(entry.type==="cash"){
-  if(status==="open"){h.balance-=stake;h.inPlay+=stake}
-  else if(status==="win"||status==="loss"){h.balance+=ret-stake;h.profit+=ret-stake}
+  if(status==="open"){h.balance-=exposure;h.inPlay+=exposure}
+  else if(status==="win"||status==="loss"){h.balance+=ret-exposure;h.profit+=ret-exposure}
   else if(status==="void"){}
  }else{
   if(status==="open"){h.freebet=Number(h.freebet||0)-stake}
   else if(status==="win"){h.freebet=Number(h.freebet||0)-stake;h.balance+=ret;h.profit+=ret}
   else if(status==="loss"){h.freebet=Number(h.freebet||0)-stake}
-  else if(status==="void"){}
  }
 }
 function reverseEntryComplete(entry){
  let h=hBy(entry.pid,entry.houseId);if(!h)return;
- let stake=Number(entry.stake||0),ret=Number(entry.returned||0),status=entry.status||"open";
+ let exposure=entryExposure(entry),stake=Number(entry.stake||0),ret=Number(entry.returned||0),status=entry.status||"open";
  if(entry.type==="cash"){
-  if(status==="open"){h.balance+=stake;h.inPlay=Math.max(0,h.inPlay-stake)}
-  else if(status==="win"||status==="loss"){h.balance-=ret-stake;h.profit-=ret-stake}
+  if(status==="open"){h.balance+=exposure;h.inPlay=Math.max(0,h.inPlay-exposure)}
+  else if(status==="win"||status==="loss"){h.balance-=ret-exposure;h.profit-=ret-exposure}
  }else{
   if(status==="open"){h.freebet=Number(h.freebet||0)+stake}
   else if(status==="win"){h.freebet=Number(h.freebet||0)+stake;h.balance-=ret;h.profit-=ret}
@@ -1419,13 +1457,13 @@ function renderBetOperationCard(b,operationIndex){
  }).join("");
  let protectionRows=protections.map((e,index)=>{
   let p=pBy(e.pid),h=hBy(e.pid,e.houseId),txt={open:"Em aberto",win:"Green",loss:"Red",void:"Anulada"}[e.status]||e.status,scenario=scenarioNetResult(b,e);
-  return `<div class="betEntry"><div class="betTop"><div><span class="entryRoleBadge protection">Proteção ${index+1}</span><strong style="display:block">${esc((p?.name||"")+" • "+(h?.name||""))}</strong><div class="muted">${esc(e.selection||"Resultado não informado")} • ${txt}</div></div><span class="status ${e.status}">${txt}</span></div>
-  <details class="advancedCalculations"><summary>Ver cálculos desta proteção</summary><div class="stats"><div class="stat"><span>Valor</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd</span><b>${e.odd}</b></div><div class="stat chanceDoubleGreen"><span>Chance DG</span><b>${money(entryPotentialReturn(e))}</b></div><div class="stat"><span>Se só ela vencer</span><b>${money(scenario)}</b></div></div></details>
+  return `<div class="betEntry"><div class="betTop"><div><span class="entryRoleBadge protection">Proteção ${index+1}</span><strong style="display:block">${esc((p?.name||"")+" • "+(h?.name||""))}</strong><div class="muted"><span class="entryModeBadge">${e.modality==="traditional"?"Tradicional":e.modality==="exchange_back"?"Exchange Back":"Exchange Lay"}</span>${esc(e.selection||"Resultado não informado")} • ${txt}</div></div><span class="status ${e.status}">${txt}</span></div>
+  <details class="advancedCalculations"><summary>Ver cálculos desta proteção</summary><div class="stats"><div class="stat"><span>Valor</span><b>${money(e.stake)}</b></div><div class="stat"><span>Odd efetiva</span><b>${effectiveOdd(e).toFixed(2)}</b></div><div class="stat"><span>${e.modality==="exchange_lay"?"Responsabilidade":"Comissão"}</span><b>${e.modality==="exchange_lay"?money(layLiability(e)):e.modality==="exchange_back"?pct(e.commission):"—"}</b></div><div class="stat chanceDoubleGreen"><span>Chance DG</span><b>${money(entryPotentialReturn(e))}</b></div><div class="stat"><span>Se só ela vencer</span><b>${money(scenario)}</b></div></div></details>
   <div class="entryActionRow">${e.status==="open"?`<button class="primary" onclick="openSettle('${b.id}','${e.id}')">Finalizar</button>`:""}<button class="secondary" onclick="editBetEntry('${b.id}','${e.id}')">Editar</button><button class="danger" onclick="deleteBetEntry('${b.id}','${e.id}')">Excluir</button></div></div>`
  }).join("");
  return `<details class="betGroup operationNested"><summary><div class="summaryMain"><strong><span class="operationNumber">${operationIndex+1}</span>Estratégia ${operationIndex+1}</strong><div class="operationCompactInfo"><span>${mains.length} conta(s)</span><span>${houses.join(" • ")||"Sem casa"}</span><span>Chance DG ${money(mainBlockChance(b))}</span></div></div><span class="operationStatusBadge ${status}">${statusLabel}</span></summary>
  <div class="betGroupContent">
-  <div class="mainBlockCard"><div class="betTop"><div><span class="entryRoleBadge main">Bloco Principal</span><strong style="display:block">${esc(mainSelection)}</strong><div class="muted">Odd ${mainOdd} • Stake ${money(mainBlockStake(b))} • ${mains.length} conta(s)</div></div><div class="gameGroupChance"><span>Chance de Duplo Green</span><strong>${money(mainBlockChance(b))}</strong></div></div><div class="mainReplicaList">${mainRows}</div></div>
+  <div class="mainBlockCard"><div class="betTop"><div><span class="entryRoleBadge main">Bloco Principal</span><strong style="display:block">${esc(mainSelection)}</strong><div class="muted">${first?.modality==="exchange_lay"?"Exchange Lay":"Odd efetiva "+effectiveOdd(first).toFixed(2)}${first?.boost?" • aumento "+pct(first.boost):""} • Stake ${money(mainBlockStake(b))} • ${mains.length} conta(s)</div></div><div class="gameGroupChance"><span>Chance de Duplo Green</span><strong>${money(mainBlockChance(b))}</strong></div></div><div class="mainReplicaList">${mainRows}</div></div>
   <div class="entryActionRow"><button class="primary" onclick="addEntriesToBet('${b.id}')">+ Conta principal / proteção</button><button class="secondary" onclick="editBetGame('${b.id}')">Editar jogos</button><button class="danger" onclick="deleteBetGame('${b.id}')">Excluir estratégia</button></div>
   ${protectionRows||'<div class="card empty">Nenhuma proteção cadastrada. Você pode completar esta estratégia depois.</div>'}
   <details class="advancedCalculations"><summary>Ver cálculos detalhados da estratégia</summary><div class="stats"><div class="stat"><span>Total comprometido</span><b>${money(groupCashCost(b))}</b></div><div class="stat"><span>Resultado mínimo previsto</span><b>${protections.length?money(guaranteed):"Sem proteção"}</b></div><div class="stat"><span>Retorno recebido</span><b>${open?"Em andamento":money(totalActualReturn)}</b></div><div class="stat"><span>Lucro/prejuízo realizado</span><b>${open?"Em andamento":money(actual)}</b></div></div></details>
@@ -1458,13 +1496,13 @@ window.openSettle=(gid,eid)=>{
  let b=S.bets.find(x=>x.id===gid),entry=b.entries.find(x=>x.id===eid);
  $("settleGroupId").value=gid;$("settleEntryId").value=eid;
  $("settleSub").textContent=b.event||"Aposta";
- $("settleReturn").value=entry.odd?(entry.type==="freebet"?entry.stake*(entry.odd-1):entry.stake*entry.odd).toFixed(2).replace(".",","):"";
+ $("settleReturn").value=entry.odd?entryPotentialReturn(entry).toFixed(2).replace(".",","):"";
  $("settleDialog").showModal()
 };
 $("settleForm").onsubmit=e=>{
  e.preventDefault();
  let b=S.bets.find(x=>x.id===$("settleGroupId").value),entry=b.entries.find(x=>x.id===$("settleEntryId").value),h=hBy(entry.pid,entry.houseId),res=$("settleResult").value;
- let ret=res==="loss"?0:res==="void"?(entry.type==="cash"?entry.stake:0):n($("settleReturn").value);
+ let ret=res==="loss"?0:res==="void"?(entry.type==="cash"?entryExposure(entry):0):n($("settleReturn").value);
  if(!(ret>=0))return alert("Retorno inválido.");
  snapshotState("Finalizar entrada");reverseEntryComplete(entry);
  entry.status=res;entry.returned=ret;entry.settled=new Date().toISOString();
@@ -1613,13 +1651,16 @@ window.editBetEntry=(gid,eid)=>{
  let b=S.bets.find(x=>x.id===gid),e=b&&b.entries.find(x=>x.id===eid);if(!e)return;
  let stake=n(prompt("Valor da entrada:",Number(e.stake).toLocaleString("pt-BR",{minimumFractionDigits:2})));if(!(stake>0))return alert("Valor inválido.");
  let odd=n(prompt("Odd:",String(e.odd).replace(".",",")));if(!(odd>0))return alert("Odd inválida.");
- let type=prompt("Tipo: cash ou freebet",e.type);if(!["cash","freebet"].includes(type))return alert("Tipo inválido.");
+ let modality=prompt("Modalidade: traditional, exchange_back ou exchange_lay",e.modality||"traditional");if(!["traditional","exchange_back","exchange_lay"].includes(modality))return alert("Modalidade inválida.");
+ let type=modality==="exchange_lay"?"cash":prompt("Tipo: cash ou freebet",e.type);if(!["cash","freebet"].includes(type))return alert("Tipo inválido.");
+ let boost=modality==="exchange_lay"?0:n(prompt("Aumento percentual:",String(e.boost||0).replace(".",",")));if(!(boost>=0))return alert("Aumento inválido.");
+ let commission=modality.startsWith("exchange")?n(prompt("Comissão percentual:",String(e.commission||0).replace(".",","))):0;if(!(commission>=0))return alert("Comissão inválida.");
  let selection=prompt("Resultado/mercado protegido:",e.selection||"");if(selection===null)return;
  let compatible=e.role==="main"?false:confirm("Esta proteção pode ficar green junto com a entrada principal?");
  let people=S.people.map((p,i)=>`${i+1} - ${p.name}`).join("\n"),pi=Number(prompt("Pessoa:\n"+people,String(Math.max(0,S.people.findIndex(p=>p.id===e.pid))+1)))-1,p=S.people[pi];if(!p)return alert("Pessoa inválida.");
  let houses=p.houses.map((h,i)=>`${i+1} - ${h.name}`).join("\n"),hi=Number(prompt("Casa:\n"+houses,String(Math.max(0,p.houses.findIndex(h=>h.id===e.houseId))+1)))-1,h=p.houses[hi];if(!h)return alert("Casa inválida.");
  snapshotState("Editar entrada");reverseEntryComplete(e);
- e.pid=p.id;e.houseId=h.id;e.stake=stake;e.odd=odd;e.type=type;e.selection=selection.trim();e.doubleGreenCompatible=e.role==="main"?false:compatible;
+ e.pid=p.id;e.houseId=h.id;e.stake=stake;e.odd=odd;e.type=type;e.modality=modality;e.boost=boost;e.commission=commission;e.selection=selection.trim();e.doubleGreenCompatible=e.role==="main"?false:compatible;
  try{applyEntryComplete(e)}catch(err){alert(err.message);return}
  audit("Entrada editada",`${b.event} • ${p.name} • ${h.name}`);save()
 };
@@ -1720,6 +1761,7 @@ function normalizeOldHouse(h){
   deposits:Number(h.deposits??h.depositos??balance)||0,
   favorite:Boolean(h.favorite??h.favorita??false),
   freebet:Number(freebet)||0,
+  exchangeCommission:Number(h.exchangeCommission??h.commission??h.comissaoExchange??0)||0,
   bonus:Number(bonus)||0,
   rollover:Number(rollover)||0,
   expiry:h.expiry||h.validade||h.expiration||"",

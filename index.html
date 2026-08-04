@@ -346,7 +346,7 @@ body.dark .houseWalletEditor{background:#0c1b30}
 .exchangeFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
 .calcInline{font-size:.72rem;color:var(--muted);margin-top:5px}
 @media(max-width:650px){.exchangeFields{grid-template-columns:1fr}}
-</style>
+.todayHeroActions,.betsHeaderActions{display:flex;gap:7px;flex-wrap:wrap}.betsHeader{display:flex;justify-content:space-between;align-items:center;gap:12px}.quickFormGrid{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:9px}.quickRecordCard{border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:10px;padding:10px;margin-top:8px;background:var(--card)}.quickRecordTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.quickRecordTop h4{margin:0 0 4px}.quickRecordChance{text-align:right;white-space:nowrap}.quickRecordChance span{display:block;color:var(--muted);font-size:.68rem}.quickRecordChance strong{display:block;color:var(--green);margin-top:3px}.quickRecordBadge{display:inline-flex;border-radius:999px;padding:3px 7px;font-size:.64rem;font-weight:900;background:#eff6ff;color:#1d4ed8;margin-top:5px}body.dark .quickRecordBadge{background:#10233f;color:#93c5fd}.quickRecordActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.timelineItem.quick{border-left-color:var(--blue)}.timelineQuickBadge{font-size:.62rem;font-weight:900;color:var(--blue);margin-left:6px}@media(max-width:700px){.quickFormGrid{grid-template-columns:1fr}.betsHeader{align-items:flex-start}.todayHeroActions,.betsHeaderActions{width:100%}.todayHeroActions button,.betsHeaderActions button{flex:1}}</style>
 </head>
 <body>
 <script>
@@ -376,7 +376,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </script>
 
 
-<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v57</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
+<header><div class="head"><div><h1>BetManager <small style="font-size:.65rem;color:#93c5fd">v58</small></h1></div><div id="dataStatus" class="dataStatus"></div><div class="headerTools"><button id="themeBtn" type="button" class="secondary" onclick="return toggleTheme()">🌙</button><button id="installBtn" class="secondary">Instalar</button></div></div></header>
 <main>
 <nav class="tabs" style="display:none">
 <button class="tab active" data-tab="dashboard">Painel</button>
@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 <section id="dashboard" class="panel active">
 <div class="todayHero card">
  <div><span class="todayEyebrow">CENTRO DE OPERAÇÕES</span><h2>Hoje</h2><div id="todayDateLabel" class="muted"></div></div>
- <button type="button" class="primary" onclick="return goToSection('bets')">Ver apostas abertas</button>
+ <div class="todayHeroActions"><button type="button" id="newQuickFromDashboard" class="success">+ Registro rápido</button><button type="button" class="primary" onclick="return goToSection('bets')">Ver apostas abertas</button></div>
 </div>
 <div class="todaySummary">
  <div class="todayMetric"><span>Jogos em andamento</span><strong id="todayGamesCount">0</strong></div>
@@ -446,7 +446,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 </section>
 
 <section id="bets" class="panel">
-<div class="card" style="display:flex;justify-content:space-between;align-items:center"><div><h3 style="margin-bottom:3px">Apostas</h3><div class="muted">Organize operações com entrada principal e proteções.</div></div><button id="newBet" class="primary">Nova aposta</button></div>
+<div class="card betsHeader"><div><h3 style="margin-bottom:3px">Apostas</h3><div class="muted">Registros rápidos e operações completas ainda em acompanhamento.</div></div><div class="betsHeaderActions"><button id="newQuick" class="success">+ Registro rápido</button><button id="newBet" class="primary">Nova aposta completa</button></div></div><div class="card"><div class="dashboardSectionHead"><div><h3>Registros rápidos</h3><p class="muted">Somente jogo, data e Chance de Duplo Green.</p></div></div><div id="quickRecordsList"></div></div>
 <div class="filters"><input id="betSearch" placeholder="Pesquisar"><select id="betStatus">
 <option value="all">Todas em andamento</option>
 <option value="unprotected">Sem proteção</option>
@@ -598,6 +598,12 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 <div class="dactions"><button type="button" class="secondary" onclick="closeD('duplicateDialog')">Cancelar</button><button class="primary">Duplicar</button></div>
 </form></dialog>
 
+<dialog id="quickDialog"><form id="quickForm">
+<div class="dhead"><div><h2 id="quickTitle">Registro rápido</h2><div class="muted">Anote somente o necessário para acompanhar a possibilidade de duplo green.</div></div><button type="button" class="secondary" onclick="closeD('quickDialog')">X</button></div>
+<input id="quickId" type="hidden">
+<div class="quickFormGrid"><label>Jogo<input id="quickGame" required placeholder="Ex.: Mirassol x Grêmio"></label><label>Data e hora<input id="quickDate" type="datetime-local"></label><label>Chance de Duplo Green<input id="quickChance" inputmode="decimal" required placeholder="0,00"></label></div>
+<div class="dactions"><button type="button" class="secondary" onclick="closeD('quickDialog')">Cancelar</button><button class="primary">Salvar registro</button></div>
+</form></dialog>
 <dialog id="betDialog"><form id="betForm">
 <div class="dhead">
  <div><h2 id="betDialogTitle">Nova aposta</h2><div id="betDialogMode" class="muted"></div></div>
@@ -671,7 +677,7 @@ document.addEventListener("DOMContentLoaded",window.applyBetTheme);
 
 <script>
 (()=>{"use strict";
-const KEY="betmanagerData";let S={people:[],bets:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
+const KEY="betmanagerData";let S={people:[],bets:[],quickRecords:[],moves:[],weeklyGoals:[],snapshots:[],settings:{},audit:[],trash:[],undoStack:[]},openPid=null,$=id=>document.getElementById(id);
 const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -684,8 +690,8 @@ function stateSize(state){
  let houses=(state.people||[]).reduce((sum,p)=>sum+(Array.isArray(p.houses)?p.houses.length:0),0);
  let bets=Array.isArray(state.bets)?state.bets.length:0;
  let moves=Array.isArray(state.moves)?state.moves.length:0;
- let goals=Array.isArray(state.weeklyGoals)?state.weeklyGoals.length:0;
- return {people,houses,total:people+houses+bets+moves+goals}
+ let goals=Array.isArray(state.weeklyGoals)?state.weeklyGoals.length:0;let quickRecords=Array.isArray(state.quickRecords)?state.quickRecords.length:0;
+ return {people,houses,quickRecords,total:people+houses+bets+moves+goals+quickRecords}
 }
 function readState(key){
  try{
@@ -696,7 +702,7 @@ function readState(key){
 }
 function normalizeState(x){
  x=x||{};
- return {people:Array.isArray(x.people)?x.people:[],bets:Array.isArray(x.bets)?x.bets:[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],snapshots:Array.isArray(x.snapshots)?x.snapshots:[],settings:x.settings||{},audit:Array.isArray(x.audit)?x.audit:[],trash:Array.isArray(x.trash)?x.trash:[],undoStack:Array.isArray(x.undoStack)?x.undoStack:[]}
+ return {people:Array.isArray(x.people)?x.people:[],bets:Array.isArray(x.bets)?x.bets:[],quickRecords:Array.isArray(x.quickRecords)?x.quickRecords.map(normalizeQuickRecord):[],moves:Array.isArray(x.moves)?x.moves:[],weeklyGoals:Array.isArray(x.weeklyGoals)?x.weeklyGoals:[],snapshots:Array.isArray(x.snapshots)?x.snapshots:[],settings:x.settings||{},audit:Array.isArray(x.audit)?x.audit:[],trash:Array.isArray(x.trash)?x.trash:[],undoStack:Array.isArray(x.undoStack)?x.undoStack:[]}
 }
 function load(){
  try{
@@ -733,6 +739,12 @@ function allH(){return S.people.flatMap(p=>p.houses.map(h=>({...h,freebet:Number
 function move(type,value,pid,hid,label,note,deltaBalance=0,deltaInPlay=0,deltaProfit=0){S.moves.unshift({id:uid(),date:new Date().toISOString(),type,value,pid,hid,label,note:note||"",deltaBalance,deltaInPlay,deltaProfit});let h=hBy(pid,hid);if(h)h.lastMovement=new Date().toISOString()}
 function total(){let hs=allH(),balance=hs.reduce((s,h)=>s+h.balance,0),inPlay=hs.reduce((s,h)=>s+h.inPlay,0),profit=hs.reduce((s,h)=>s+h.profit,0),deposits=hs.reduce((s,h)=>s+h.deposits,0),freebet=hs.reduce((s,h)=>s+Number(h.freebet||0),0),bonus=hs.reduce((s,h)=>s+Number(h.bonus||0),0);return{balance,inPlay,capital:balance+inPlay,profit,deposits,freebet,bonus,roi:deposits?profit/deposits*100:0,houses:hs.length,people:S.people.length,open:S.bets.filter(b=>(b.entries||[]).some(e=>e.status==="open")).length}}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===b.dataset.tab))});
+function normalizeQuickRecord(q){q=q||{};return{id:q.id||uid(),game:String(q.game||q.jogo||q.event||"").trim(),date:q.date||q.data||q.eventDate||"",chance:Number(q.chance??q.doubleGreenChance??q.chanceDG??q.valor??0)||0,created:q.created||q.createdAt||new Date().toISOString(),updated:q.updated||q.updatedAt||q.created||new Date().toISOString()}}
+function openQuickDialog(record=null){$("quickForm").reset();$("quickId").value=record?.id||"";$("quickGame").value=record?.game||"";$("quickDate").value=record?.date||"";$("quickChance").value=record?.chance?Number(record.chance).toLocaleString("pt-BR",{minimumFractionDigits:2}):"";$("quickTitle").textContent=record?"Editar registro rápido":"Registro rápido";$("quickDialog").showModal()}
+window.editQuickRecord=id=>{let q=S.quickRecords.find(x=>x.id===id);if(q)openQuickDialog(q)};
+window.deleteQuickRecord=id=>{if(!confirm("Excluir este registro rápido?"))return;S.quickRecords=S.quickRecords.filter(x=>x.id!==id);save()};
+window.completeQuickRecord=id=>{let q=S.quickRecords.find(x=>x.id===id);if(!q)return;if(!allH().length)return alert("Cadastre ao menos uma casa antes de completar a aposta.");editingBetId=null;$("betDialogTitle").textContent="Completar registro rápido";$("betDialogMode").textContent="O jogo e a data já foram preenchidos.";$("betForm").reset();$("betGames").innerHTML="";$("mainAccounts").innerHTML="";$("betEntries").innerHTML="";addBetGameRow({name:q.game,date:q.date});$("betNote").value="Registro rápido • Chance DG de referência: "+money(q.chance);$("mainModality").value="traditional";$("mainBoost").value="";addMainAccountRow();updateMainMode();updateBetPreview();showBetWizardStep(1);$("betDialog").showModal()};
+$("quickForm").onsubmit=e=>{e.preventDefault();let id=$("quickId").value,game=$("quickGame").value.trim(),date=$("quickDate").value,chance=n($("quickChance").value);if(!game||!(chance>=0))return alert("Informe o jogo e uma Chance de Duplo Green válida.");let existing=S.quickRecords.find(x=>x.id===id),now=new Date().toISOString();if(existing){existing.game=game;existing.date=date;existing.chance=chance;existing.updated=now;audit("Registro rápido editado",game)}else{S.quickRecords.unshift({id:uid(),game,date,chance,created:now,updated:now});audit("Registro rápido criado",game)}save();$("quickDialog").close()};
 function render(){
  const tasks=[
   ["painel",renderDash],["operando",renderOperations],["pessoas",renderPeople],["apostas",renderBets],
@@ -760,47 +772,7 @@ function groupProtectionStatus(group){
 }
 function groupProtectionLabel(group){return {unprotected:"Sem proteção",partial:"Proteção incompleta",protected:"Protegida"}[groupProtectionStatus(group)]}
 function groupFirstDate(group){let dates=group.games.map(g=>g.date).filter(Boolean).sort();return dates[0]||""}
-function renderTodayDashboard(){
- let now=new Date(),today=localDateKey(now),groups=openBetGroups();
- let datedToday=groups.filter(group=>{let date=groupFirstDate(group);return date&&localDateKey(date)===today});
- let noDate=groups.filter(group=>!groupFirstDate(group));
- let visible=[...datedToday,...noDate],statuses=visible.map(groupProtectionStatus);
- let chance=visible.reduce((sum,group)=>sum+group.operations.reduce((s,b)=>s+operationChanceDoubleGreen(b),0),0);
- $("todayDateLabel").textContent=now.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
- $("todayGamesCount").textContent=visible.length;
- $("todayUnprotected").textContent=statuses.filter(x=>x==="unprotected").length;
- $("todayPartial").textContent=statuses.filter(x=>x==="partial").length;
- $("todayProtected").textContent=statuses.filter(x=>x==="protected").length;
- $("todayChance").textContent=money(chance);
- let allGroups=[...groups].sort((a,b)=>(groupFirstDate(a)||"9999").localeCompare(groupFirstDate(b)||"9999"));
- if(!allGroups.length){$("todayTimeline").innerHTML='<div class="empty">Nenhum jogo com estratégia aberta.</div>';return}
- let buckets=new Map();
- allGroups.forEach(group=>{let date=groupFirstDate(group),key=date?localDateKey(date):"sem-data";if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(group)});
- $("todayTimeline").innerHTML=[...buckets.entries()].map(([key,list])=>{
-  let title=key==="sem-data"?"Sem data informada":key===today?"Hoje":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit"});
-  let items=list.map(group=>{
-   let date=groupFirstDate(group),status=groupProtectionStatus(group);
-   let time=group.games.length>1?group.games.length+" jogos":date?new Date(date).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";
-   let chance=group.operations.reduce((s,b)=>s+operationChanceDoubleGreen(b),0);
-   let openEntries=group.operations.reduce((s,b)=>s+(b.entries||[]).filter(e=>e.status==="open").length,0);
-   return `<div class="timelineItem ${status}">
-    <div class="timelineTime">${time}<small>${group.games.length>1?"múltipla":key===today?"hoje":key==="sem-data"?"sem data":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></div>
-    <div class="timelineMain"><strong>${esc(gameGroupTitle(group))}</strong>${group.games.length>1?`<div class="timelineMultiGames">${groupGamesWithDatesHtml(group,true)}</div>`:""}<div class="timelineMeta"><span>${group.operations.length} estratégia(s)</span><span>${openEntries} entrada(s) aberta(s)</span><span>${groupProtectionLabel(group)}</span></div></div>
-    <div class="timelineAction"><strong>${money(chance)}</strong><button type="button" class="secondary" data-timeline-signature="${esc(group.signature)}">Abrir</button></div>
-   </div>`
-  }).join("");
-  return `<div class="todayDayGroup"><div class="todayDayTitle">${esc(title)}</div>${items}</div>`
- }).join("");
- document.querySelectorAll("[data-timeline-signature]").forEach(button=>button.onclick=()=>openTimelineGame(button.dataset.timelineSignature))
-}
-let activeTimelineSignature="";
-window.openTimelineGame=signature=>{
- activeTimelineSignature=String(signature||"");
- $("betSearch").value="";
- goToSection("bets");
- renderBets()
-};
-
+function renderTodayDashboard(){let now=new Date(),today=localDateKey(now),groups=openBetGroups(),quick=[...S.quickRecords];let todayGroups=groups.filter(g=>!groupFirstDate(g)||localDateKey(groupFirstDate(g))===today),todayQuick=quick.filter(q=>!q.date||localDateKey(q.date)===today),statuses=todayGroups.map(groupProtectionStatus),chance=todayGroups.reduce((sum,g)=>sum+g.operations.reduce((s,b)=>s+operationChanceDoubleGreen(b),0),0)+todayQuick.reduce((s,q)=>s+q.chance,0);$("todayDateLabel").textContent=now.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});$("todayGamesCount").textContent=todayGroups.length+todayQuick.length;$("todayUnprotected").textContent=statuses.filter(x=>x==="unprotected").length;$("todayPartial").textContent=statuses.filter(x=>x==="partial").length;$("todayProtected").textContent=statuses.filter(x=>x==="protected").length;$("todayChance").textContent=money(chance);let items=[...groups.map(group=>({kind:"full",date:groupFirstDate(group),group})),...quick.map(record=>({kind:"quick",date:record.date,record}))].sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));if(!items.length){$("todayTimeline").innerHTML='<div class="empty">Nenhum jogo em acompanhamento.</div>';return}let buckets=new Map();items.forEach(item=>{let key=item.date?localDateKey(item.date):"sem-data";if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(item)});$("todayTimeline").innerHTML=[...buckets.entries()].map(([key,list])=>{let title=key==="sem-data"?"Sem data informada":key===today?"Hoje":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit"});let rows=list.map(item=>{if(item.kind==="quick"){let r=item.record,time=r.date?new Date(r.date).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";return `<div class="timelineItem quick"><div class="timelineTime">${time}<small>${key===today?"hoje":key==="sem-data"?"sem data":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></div><div class="timelineMain"><strong>${esc(r.game)}<span class="timelineQuickBadge">REGISTRO RÁPIDO</span></strong><div class="timelineMeta"><span>Acompanhamento operacional</span></div></div><div class="timelineAction"><strong>${money(r.chance)}</strong><button type="button" class="secondary" data-quick-open="${r.id}">Abrir</button></div></div>`}let group=item.group,date=groupFirstDate(group),status=groupProtectionStatus(group),time=group.games.length>1?group.games.length+" jogos":date?new Date(date).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—",dg=group.operations.reduce((s,b)=>s+operationChanceDoubleGreen(b),0),openEntries=group.operations.reduce((s,b)=>s+(b.entries||[]).filter(e=>e.status==="open").length,0);return `<div class="timelineItem ${status}"><div class="timelineTime">${time}<small>${group.games.length>1?"múltipla":key===today?"hoje":key==="sem-data"?"sem data":new Date(key+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></div><div class="timelineMain"><strong>${esc(gameGroupTitle(group))}</strong>${group.games.length>1?`<div class="timelineMultiGames">${groupGamesWithDatesHtml(group,true)}</div>`:""}<div class="timelineMeta"><span>${group.operations.length} estratégia(s)</span><span>${openEntries} entrada(s) aberta(s)</span><span>${groupProtectionLabel(group)}</span></div></div><div class="timelineAction"><strong>${money(dg)}</strong><button type="button" class="secondary" data-timeline-signature="${esc(group.signature)}">Abrir</button></div></div>`}).join("");return `<div class="todayDayGroup"><div class="todayDayTitle">${esc(title)}</div>${rows}</div>`}).join("");document.querySelectorAll("[data-timeline-signature]").forEach(button=>button.onclick=()=>openTimelineGame(button.dataset.timelineSignature));document.querySelectorAll("[data-quick-open]").forEach(button=>button.onclick=()=>{goToSection("bets");$("betSearch").value="";activeTimelineSignature="";renderBets();let q=S.quickRecords.find(x=>x.id===button.dataset.quickOpen);if(q)setTimeout(()=>{let cards=[...document.querySelectorAll(".quickRecordCard")],card=cards.find(c=>c.textContent.includes(q.game));if(card)card.scrollIntoView({behavior:"smooth",block:"center"})},50)})}
 function renderDash(){
  renderTodayDashboard();
  let t=total();setText("dCapital",money(t.capital));setText("dBalance",money(t.balance));setText("dInPlay",money(t.inPlay));setText("dRoi",pct(t.roi));setText("dProfit",money(t.profit));setText("dPeople",t.people);setText("dHouses",t.houses);setText("dOpen",t.open);setText("dFreebet",money(t.freebet));setText("dBonus",money(t.bonus));
@@ -1253,6 +1225,7 @@ document.querySelectorAll(".betWizardStep").forEach(button=>button.onclick=()=>{
  if(target<betWizardStep||validateBetWizardStep(betWizardStep))showBetWizardStep(target)
 });
 
+$("newQuick").onclick=()=>openQuickDialog();$("newQuickFromDashboard").onclick=()=>openQuickDialog();
 $("newBet").onclick=()=>{
  try{
   if(!allH().length)return alert("Cadastre ao menos uma casa.");
@@ -1469,7 +1442,9 @@ function renderBetOperationCard(b,operationIndex){
   <details class="advancedCalculations"><summary>Ver cálculos detalhados da estratégia</summary><div class="stats"><div class="stat"><span>Total comprometido</span><b>${money(groupCashCost(b))}</b></div><div class="stat"><span>Resultado mínimo previsto</span><b>${protections.length?money(guaranteed):"Sem proteção"}</b></div><div class="stat"><span>Retorno recebido</span><b>${open?"Em andamento":money(totalActualReturn)}</b></div><div class="stat"><span>Lucro/prejuízo realizado</span><b>${open?"Em andamento":money(actual)}</b></div></div></details>
  </div></details>`
 }
+function renderQuickRecords(){let q=$("betSearch").value.toLowerCase(),records=[...S.quickRecords].filter(x=>x.game.toLowerCase().includes(q)).sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));$("quickRecordsList").innerHTML=records.length?records.map(r=>`<div class="quickRecordCard"><div class="quickRecordTop"><div><h4>${esc(r.game)}</h4><div class="muted">${r.date?new Date(r.date).toLocaleString("pt-BR"):"Data não informada"}</div><span class="quickRecordBadge">REGISTRO RÁPIDO</span></div><div class="quickRecordChance"><span>Chance DG</span><strong>${money(r.chance)}</strong></div></div><div class="quickRecordActions"><button class="primary" onclick="completeQuickRecord('${r.id}')">Completar cadastro</button><button class="secondary" onclick="editQuickRecord('${r.id}')">Editar</button><button class="danger" onclick="deleteQuickRecord('${r.id}')">Excluir</button></div></div>`).join(""):'<div class="empty">Nenhum registro rápido.</div>'}
 function renderBets(){
+ renderQuickRecords();
  let q=$("betSearch").value.toLowerCase(),st=$("betStatus").value;
  let bs=S.bets.filter(b=>groupStatus(b)==="open").filter(b=>st==="all"||operationProtectionStatus(b)===st).filter(b=>{
   let text=[b.event,b.note,...normalizeGames(b).map(g=>g.name),...(b.entries||[]).flatMap(e=>{let p=pBy(e.pid),h=hBy(e.pid,e.houseId);return [p?p.name:"",h?h.name:"",e.selection||""]})].join(" ").toLowerCase();
@@ -1770,14 +1745,14 @@ function normalizeOldHouse(h){
  }
 }
 function migrateBackup(x){
- let people=[],bets=[],moves=[],weeklyGoals=[],snapshots=[],settings={},auditLog=[],trash=[],undoStack=[];
+ let people=[],bets=[],quickRecords=[],moves=[],weeklyGoals=[],snapshots=[],settings={},auditLog=[],trash=[],undoStack=[];
  if(typeof x==="string")x=JSON.parse(x.trim().replace(/^\uFEFF/,""));
  if(Array.isArray(x)){
   people=x
  }else if(x&&typeof x==="object"){
   let root=x.data&&typeof x.data==="object"&&!Array.isArray(x.data)?x.data:x;
   people=root.people||root.pessoas||root.users||root.clientes||root.data||[];
-  bets=root.bets||root.apostas||root.games||root.jogos||[];
+  bets=root.bets||root.apostas||root.games||root.jogos||[];quickRecords=root.quickRecords||root.registrosRapidos||[];
   moves=root.moves||root.movements||root.movimentacoes||root.historico||[];
   weeklyGoals=root.weeklyGoals||root.metasSemanais||root.semanalBet365||[];snapshots=root.snapshots||[];settings=root.settings||{};auditLog=root.audit||[];trash=root.trash||[];undoStack=[];
   if(!Array.isArray(people)&&people&&typeof people==="object")people=Object.values(people);
@@ -1854,7 +1829,7 @@ function migrateBackup(x){
   }
  });
  weeklyGoals=(Array.isArray(weeklyGoals)?weeklyGoals:[]).map(weeklyNormalizeGoal);
- return {people,bets,moves,weeklyGoals,snapshots:Array.isArray(snapshots)?snapshots:[],settings:settings||{},audit:Array.isArray(auditLog)?auditLog:[],trash:Array.isArray(trash)?trash:[],undoStack:[]}
+ return {people,bets,quickRecords,moves,weeklyGoals,snapshots:Array.isArray(snapshots)?snapshots:[],settings:settings||{},audit:Array.isArray(auditLog)?auditLog:[],trash:Array.isArray(trash)?trash:[],undoStack:[]}
 }
 $("exportBtn").onclick=()=>{let blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-controle-de-apostas-v12.json";a.click();URL.revokeObjectURL(url)};
 $("importBtn").onclick=()=>$("importFile").click();
@@ -1916,7 +1891,7 @@ $("installBtn").onclick=async()=>{
  }else installInstructions()
 };
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
-load();window.applyBetTheme();S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
+load();S.quickRecords=(Array.isArray(S.quickRecords)?S.quickRecords:[]).map(normalizeQuickRecord);window.applyBetTheme();S.audit=Array.isArray(S.audit)?S.audit:[];S.trash=Array.isArray(S.trash)?S.trash:[];S.undoStack=Array.isArray(S.undoStack)?S.undoStack:[];cleanTrash();applyTheme();createDailySnapshot();normalizeBets();S.weeklyGoals=(Array.isArray(S.weeklyGoals)?S.weeklyGoals:[]).map(weeklyNormalizeGoal);S.people.forEach(p=>p.houses.forEach(h=>{if(h.freebet==null)h.freebet=0;if(h.url==null)h.url="";if(h.bonus==null)h.bonus=0;if(h.rollover==null)h.rollover=0;if(h.maxStake==null)h.maxStake=0;if(h.dailyLimit==null)h.dailyLimit=0;if(h.expiry==null)h.expiry="";if(!Array.isArray(h.tags))h.tags=[];if(!h.lastMovement)h.lastMovement=""}));render();
 })();
 </script>
 

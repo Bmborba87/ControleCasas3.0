@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=57",
+  "start_url": "./?v=58",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v57",
-  "description": "Suporte a Tradicional, Exchange Back, Exchange Lay, comissão variável e aumento de odd."
+  "id": "./betmanager-v58",
+  "description": "Registro rápido de jogo, data e Chance de Duplo Green."
 }

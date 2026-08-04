@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=58",
+  "start_url": "./?v=59",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v58",
-  "description": "Registro rápido de jogo, data e Chance de Duplo Green."
+  "id": "./betmanager-v59",
+  "description": "Tela de apostas e abertura pela linha do tempo corrigidas."
 }

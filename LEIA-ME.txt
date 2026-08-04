@@ -1,3 +1,8 @@
-BETMANAGER V58
+BETMANAGER V59
 
-Registro rápido com jogo, data/hora e Chance DG. Aparece no Dashboard e em Apostas, não altera saldos e pode ser convertido em cadastro completo.
+CORREÇÕES
+- Restaurada a variável activeTimelineSignature, removida por engano na V58.
+- A tela Apostas volta a renderizar operações completas.
+- Restaurada a função Abrir da linha do tempo para apostas completas.
+- Ao acessar Apostas normalmente, o filtro interno da linha do tempo é limpo.
+- Registro Rápido permanece funcionando.

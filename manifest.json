@@ -1,7 +1,7 @@
 {
   "name": "BetManager",
   "short_name": "BetManager",
-  "start_url": "./?v=59",
+  "start_url": "./?v=60",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
@@ -18,6 +18,6 @@
       "type": "image/png"
     }
   ],
-  "id": "./betmanager-v59",
-  "description": "Tela de apostas e abertura pela linha do tempo corrigidas."
+  "id": "./betmanager-v60",
+  "description": "Registros rápidos agrupados por jogo, condições por lado e soma total do duplo."
 }

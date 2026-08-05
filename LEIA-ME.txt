@@ -1,8 +1,10 @@
-BETMANAGER V59
+BETMANAGER V60
 
-CORREÇÕES
-- Restaurada a variável activeTimelineSignature, removida por engano na V58.
-- A tela Apostas volta a renderizar operações completas.
-- Restaurada a função Abrir da linha do tempo para apostas completas.
-- Ao acessar Apostas normalmente, o filtro interno da linha do tempo é limpo.
-- Registro Rápido permanece funcionando.
+- Registros rápidos agrupados automaticamente por jogo e data.
+- Jogo e data são preenchidos uma vez.
+- Botão para adicionar novas possibilidades dentro do mesmo jogo.
+- Condição: geral, Time A abrir 2 gols ou Time B abrir 2 gols.
+- Cada possibilidade mantém seu valor individual.
+- O grupo mostra a soma total da Chance de Duplo Green.
+- Dashboard lista todas as condições e o total do jogo.
+- Registros antigos são convertidos como condição geral.
